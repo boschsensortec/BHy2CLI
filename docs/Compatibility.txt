@@ -1,0 +1,183 @@
+/***********************************************************************************************************************/
+# Release Details
+
+- bhy2cli Version			: v0.5.0
+
+- Firmware Versions	
+   bhi260ap				: v1.1.10.0
+   bhi360				: v1.1.18.0
+   bhi380				: v1.1.18.0
+
+- BSX4 version 				: bhi260ap[v1.1.10.0] -> vIR82.1 (FW support not guranteed, as SensorAPI upgraded to support FW v1.1.18.0 onwards)
+					  bhi360[1.1.18.0]    -> vIR84.3
+					  bhi380[1.1.18.0]    -> vIR84.1
+- Supported Use Cases		
+   Generic Sensor Application		: bhi2[bhi260ap]
+					  bhi3[bhi360/bhi380]
+
+   Klio					: bhi260ap[v1.1.10.0] -> v3.0.2
+					  bhi380[1.1.18.0]    -> v3.0.2
+
+   Swim					: bhi260ap[v1.1.10.0] -> v2.3.0
+					  bhi380[1.1.18.0]    -> v2.3.0
+
+- Supported Platforms			: Windows
+
+/***********************************************************************************************************************/
+# Release Details
+
+- bhy2cli Version			: v0.4.11
+
+- Firmware Versions	
+   bhi260ap				: v1.1.10.0
+   bhi360				: v1.1.16.0
+   bhi380				: v1.1.12.0
+
+- BSX4 version 				: bhi260ap[v1.1.10.0] -> vIR82.1
+					  bhi360[1.1.16.0]    -> vIR84.3
+					  bhi380[1.1.12.0]    -> vIR84.1
+- Supported Use Cases		
+   Generic Sensor Application		: bhi2[bhi260ap]
+					  bhi3[bhi360/bhi380]
+
+   Klio					: bhi260ap[v1.1.10.0] -> v3.0.2
+					  bhi380[1.1.12.0]    -> v3.0.2
+
+   Swim					: bhi260ap[v1.1.10.0] -> v2.3.0
+					  bhi380[1.1.12.0]    -> v2.3.0
+
+- Supported Platforms			: Windows
+
+/***********************************************************************************************************************/
+# Release Details
+
+- bhy2cli Version			: v0.4.10-rc1
+
+- Firmware Versions	
+   bhi260ap				: v1.1.10.0
+   bhi360				: v1.1.16.0
+   bhi380				: v1.1.12.0
+
+- BSX4 version 				: bhi260ap[v1.1.10.0] -> vIR82.1
+					  bhi360[1.1.16.0]    -> vIR84.3
+					  bhi380[1.1.12.0]    -> vIR84.1
+- Supported Use Cases		
+   Generic Sensor Application		: bhi2[bhi260ap]
+					  bhi3[bhi360/bhi380]
+
+   Klio					: bhi260ap[v1.1.10.0] -> v3.0.2
+					  bhi380[1.1.12.0]    -> v3.0.2
+
+   Swim					: bhi260ap[v1.1.10.0] -> v2.3.0
+					  bhi380[1.1.12.0]    -> v2.3.0
+
+- Supported Platforms			: Windows
+
+/***********************************************************************************************************************/
+# Release Details
+
+- bhy2cli Version			: v0.4.9
+
+- Firmware Versions	
+   bhi260ap				: v1.1.10.0
+   bhi360				: v1.1.16.0
+   bhi380				: v1.1.12.0
+
+- BSX4 version 				: bhi260ap[v1.1.10.0] -> vIR82.1
+					  bhi360[1.1.16.0]    -> vIR84.3
+					  bhi380[1.1.12.0]    -> vIR84.1
+- Supported Use Cases		
+   Generic Sensor Application		: bhi2[bhi260ap]
+					  bhi3[bhi360/bhi380]
+
+   Klio					: bhi260ap[v1.1.10.0] -> v3.0.2
+					  bhi380[1.1.12.0]    -> v3.0.2
+
+   Swim					: bhi260ap[v1.1.10.0] -> v2.3.0
+					  bhi380[1.1.12.0]    -> v2.3.0
+
+- Supported Platforms			: Windows
+
+/************************************************************************************************************************/
+# Usage
+
+- MCU Mode
+  - For genric sensor application, depending on the shuttle [bhi260ap/bhi360], execute prepare_bhi260ap.bat/prepare_bhi3.bat to setup thr board.
+  - For specific use case applications, depending on the specific use case application, excute the corresponding prepare_appxxx.bat, eg. for klio -> prepare_klio.bat
+  - Note - Since BHI3 does not have internal flash, the scripts for specific use case applications is not supported for BHI3 variant sensors.
+  - Use the corresponding APP to validate the application.
+
+- PC Mode
+  - Go to app30-firmware/coine_bridge_firmware/.. and execute download_coines_bridge.bat 
+  - Go to bhy2cli/.. and execute the correpsonding .exe application.
+
+/************************************************************************************************************************/
+# Release Package Description
+
+1. app30-firmware		: Holds the requisite firmware packages for setting up the application board
+
+   - bootloader_update		: Holds the bootloader application package. 
+				  Run the .bat/.sh script to update the bootloader.
+
+   - coines_bridge_firmware	: Holds the coines_bridge firmware. The coines_bridge firmware is used as base application in app30, when running the application in PC mode. 
+			     	  Run the download_coines_bridge.bat script to upload the coines_bridge firmware to app30 board.
+
+   - mtp firmware update	: Holds the MTP package. mtp mode is used to emulate the application board as a memory device. 
+				  Run the .bat/.sh script to update/set up MTP firmware.
+
+2. bhy2cli			: Holds the bhy2cli application firmware.
+
+   - bhy2cli.bin		: .bin to run the bhy2cli in MCU Mode.
+   - bhy2cli.exe		: Executable to run the bhy2cli in PC Mode. This is the default PC mode firmware and uses SPI Interface.
+   - bhy2cli_i2c.exe		: Executable to run the bhy2cli in PC Mode with I2C Interface.
+
+3. bhy2-firmware		: Holds the requisite firmware images which runs in the BHy Fuser core. 
+				  The same needs to be loaded to APP3.0 external flash, when executing the application in MCU mode.
+
+4. Tools			: Holds the requiste tools for the release package.
+
+   - app_switch			: It is used to switch between different applications.
+
+   - app30-mtp-format		: It is the optimized version of mtp-format for app30 board.
+				  Very much quick when compared with `mtp-format` in mtp-tools.
+
+   - bhy2cli-decompressor	: Application to extract the data from the .bin type logs in a readable format that is .csv file.
+   
+   - mtp tools			: mtp tools package [mtp installation folder].
+
+   - usb-dfu			: Pre-loaded application provided by the MCU provider, to put the device in DFU (bootloader) mode. 
+     				  Used to update the firmware of the device, by putting the device in bootloader mode.
+
+5. prepare_bhi260.bat		: Script to prepare the application board to interact with bhi260_ sensor. Takes the requisite firmware image to be loaded as an argument.
+				  (For usage, refer the prepare batch scripts for Klio/Swim/PDR).
+				  Involves following steps -
+   				  - Load the coines_bridge firmware to setup the application board for PC mode.
+				  - Run the bhy2cli application in PC mode and run the flb command to flash the firmware image passed as argument to BHy Flash.
+   				  - Load the bhiycli.bin firmware to the application board, to run the application in MCU mode.
+   				  - Load the MTP firmware and put the application board in MTP mode. Copy the requisite firmware images to app30 external Flash.
+
+6. prepare_bhi260ap.bat		: Setup the application board and bhi260ap sensor for default operationn. Load the BHI260AP_BMM150-flash.fw as default firmware in bhi260ap.
+ 
+7. prepare_bhi3.bat		: Script to setup the application board and bhi3 sensor for default operation. 
+				  bhi3 series do not have internal flash, as such, default firmware cannot be loaded as part of board setup.
+				  Involves following steps -
+   				  - Load the bhy2cli.bin firmware to the application board, to run the application in MCU mode.
+   				  - Load the MTP firmware and put the application board in MTP mode. Copy the requisite firmware images to app30 external Flash.
+
+8. prepare_klio.bat		: Setup the application board and bhi260ap sensor for Klio application. Load the BHI260AP_klio-flash.fw as default firmware in bhi260ap.
+
+9. prepare_swim.bat		: Setup the application board and bhi260ap sensor for Swim application. Load the BHI260AP_SWIM-flash.fw as default firmware in bhi260ap.
+
+10. prepare_flash.bat		: Script to put the application board in MTP mode and copy the requisite firmware images to app30 external Flash.
+
+/************************************************************************************************************************/
+
+
+
+
+
+
+
+
+
+

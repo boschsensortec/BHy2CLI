@@ -2,7 +2,7 @@ clang==6.0.0.2
 cstyle==0.1.0
 future==0.17.1
 gitdb2==2.0.4
-GitPython==2.1.11
+GitPython==3.1.41
 junit-xml==1.8
 parse==1.6.5
 pycparser==2.18

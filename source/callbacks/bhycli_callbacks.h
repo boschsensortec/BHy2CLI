@@ -47,11 +47,11 @@ extern "C" {
 
 #include "cli.h"
 
-#include "bhy2.h"
+#include "bhy.h"
 
-#include "bhy_klio_param.h"
+//#include "bhy_klio_param.h"
 #include "bhy_system_param.h"
-#include "bhy_swim_param.h"
+//#include "bhy_swim_param.h"
 #include "bhy_multi_tap_param.h"
 #include "bhy_head_orientation_param.h"
 #include "parse.h"
@@ -59,7 +59,7 @@ extern "C" {
 
 struct bhy_cli_ref
 {
-    struct bhy2_dev bhy;
+    struct bhy_dev bhy;
     cli_dev_t cli_dev;
     struct parse_ref parse_table;
 };
@@ -87,7 +87,7 @@ void bhy_callbacks_init(struct bhy_cli_ref  *cli_ref);
 * @param[in] bhy         : Device instance
 * @param[in] parse_table : Pointer to parse table
 */
-void bhy_install_callbacks(struct bhy2_dev *bhy, struct parse_ref *parse_table);
+void bhy_install_callbacks(struct bhy_dev *bhy, struct parse_ref *parse_table);
 
 /**
 * @brief Function to check whether any sensor is active or not
@@ -112,7 +112,7 @@ void bhy_data_parse_callback(struct bhy_cli_ref *cli_ref);
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy2_fifo_parse_callback_t bhy_get_callback(uint8_t sensor_id);
+bhy_fifo_parse_callback_t bhy_get_callback(uint8_t sensor_id);
 
 #if 0
 

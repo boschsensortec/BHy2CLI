@@ -46,7 +46,7 @@
 #include <stdbool.h>
 #include <signal.h>
 
-#include "bhy2.h"
+#include "bhy.h"
 #include "parse.h"
 #include "cli.h"
 #include "common.h"
@@ -131,7 +131,7 @@ char* parse_com_port_from_args(int argc, char *argv[])
 * @param[in] intf     : Type of interface
 * @param[in] com_port : COM port
 */
-void perform_init_seq(enum bhy2_intf intf, char *com_port)
+void perform_init_seq(enum bhy_intf intf, char *com_port)
 #else
 
 /**
@@ -139,7 +139,7 @@ void perform_init_seq(enum bhy2_intf intf, char *com_port)
 * @param[in] intf           : Type of interface
 * @param[in] bytes_read_now : Pointer to buffer stored number of read bytes
 */
-void perform_init_seq(enum bhy2_intf intf, uint16_t *bytes_read_now)
+void perform_init_seq(enum bhy_intf intf, uint16_t *bytes_read_now)
 #endif
 {
     /* Execution starts here */
@@ -265,11 +265,11 @@ int main(void)
     cli_ref.cli_dev.table = bhy_get_cli_callbacks();
     cli_ref.parse_table.bhy = &cli_ref.bhy;
     int8_t cli_ret;
-    enum bhy2_intf intf;
+    enum bhy_intf intf;
 #ifdef BHY_USE_I2C
-    intf = BHY2_I2C_INTERFACE;
+    intf = BHY_I2C_INTERFACE;
 #else
-    intf = BHY2_SPI_INTERFACE;
+    intf = BHY_SPI_INTERFACE;
 #endif
 
 #ifdef PC

@@ -40,16 +40,16 @@
 
 #include <stdbool.h>
 
-#include "bhy2.h"
+#include "bhy.h"
 #include "bhi3_defs.h"
 #include "bhy_activity_param.h"
 #include "bhy_bsec_param.h"
 #include "bhy_bsx_algo_param.h"
 #include "bhy_head_orientation_param.h"
-#include "bhy_klio_param.h"
+//#include "bhy_klio_param.h"
 #include "bhy_multi_tap_param.h"
 #include "bhy_phy_sensor_ctrl_param.h"
-#include "bhy_swim_param.h"
+//#include "bhy_swim_param.h"
 #include "bhy_system_param.h"
 #include "bhy_virtual_sensor_conf_param.h"
 #include "bhy_virtual_sensor_info_param.h"
@@ -160,13 +160,13 @@ char *get_klio_error(bhy_klio_param_driver_error_state_t error);
 * @param[in] intf        : Type of interface
 * @param[in] com_port    : COM port
 */
-void setup_interfaces(bool reset_power, enum bhy2_intf intf, const char *com_port);
+void setup_interfaces(bool reset_power, enum bhy_intf intf, const char *com_port);
 
 /**
 * @brief Function to close interface
 * @param[in] intf : Type of interface
 */
-void close_interfaces(enum bhy2_intf intf);
+void close_interfaces(enum bhy_intf intf);
 
 /**
 * @brief Function to read data via SPI

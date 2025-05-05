@@ -80,7 +80,7 @@
 
 /* Contains all parameters of the of custom virtual sensors
  * required for parsing */
-typedef struct BHY2_PACKED custom_driver_information
+typedef struct BHY_PACKED custom_driver_information
 {
     char sensor_name[BHYCLI_MAX_STRING_LENGTH];
     uint16_t sensor_payload : 7;
@@ -113,7 +113,7 @@ static bool first_run = true;
 /*static bhy_event_data_swim_output_t swim_data; */
 
 /* Static global table that contains the payloads of present custom virtual sensors, derived by a parameter read */
-static custom_driver_information_t custom_driver_information[(BHY2_SENSOR_ID_CUSTOM_END - BHY2_SENSOR_ID_CUSTOM_START) +
+static custom_driver_information_t custom_driver_information[(BHY_SENSOR_ID_CUSTOM_END - BHY_SENSOR_ID_CUSTOM_START) +
                                                              1];
 
 /* static bool klio_enabled = false; */
@@ -350,7 +350,7 @@ static cli_callback_table_t bhy_cli_callbacks[] = {
 * @brief Function to reset Fuser2 core
 * @param[in] bhy : Device instance
 */
-static void reset_hub(struct bhy2_dev *bhy);
+static void reset_hub(struct bhy_dev *bhy);
 
 /**
 * @brief Function to upload firmware to RAM
@@ -358,7 +358,7 @@ static void reset_hub(struct bhy2_dev *bhy);
 * @param[in] bhy      : Device instance
 * @return Status for uploading
 */
-static bool upload_to_ram(const char *filepath, struct bhy2_dev *bhy);
+static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy);
 
 /**
 * @brief Function to print boot status
@@ -370,21 +370,21 @@ static void print_boot_status(uint8_t boot_status);
 * @brief Function to boot from RAM
 * @param[in] bhy : Device instance
 */
-static void boot_ram(struct bhy2_dev *bhy);
+static void boot_ram(struct bhy_dev *bhy);
 
 /**
 * @brief Function to print information about state of device and sensors
 * @param[in] bhy : Device instance
 */
-static void show_info(struct bhy2_dev *bhy);
+static void show_info(struct bhy_dev *bhy);
+
+#if 0
 
 /**
 * @brief Function to boot from Flash
 * @param[in] bhy : Device instance
 */
-static void boot_flash(struct bhy2_dev *bhy);
-
-#if 0
+static void boot_flash(struct bhy_dev *bhy);
 
 /**
 * @brief Function to upload firmware to Flash
@@ -392,7 +392,7 @@ static void boot_flash(struct bhy2_dev *bhy);
 * @param[in] bhy      : Device instance
 * @return Status for uploading
 */
-static bool upload_to_flash(const char *filepath, struct bhy2_dev *bhy);
+static bool upload_to_flash(const char *filepath, struct bhy_dev *bhy);
 
 #endif
 
@@ -401,35 +401,35 @@ static bool upload_to_flash(const char *filepath, struct bhy2_dev *bhy);
 * @param[in] payload : Data to write, including register address
 * @param[in] bhy     : Device instance
 */
-static void wr_regs(const char *payload, struct bhy2_dev *bhy);
+static void wr_regs(const char *payload, struct bhy_dev *bhy);
 
 /**
 * @brief Function to read value from register
 * @param[in] payload : Data includes register address and length to read
 * @param[in] bhy     : Device instance
 */
-static void rd_regs(const char *payload, struct bhy2_dev *bhy);
+static void rd_regs(const char *payload, struct bhy_dev *bhy);
 
 /**
 * @brief Function to read value from parameter
 * @param[in] payload : Data includes parameter ID
 * @param[in] bhy     : Device instance
 */
-static void rd_param(const char *payload, struct bhy2_dev *bhy);
+static void rd_param(const char *payload, struct bhy_dev *bhy);
 
 /**
 * @brief Function to write value to parameter
 * @param[in] payload : Data to write, including parameter ID
 * @param[in] bhy     : Device instance
 */
-static void wr_param(const char *payload, struct bhy2_dev *bhy);
+static void wr_param(const char *payload, struct bhy_dev *bhy);
 
 /**
 * @brief Function to read physical sensor information
 * @param[in] payload : Data includes sensor ID
 * @param[in] bhy     : Device instance
 */
-static void rd_phy_sensor_info(const char *payload, struct bhy2_dev *bhy);
+static void rd_phy_sensor_info(const char *payload, struct bhy_dev *bhy);
 
 #if 0
 
@@ -438,7 +438,7 @@ static void rd_phy_sensor_info(const char *payload, struct bhy2_dev *bhy);
 * @param[in] end_addr : End address
 * @param[in] bhy      : Device instance
 */
-static void erase_flash(uint32_t end_addr, struct bhy2_dev *bhy);
+static void erase_flash(uint32_t end_addr, struct bhy_dev *bhy);
 
 #endif
 
@@ -467,14 +467,14 @@ static void activate_sensor(const char *sensor_parameters, uint8_t parse_flag, s
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-static void parse_custom_sensor_default(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+static void parse_custom_sensor_default(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse for custom sensor
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-static void parse_custom_sensor(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+static void parse_custom_sensor(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to add a sensor
@@ -489,13 +489,13 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref);
 * @brief Function to enable Klio
 * @param[in] bhy : Device instance
 */
-static void klio_enable(struct bhy2_dev *bhy);
+static void klio_enable(struct bhy_dev *bhy);
 
 /**
 * @brief Function to get Klio status
 * @param[in] bhy : Device instance
 */
-static void klio_status(struct bhy2_dev *bhy);
+static void klio_status(struct bhy_dev *bhy);
 
 /**
 * @brief Function to set state of cyclic Klio
@@ -506,26 +506,26 @@ static void klio_status(struct bhy2_dev *bhy);
 * @param[in] bhy  : Device instance
 */
 static void klio_set_state(const char *arg1, const char *arg2, const char *arg3, const char *arg4,
-                           struct bhy2_dev *bhy);
+                           struct bhy_dev *bhy);
 
 /**
 * @brief Function to get state of cyclic Klio
 * @param[in] bhy  : Device instance
 */
-static void klio_get_state(struct bhy2_dev *bhy);
+static void klio_get_state(struct bhy_dev *bhy);
 
 /**
 * @brief Function to set state of generic recognition
 * @param[in] arg  : Argument for gestures status
 * @param[in] bhy  : Device instance
 */
-static void klio_set_generic_recognition_state(const char *arg, struct bhy2_dev *bhy);
+static void klio_set_generic_recognition_state(const char *arg, struct bhy_dev *bhy);
 
 /**
 * @brief Function to get state of generic recognition
 * @param[in] bhy  : Device instance
 */
-static void klio_get_generic_recognition_state(struct bhy2_dev *bhy);
+static void klio_get_generic_recognition_state(struct bhy_dev *bhy);
 
 /**
 * @brief Function to load cyclic pattern
@@ -533,7 +533,7 @@ static void klio_get_generic_recognition_state(struct bhy2_dev *bhy);
 * @param[in] arg2 : Argument for pattern/adaptive pattern
 * @param[in] bhy  : Device instance
 */
-static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct bhy2_dev *bhy);
+static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy);
 
 /**
 * @brief Function to load generic pattern
@@ -541,7 +541,7 @@ static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct 
 * @param[in] arg2 : Argument for pattern as bare hex bytestring
 * @param[in] bhy  : Device instance
 */
-static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct bhy2_dev *bhy);
+static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy);
 
 /**
 * @brief Function to set gesture configuration
@@ -549,21 +549,21 @@ static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct
 * @param[in] arg2 : Argument for configuration as bare hex bytestring
 * @param[in] bhy  : Device instance
 */
-static void klio_set_gesture_config(const char *arg1, const char *arg2, struct bhy2_dev *bhy);
+static void klio_set_gesture_config(const char *arg1, const char *arg2, struct bhy_dev *bhy);
 
 /**
 * @brief Function to set timing configuration
 * @param[in] arg : Argument for configuration as bare hex bytestring
 * @param[in] bhy : Device instance
 */
-static void klio_set_timing_config(const char *arg, struct bhy2_dev *bhy);
+static void klio_set_timing_config(const char *arg, struct bhy_dev *bhy);
 
 /**
 * @brief Function to get Klio parameter
 * @param[in] arg : Argument for parameter ID
 * @param[in] bhy : Device instance
 */
-static void klio_get_parameter(const uint16_t *arg, struct bhy2_dev *bhy);
+static void klio_get_parameter(const uint16_t *arg, struct bhy_dev *bhy);
 
 /**
 * @brief Function to set Klio parameter
@@ -571,7 +571,7 @@ static void klio_get_parameter(const uint16_t *arg, struct bhy2_dev *bhy);
 * @param[in] arg2 : Argument for value to set
 * @param[in] bhy  : Device instance
 */
-static void klio_set_parameter(const char *arg1, char *arg2, struct bhy2_dev *bhy);
+static void klio_set_parameter(const char *arg1, char *arg2, struct bhy_dev *bhy);
 
 /**
 * @brief Function to get Klio Similarity score
@@ -579,7 +579,7 @@ static void klio_set_parameter(const char *arg1, char *arg2, struct bhy2_dev *bh
 * @param[in] arg2 : Argument for second pattern as bare hex bytestring
 * @param[in] bhy  : Device instance
 */
-static void klio_similarity_score(const uint8_t *arg1, const uint8_t *arg2, struct bhy2_dev *bhy);
+static void klio_similarity_score(const uint8_t *arg1, const uint8_t *arg2, struct bhy_dev *bhy);
 
 /**
 * @brief Function to get Multiple Klio Similarity score
@@ -587,7 +587,7 @@ static void klio_similarity_score(const uint8_t *arg1, const uint8_t *arg2, stru
 * @param[in] arg2 : Argument for comparison indices
 * @param[in] bhy  : Device instance
 */
-static void klio_similarity_score_multiple(const char *arg1, const char *arg2, struct bhy2_dev *bhy);
+static void klio_similarity_score_multiple(const char *arg1, const char *arg2, struct bhy_dev *bhy);
 
 /**
 * @brief Function to control pattern operation
@@ -595,35 +595,35 @@ static void klio_similarity_score_multiple(const char *arg1, const char *arg2, s
 * @param[in] arg1      : Argument for pattern indices
 * @param[in] bhy       : Device instance
 */
-static void klio_pattern_state_operation(const uint8_t operation, const char *arg1, struct bhy2_dev *bhy);
+static void klio_pattern_state_operation(const uint8_t operation, const char *arg1, struct bhy_dev *bhy);
 
 /**
 * @brief Function to parse cyclic Klio
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_klio(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_klio(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse generic Klio
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_klio_generic(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_klio_generic(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse log Klio
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_klio_log(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_klio_log(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse for swim
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_swim(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_swim(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 #endif
 
@@ -632,49 +632,49 @@ void parse_swim(const struct bhy2_fifo_parse_data_info *callback_info, void *cal
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_acc_gyro(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_acc_gyro(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse for Multi-tap
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_multitap(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_multitap(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse for Wrist Gesture Detector
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_wrist_gesture_detect(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_wrist_gesture_detect(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse for Air quality
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_air_quality(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_air_quality(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse for Head Misalignment Calibration
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_hmc(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_hmc(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse for Head Orientation Quaternion
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_oc(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_oc(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse for Head Orientation Euler
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_ec(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_ec(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to log sensor data
@@ -695,14 +695,14 @@ static void log_data(uint8_t sid,
 * @param[in] payload : Sensor ID
 * @param[in] bhy     : Device instance
 */
-static void trigger_foc(const char *payload, struct bhy2_dev *bhy);
+static void trigger_foc(const char *payload, struct bhy_dev *bhy);
 
 /**
 * @brief Function to write meta information
 * @param[in] log : Device instance for log
 * @param[in] bhy : Device instance
 */
-static void write_meta_info(struct logbin_dev *log, struct bhy2_dev *bhy);
+static void write_meta_info(struct logbin_dev *log, struct bhy_dev *bhy);
 
 /**
 * @brief Function to stream HEX data
@@ -718,21 +718,21 @@ static void stream_hex_data(uint8_t sid, uint32_t ts, uint32_t tns, uint8_t even
 * @brief Function to print schema information
 * @param[in] bhy : Device instance
 */
-static void schema_info(struct bhy2_dev *bhy);
+static void schema_info(struct bhy_dev *bhy);
 
 /**
 * @brief Function to get default scaling factor for some sensors
 * @param[in] sensor_id : Sensor ID
 * @param[in] bhy       : Device instance
 */
-static float get_sensor_default_scaling_value(uint8_t sensor_id, struct bhy2_dev *bhy);
+static float get_sensor_default_scaling_value(uint8_t sensor_id, struct bhy_dev *bhy);
 
 /**
 * @brief Function to get default scaling factor for all sensors
 * @param[in] sensor_id : Sensor ID
 * @param[in] bhy       : Device instance
 */
-static float get_sensor_default_scaling(uint8_t sensor_id, struct bhy2_dev *bhy);
+static float get_sensor_default_scaling(uint8_t sensor_id, struct bhy_dev *bhy);
 
 /**
 * @brief Function to print BSX Parameter information
@@ -764,25 +764,25 @@ uint8_t bhy_get_n_cli_callbacks(void)
 */
 void bhy_callbacks_init(struct bhy_cli_ref *cli_ref)
 {
-    struct bhy2_dev *bhy = &cli_ref->bhy;
+    struct bhy_dev *bhy = &cli_ref->bhy;
     uint8_t expected_data;
     uint8_t chip_id;
     uint8_t feat_status;
 
-    for (uint8_t i = BHY2_SENSOR_ID_CUSTOM_START;
-         i <= BHY2_SENSOR_ID_CUSTOM_END; i++)
+    for (uint8_t i = BHY_SENSOR_ID_CUSTOM_START;
+         i <= BHY_SENSOR_ID_CUSTOM_END; i++)
     {
-        custom_driver_information[i - BHY2_SENSOR_ID_CUSTOM_START].is_registered = 0;
-        strcpy(custom_driver_information[i - BHY2_SENSOR_ID_CUSTOM_START].sensor_name, "Undefined custom sensor");
+        custom_driver_information[i - BHY_SENSOR_ID_CUSTOM_START].is_registered = 0;
+        strcpy(custom_driver_information[i - BHY_SENSOR_ID_CUSTOM_START].sensor_name, "Undefined custom sensor");
     }
 
     /* Print Copyright build date */
     PRINT("Copyright (c) 2024 Bosch Sensortec GmbH\r\n");
     PRINT("Version %s.%s.%s Build date: " __DATE__ "\r\n", BHY2CLI_VER_MAJOR, BHY2CLI_VER_MINOR, BHY2CLI_VER_BUGFIX);
 #ifdef BHY_USE_I2C
-    (void)(bhy2_init(BHY2_I2C_INTERFACE, bhy2_i2c_read, bhy2_i2c_write, bhy2_delay_us, BHY2_RD_WR_LEN, NULL, bhy));
+    (void)(bhy_init(BHY_I2C_INTERFACE, bhy2_i2c_read, bhy2_i2c_write, bhy2_delay_us, BHY2_RD_WR_LEN, NULL, bhy));
 #else
-    (void)(bhy2_init(BHY2_SPI_INTERFACE, bhy2_spi_read, bhy2_spi_write, bhy2_delay_us, BHY2_RD_WR_LEN, NULL, bhy));
+    (void)(bhy_init(BHY_SPI_INTERFACE, bhy2_spi_read, bhy2_spi_write, bhy2_delay_us, BHY2_RD_WR_LEN, NULL, bhy));
 #endif
 
     /* Install virtual sensor callbacks */
@@ -790,23 +790,27 @@ void bhy_callbacks_init(struct bhy_cli_ref *cli_ref)
 
     coines_delay_msec(100); /* Wait for flash firmware to load if applicable */
 
-    (void)(bhy2_get_chip_id(&chip_id, bhy));
+    (void)(bhy_get_chip_id(&chip_id, bhy));
 
     switch (chip_id)
     {
-        case BHY2_CHIP_ID_BHI260AP_BHI260AB_0:
-        case BHY2_CHIP_ID_BHI260AP_BHI260AB_1:
+        #if 0
+        case BHY_CHIP_ID_BHI260AP_BHI260AB_0:
+        case BHY_CHIP_ID_BHI260AP_BHI260AB_1:
+        #endif
         case BHI3_CHIP_ID_BHI360:
+        #if 0
         case BHI3_CHIP_ID_BHI380:
-        case BHY2_CHIP_ID_BHA260AB_0:
-        case BHY2_CHIP_ID_BHA260AB_1:
-            (void)(bhy2_get_feature_status(&feat_status, bhy));
+        case BHY_CHIP_ID_BHA260AB_0:
+        case BHY_CHIP_ID_BHA260AB_1:
+        #endif
+            (void)(bhy_get_feature_status(&feat_status, bhy));
             PRINT("Device found. Chip ID read 0x%X\r\n", chip_id);
-            if (feat_status & BHY2_FEAT_STATUS_OPEN_RTOS_MSK)
+            if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
             {
                 INFO("RTOS based firmware running\r\n");
 
-                (void)(bhy2_update_virtual_sensor_list(bhy));
+                (void)(bhy_update_virtual_sensor_list(bhy));
             }
 
             break;
@@ -818,12 +822,12 @@ void bhy_callbacks_init(struct bhy_cli_ref *cli_ref)
     }
 
     /* Config status channel */
-    (void)(bhy2_set_host_intf_ctrl(BHY2_HIF_CTRL_ASYNC_STATUS_CHANNEL, bhy));
-    (void)(bhy2_get_host_intf_ctrl(&expected_data, bhy));
-    if (!(expected_data & BHY2_HIF_CTRL_ASYNC_STATUS_CHANNEL))
+    (void)(bhy_set_host_intf_ctrl(BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL, bhy));
+    (void)(bhy_get_host_intf_ctrl(&expected_data, bhy));
+    if (!(expected_data & BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL))
     {
         WARNING("Expected Host Interface Control (0x06) to have bit 0x%x to be set\r\n",
-                BHY2_HIF_CTRL_ASYNC_STATUS_CHANNEL);
+                BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL);
     }
 }
 
@@ -869,7 +873,7 @@ void bhy_exit(struct bhy_cli_ref *cli_ref)
     for (uint8_t i = 0; i < 10; i++)
     {
         /* Process meta events over a period of 10ms*/
-        (void)(bhy2_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
+        (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
         cli_ref->bhy.hif.delay_us(10000, NULL);
     }
 
@@ -889,7 +893,7 @@ void bhy_data_parse_callback(struct bhy_cli_ref *cli_ref)
 {
     if (get_interrupt_status())
     {
-        (void)(bhy2_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
+        (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
     }
 }
 
@@ -898,31 +902,31 @@ void bhy_data_parse_callback(struct bhy_cli_ref *cli_ref)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy2_fifo_parse_callback_t bhy_get_parse_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy_get_parse_callback(uint8_t sensor_id)
 {
-    bhy2_fifo_parse_callback_t callback = NULL;
+    bhy_fifo_parse_callback_t callback = NULL;
 
-    if (((sensor_id >= BHY2_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY2_SENSOR_ID_ACC_RAW_WU)) ||
-        (sensor_id == BHY2_SENSOR_ID_ACC_BIAS_WU) || (sensor_id == BHY2_SENSOR_ID_GYRO_BIAS_WU) ||
-        ((sensor_id >= BHY2_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY2_SENSOR_ID_GYRO_RAW_WU)) ||
-        ((sensor_id >= BHY2_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY2_SENSOR_ID_LACC_WU)) ||
-        (sensor_id == BHY2_SENSOR_ID_MAG_BIAS) || (sensor_id == BHY2_SENSOR_ID_MAG_BIAS_WU))
+    if (((sensor_id >= BHY_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY_SENSOR_ID_ACC_RAW_WU)) ||
+        (sensor_id == BHY_SENSOR_ID_ACC_BIAS_WU) || (sensor_id == BHY_SENSOR_ID_GYRO_BIAS_WU) ||
+        ((sensor_id >= BHY_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY_SENSOR_ID_GYRO_RAW_WU)) ||
+        ((sensor_id >= BHY_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY_SENSOR_ID_LACC_WU)) ||
+        (sensor_id == BHY_SENSOR_ID_MAG_BIAS) || (sensor_id == BHY_SENSOR_ID_MAG_BIAS_WU))
     {
         callback = parse_3axis_s16;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_ORI) || (sensor_id == BHY2_SENSOR_ID_ORI_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_ORI) || (sensor_id == BHY_SENSOR_ID_ORI_WU))
     {
         callback = parse_euler;
     }
-    else if ((sensor_id >= BHY2_SENSOR_ID_RV) && (sensor_id <= BHY2_SENSOR_ID_GEORV_WU))
+    else if ((sensor_id >= BHY_SENSOR_ID_RV) && (sensor_id <= BHY_SENSOR_ID_GEORV_WU))
     {
         callback = parse_quaternion;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_HUM) || (sensor_id == BHY2_SENSOR_ID_HUM_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU))
     {
         callback = parse_scalar_u8;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_GAS) || (sensor_id == BHY2_SENSOR_ID_GAS_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_GAS) || (sensor_id == BHY_SENSOR_ID_GAS_WU))
     {
         callback = parse_scalar_u32;
     }
@@ -935,19 +939,19 @@ bhy2_fifo_parse_callback_t bhy_get_parse_callback(uint8_t sensor_id)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy2_fifo_parse_callback_t bhy_get_func_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy_get_func_callback(uint8_t sensor_id)
 {
-    bhy2_fifo_parse_callback_t callback = NULL;
+    bhy_fifo_parse_callback_t callback = NULL;
 
-    if ((sensor_id == BHY2_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY2_SENSOR_ID_DEVICE_ORI_WU))
+    if ((sensor_id == BHY_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY_SENSOR_ID_DEVICE_ORI_WU))
     {
         callback = parse_device_ori;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_TEMP) || (sensor_id == BHY2_SENSOR_ID_TEMP_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_TEMP) || (sensor_id == BHY_SENSOR_ID_TEMP_WU))
     {
         callback = parse_s16_as_float;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_BARO) || (sensor_id == BHY2_SENSOR_ID_BARO_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_BARO) || (sensor_id == BHY_SENSOR_ID_BARO_WU))
     {
         callback = parse_u24_as_float;
     }
@@ -970,19 +974,19 @@ bhy2_fifo_parse_callback_t bhy_get_func_callback(uint8_t sensor_id)
         callback = parse_swim;
     }
     #endif
-    else if ((sensor_id == BHY2_SENSOR_ID_SI_ACCEL) || (sensor_id == BHY2_SENSOR_ID_SI_GYROS))
+    else if ((sensor_id == BHY_SENSOR_ID_SI_ACCEL) || (sensor_id == BHY_SENSOR_ID_SI_GYROS))
     {
         callback = parse_acc_gyro;
     }
 
     #if 0
-    else if ((sensor_id == BHY2_SENSOR_ID_LIGHT) || (sensor_id == BHY2_SENSOR_ID_LIGHT_WU) ||
+    else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU) ||
              (sensor_id == BHY_SENSOR_BMP_TEMPERATURE) || (sensor_id == BHY_SENSOR_BMP_TEMPERATURE_WU))
     {
         callback = parse_s16_as_float;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_PROX) || (sensor_id == BHY2_SENSOR_ID_PROX_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_EXCAMERA))
+    else if ((sensor_id == BHY_SENSOR_ID_PROX) || (sensor_id == BHY_SENSOR_ID_PROX_WU) ||
+             (sensor_id == BHY_SENSOR_ID_EXCAMERA))
     {
         callback = parse_scalar_u8;
     }
@@ -997,22 +1001,22 @@ bhy2_fifo_parse_callback_t bhy_get_func_callback(uint8_t sensor_id)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy2_fifo_parse_callback_t bhy_get_motion_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy_get_motion_callback(uint8_t sensor_id)
 {
-    bhy2_fifo_parse_callback_t callback = NULL;
+    bhy_fifo_parse_callback_t callback = NULL;
 
-    if ((sensor_id == BHY2_SENSOR_ID_STC) || (sensor_id == BHY2_SENSOR_ID_STC_WU) ||
-        (sensor_id == BHY2_SENSOR_ID_STC_LP) || (sensor_id == BHY2_SENSOR_ID_STC_LP_WU))
+    if ((sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU) ||
+        (sensor_id == BHY_SENSOR_ID_STC_LP) || (sensor_id == BHY_SENSOR_ID_STC_LP_WU))
     {
         callback = parse_scalar_u32;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_STD) || (sensor_id == BHY2_SENSOR_ID_STD_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_TILT_DETECTOR) || (sensor_id == BHY2_SENSOR_ID_SIG_LP_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_STD_LP) || (sensor_id == BHY2_SENSOR_ID_STD_LP_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY2_SENSOR_ID_STATIONARY_DET) ||
-             (sensor_id == BHY2_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU) ||
-             ((sensor_id >= BHY2_SENSOR_ID_SIG) && (sensor_id <= BHY2_SENSOR_ID_PICKUP_GESTURE)))
+    else if ((sensor_id == BHY_SENSOR_ID_STD) || (sensor_id == BHY_SENSOR_ID_STD_WU) ||
+             (sensor_id == BHY_SENSOR_ID_TILT_DETECTOR) || (sensor_id == BHY_SENSOR_ID_SIG_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_STD_LP) || (sensor_id == BHY_SENSOR_ID_STD_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY_SENSOR_ID_STATIONARY_DET) ||
+             (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU) ||
+             ((sensor_id >= BHY_SENSOR_ID_SIG) && (sensor_id <= BHY_SENSOR_ID_PICKUP_GESTURE)))
     {
         callback = parse_scalar_event;
     }
@@ -1025,11 +1029,11 @@ bhy2_fifo_parse_callback_t bhy_get_motion_callback(uint8_t sensor_id)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy2_fifo_parse_callback_t bhy_get_misc_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy_get_misc_callback(uint8_t sensor_id)
 {
-    bhy2_fifo_parse_callback_t callback = NULL;
+    bhy_fifo_parse_callback_t callback = NULL;
 
-    if ((sensor_id == BHY2_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
+    if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
     {
         callback = parse_activity;
     }
@@ -1039,7 +1043,7 @@ bhy2_fifo_parse_callback_t bhy_get_misc_callback(uint8_t sensor_id)
     }
 
     #if 0
-    else if (sensor_id == BHY2_SENSOR_ID_GPS)
+    else if (sensor_id == BHY_SENSOR_ID_GPS)
     {
         callback = parse_gps;
     }
@@ -1049,7 +1053,7 @@ bhy2_fifo_parse_callback_t bhy_get_misc_callback(uint8_t sensor_id)
     {
         callback = parse_multitap;
     }
-    else if (sensor_id == BHY2_SENSOR_ID_AIR_QUALITY)
+    else if (sensor_id == BHY_SENSOR_ID_AIR_QUALITY)
     {
         callback = parse_air_quality;
     }
@@ -1078,9 +1082,9 @@ bhy2_fifo_parse_callback_t bhy_get_misc_callback(uint8_t sensor_id)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy2_fifo_parse_callback_t bhy_get_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy_get_callback(uint8_t sensor_id)
 {
-    bhy2_fifo_parse_callback_t callback;
+    bhy_fifo_parse_callback_t callback;
 
     callback = bhy_get_parse_callback(sensor_id);
 
@@ -2371,11 +2375,14 @@ int8_t boot_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         boot_ram(&cli_ref->bhy);
         (void)bhy_system_param_get_virtual_sensor_present(&cli_ref->bhy);
     }
+
+#if 0
     else if ((argv[1][0]) == 'f')
     {
         boot_flash(&cli_ref->bhy);
         (void)bhy_system_param_get_virtual_sensor_present(&cli_ref->bhy);
     }
+#endif
     else
     {
         ERROR("Invalid boot medium: %s\r\n", argv[1]);
@@ -2449,14 +2456,14 @@ int8_t efd_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-    struct bhy2_dev *bhy = &cli_ref->bhy;
+    struct bhy_dev *bhy = &cli_ref->bhy;
     int8_t rslt;
     uint8_t boot_status;
 
-    (void)(bhy2_get_boot_status(&boot_status, bhy));
-    if (boot_status & BHY2_BST_HOST_INTERFACE_READY)
+    (void)(bhy_get_boot_status(&boot_status, bhy));
+    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
-        if ((boot_status & BHY2_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY2_BST_FLASH_VERIFY_DONE))
+        if ((boot_status & BHY_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY_BST_FLASH_VERIFY_DONE))
         {
             ERROR("Seems like a firmware is running. Reset the sensor before erasing the flash descriptor\r\n");
 
@@ -2465,8 +2472,8 @@ int8_t efd_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     PRINT("Erasing flash descriptor. This might hang if a reset command before this was not issued\r\n");
-    rslt = bhy2_erase_flash(0, 0xFFF, bhy); /* 0xFFF is hopefully within the first sector */
-    if (rslt != BHY2_OK)
+    rslt = bhy_erase_flash(0, 0xFFF, bhy); /* 0xFFF is hopefully within the first sector */
+    if (rslt != BHY_OK)
     {
         ERROR("Erasing flash descriptor failed, status: %02d\r\n", rslt);
 
@@ -2758,12 +2765,12 @@ int8_t setvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     uint8_t sensor_id = (uint8_t) atoi((char *)argv[1]);
 
-    sensor_conf.sample_rate = (bhy2_float) atof((char *)argv[2]);
+    sensor_conf.sample_rate = (bhy_float) atof((char *)argv[2]);
     sensor_conf.latency = (uint32_t) atoi((char *)argv[3]);
 
     rslt = bhy_virtual_sensor_conf_param_set_cfg(sensor_id, &sensor_conf, &cli_ref->bhy);
 
-    if (rslt != BHY2_OK)
+    if (rslt != BHY_OK)
     {
         ERROR("Virtual sensor configuration set failed \r\n");
 
@@ -2807,7 +2814,7 @@ int8_t getvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     rslt = bhy_virtual_sensor_conf_param_get_cfg(sensor_id, &sensor_conf, &cli_ref->bhy);
 
-    if (rslt != BHY2_OK)
+    if (rslt != BHY_OK)
     {
         ERROR("Virtual sensor configuration set failed \r\n");
 
@@ -2815,9 +2822,8 @@ int8_t getvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     PRINT("Virtual sensor configuration get successfully \r\n");
-    PRINT("Custom sensor ID=%d, sensitivity=%d, rate=%.2fHz,latency=%ld, range=%d\r\n",
+    PRINT("Custom sensor ID=%d, rate=%.2fHz,latency=%ld, range=%d\r\n",
           sensor_id,
-          sensor_conf.sensitivity,
           sensor_conf.sample_rate,
           sensor_conf.latency,
           sensor_conf.range);
@@ -2881,7 +2887,7 @@ int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         }
 
         INFO("Executing %s %s %s\r\n", argv[0], argv[1], label);
-        (void)bhy2_get_hw_timestamp_ns(&timestamp_ns, &cli_ref->bhy);
+        (void)bhy_get_hw_timestamp_ns(&timestamp_ns, &cli_ref->bhy);
 
         /* System IDs start at 224 */
         log_data(LOGBIN_META_ID_LABEL, timestamp_ns, LOGBIN_LABEL_SIZE, label, &cli_ref->parse_table.logdev);
@@ -3049,7 +3055,7 @@ int8_t swimsetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     INFO("Executing %s\r\n", argv[0]);
 
-    sensor_conf.sample_rate = (bhy2_float) atof((const char *)argv[1]);
+    sensor_conf.sample_rate = (bhy_float) atof((const char *)argv[1]);
     sensor_conf.latency = (uint32_t) atoi((const char *)argv[2]);
 
     assert_rslt = bhy_virtual_sensor_conf_param_set_cfg(BHY_SENSOR_ID_SWIM, &sensor_conf, &cli_ref->bhy);
@@ -3121,7 +3127,7 @@ int8_t swimgetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     uint8_t loop;
 
     INFO("Executing %s\r\n", argv[0]);
-    (void)(bhy2_get_orientation_matrix(BHY2_PHYS_SENSOR_ID_ACCELEROMETER, &orient_matrix, &cli_ref->bhy));
+    (void)(bhy_get_orientation_matrix(BHY_PHYS_SENSOR_ID_ACCELEROMETER, &orient_matrix, &cli_ref->bhy));
     PRINT("Acc ");
 
     for (loop = 0; loop < 8; loop++)
@@ -3132,7 +3138,7 @@ int8_t swimgetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("%d\r\n\r\n", orient_matrix.c[loop]);
 
     memset(&orient_matrix.c[0], 0x0, sizeof(orient_matrix.c) / sizeof(orient_matrix.c[0]));
-    (void)(bhy2_get_orientation_matrix(BHY2_PHYS_SENSOR_ID_GYROSCOPE, &orient_matrix, &cli_ref->bhy));
+    (void)(bhy_get_orientation_matrix(BHY_PHYS_SENSOR_ID_GYROSCOPE, &orient_matrix, &cli_ref->bhy));
     PRINT("Gyro ");
 
     for (loop = 0; loop < 8; loop++)
@@ -3171,8 +3177,8 @@ int8_t swimsetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
-    (void)(bhy_system_param_set_physical_sensor_info(BHY2_PHYS_SENSOR_ID_ACCELEROMETER, &orient_matrix, &cli_ref->bhy));
-    (void)(bhy_system_param_set_physical_sensor_info(BHY2_PHYS_SENSOR_ID_GYROSCOPE, &orient_matrix, &cli_ref->bhy));
+    (void)(bhy_system_param_set_physical_sensor_info(BHY_PHYS_SENSOR_ID_ACCELEROMETER, &orient_matrix, &cli_ref->bhy));
+    (void)(bhy_system_param_set_physical_sensor_info(BHY_PHYS_SENSOR_ID_GYROSCOPE, &orient_matrix, &cli_ref->bhy));
 
     PRINT("Set the orientation matrix for the Physical Sensors successfully");
 
@@ -3276,7 +3282,7 @@ static void time_to_s_ns(uint64_t time_ticks, uint32_t *s, uint32_t *ns, uint64_
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_klio(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_klio(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -3287,7 +3293,7 @@ void parse_klio(const struct bhy2_fifo_parse_data_info *callback_info, void *cal
     uint8_t tmp_buf[252];
     uint16_t bufsize = sizeof(tmp_buf);
     bhy_klio_param_sensor_state_t klio_sensor_state;
-    struct bhy2_dev *bhy;
+    struct bhy_dev *bhy;
     struct parse_sensor_details *sensor_details;
 
     if (!parse_table || !callback_info)
@@ -3384,7 +3390,7 @@ void parse_klio(const struct bhy2_fifo_parse_data_info *callback_info, void *cal
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_klio_generic(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_klio_generic(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -3443,7 +3449,7 @@ void parse_klio_generic(const struct bhy2_fifo_parse_data_info *callback_info, v
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_klio_log(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_klio_log(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -3511,7 +3517,7 @@ void parse_klio_log(const struct bhy2_fifo_parse_data_info *callback_info, void 
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_acc_gyro(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_acc_gyro(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint8_t parse_flag;
     uint32_t s = 0, ns = 0;
@@ -3571,7 +3577,7 @@ void parse_acc_gyro(const struct bhy2_fifo_parse_data_info *callback_info, void 
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_air_quality(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_air_quality(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint8_t parse_flag;
     uint32_t s = 0, ns = 0;
@@ -3640,7 +3646,7 @@ void parse_air_quality(const struct bhy2_fifo_parse_data_info *callback_info, vo
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_swim(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_swim(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -3707,7 +3713,7 @@ void parse_swim(const struct bhy2_fifo_parse_data_info *callback_info, void *cal
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_multitap(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_multitap(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -3765,7 +3771,7 @@ void parse_multitap(const struct bhy2_fifo_parse_data_info *callback_info, void 
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_wrist_gesture_detect(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_wrist_gesture_detect(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -3826,7 +3832,7 @@ void parse_wrist_gesture_detect(const struct bhy2_fifo_parse_data_info *callback
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_hmc(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_hmc(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     bhy_event_data_head_orientation_quat data;
     uint32_t s, ns;
@@ -3883,7 +3889,7 @@ void parse_hmc(const struct bhy2_fifo_parse_data_info *callback_info, void *call
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_oc(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_oc(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     bhy_event_data_head_orientation_quat data;
     uint32_t s, ns;
@@ -3940,7 +3946,7 @@ void parse_oc(const struct bhy2_fifo_parse_data_info *callback_info, void *callb
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_ec(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_ec(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     bhy_event_data_head_orientation_eul data;
     uint32_t s, ns;
@@ -3997,50 +4003,50 @@ void parse_ec(const struct bhy2_fifo_parse_data_info *callback_info, void *callb
 * @param[in] bhy         : Device instance
 * @param[in] parse_table : Pointer to parse table
 */
-void bhy_install_callbacks(struct bhy2_dev *bhy, struct parse_ref *parse_table)
+void bhy_install_callbacks(struct bhy_dev *bhy, struct parse_ref *parse_table)
 {
-    for (uint8_t i = 0; i < BHY2_MAX_SIMUL_SENSORS; i++)
+    for (uint8_t i = 0; i < BHY_MAX_SIMUL_SENSORS; i++)
     {
         parse_table->sensor[i].parse_flag = PARSE_FLAG_NONE;
         parse_table->sensor[i].id = 0;
     }
 
-    (void)(bhy2_register_fifo_parse_callback(BHY2_SYS_ID_META_EVENT, parse_meta_event, parse_table, bhy));
-    (void)(bhy2_register_fifo_parse_callback(BHY2_SYS_ID_META_EVENT_WU, parse_meta_event, parse_table, bhy));
-    (void)(bhy2_register_fifo_parse_callback(BHY2_SYS_ID_DEBUG_MSG, parse_debug_message, parse_table, bhy));
+    (void)(bhy_register_fifo_parse_callback(BHY_SYS_ID_META_EVENT, parse_meta_event, parse_table, bhy));
+    (void)(bhy_register_fifo_parse_callback(BHY_SYS_ID_META_EVENT_WU, parse_meta_event, parse_table, bhy));
+    (void)(bhy_register_fifo_parse_callback(BHY_SYS_ID_DEBUG_MSG, parse_debug_message, parse_table, bhy));
 }
 
 /**
 * @brief Function to reset Fuser2 core
 * @param[in] bhy : Device instance
 */
-static void reset_hub(struct bhy2_dev *bhy)
+static void reset_hub(struct bhy_dev *bhy)
 {
     uint8_t data = 0, data_exp;
 
-    (void)(bhy2_soft_reset(bhy));
+    (void)(bhy_soft_reset(bhy));
 
-    (void)(bhy2_get_host_interrupt_ctrl(&data, bhy));
-    data &= ~BHY2_ICTL_DISABLE_STATUS_FIFO; /* Enable status interrupts */
-    data &= ~BHY2_ICTL_DISABLE_DEBUG; /* Enable debug interrupts */
-    data &= ~BHY2_ICTL_EDGE; /* Level */
-    data &= ~BHY2_ICTL_ACTIVE_LOW; /* Active high */
-    data &= ~BHY2_ICTL_OPEN_DRAIN; /* Push-pull */
+    (void)(bhy_get_host_interrupt_ctrl(&data, bhy));
+    data &= ~BHY_ICTL_DISABLE_STATUS_FIFO; /* Enable status interrupts */
+    data &= ~BHY_ICTL_DISABLE_DEBUG; /* Enable debug interrupts */
+    data &= ~BHY_ICTL_EDGE; /* Level */
+    data &= ~BHY_ICTL_ACTIVE_LOW; /* Active high */
+    data &= ~BHY_ICTL_OPEN_DRAIN; /* Push-pull */
     data_exp = data;
-    (void)(bhy2_set_host_interrupt_ctrl(data, bhy));
-    (void)(bhy2_get_host_interrupt_ctrl(&data, bhy));
+    (void)(bhy_set_host_interrupt_ctrl(data, bhy));
+    (void)(bhy_get_host_interrupt_ctrl(&data, bhy));
     if (data != data_exp)
     {
         WARNING("Expected Host Interrupt Control (0x07) to have value 0x%x but instead read 0x%x\r\n", data_exp, data);
     }
 
     /* Config status channel */
-    (void)(bhy2_set_host_intf_ctrl(BHY2_HIF_CTRL_ASYNC_STATUS_CHANNEL, bhy));
-    (void)(bhy2_get_host_intf_ctrl(&data, bhy));
-    if (!(data & BHY2_HIF_CTRL_ASYNC_STATUS_CHANNEL))
+    (void)(bhy_set_host_intf_ctrl(BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL, bhy));
+    (void)(bhy_get_host_intf_ctrl(&data, bhy));
+    if (!(data & BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL))
     {
         WARNING("Expected Host Interface Control (0x06) to have bit 0x%x to be set\r\n",
-                BHY2_HIF_CTRL_ASYNC_STATUS_CHANNEL);
+                BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL);
     }
 
     PRINT("Reset successful\r\n");
@@ -4052,23 +4058,27 @@ static void reset_hub(struct bhy2_dev *bhy)
 * @param[in] bhy      : Device instance
 * @return Status for uploading
 */
-static bool upload_to_ram(const char *filepath, struct bhy2_dev *bhy)
+static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy)
 {
     FILE *fw_file;
     struct stat st;
     uint8_t firmware_chunk[BHY2_RD_WR_LEN];
     uint32_t len;
-    int8_t rslt = BHY2_OK;
+    int8_t rslt = BHY_OK;
     uint8_t boot_status;
     uint32_t start_time_ms;
 
 #ifdef PC
     uint8_t progress = 0, new_progress = 0;
 #endif
-    (void)(bhy2_get_boot_status(&boot_status, bhy));
-    if (boot_status & BHY2_BST_HOST_INTERFACE_READY)
+    (void)(bhy_get_boot_status(&boot_status, bhy));
+    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
-        if ((boot_status & BHY2_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY2_BST_FLASH_VERIFY_DONE))
+        #if 0
+        if ((boot_status & BHY_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY_BST_FLASH_VERIFY_DONE))
+        {
+        #endif
+        if (boot_status & BHY_BST_HOST_FW_VERIFY_DONE)
         {
             ERROR("Seems like a firmware is running. Please reset the sensor before uploading firmware\r\n");
 
@@ -4106,22 +4116,22 @@ static bool upload_to_ram(const char *filepath, struct bhy2_dev *bhy)
         uint32_t incr = BHY2_RD_WR_LEN;
         if ((incr % 4) != 0)
         {
-            incr = BHY2_ROUND_WORD_LOWER(incr);
+            incr = BHY_ROUND_WORD_LOWER(incr);
         }
 
-        for (uint32_t i = 0; (i < len) && (rslt == BHY2_OK); i += incr)
+        for (uint32_t i = 0; (i < len) && (rslt == BHY_OK); i += incr)
         {
             if (incr > (len - i)) /* Last payload */
             {
                 incr = len - i;
                 if ((incr % 4) != 0) /* Round off to higher 4 bytes */
                 {
-                    incr = BHY2_ROUND_WORD_HIGHER(incr);
+                    incr = BHY_ROUND_WORD_HIGHER(incr);
                 }
             }
 
             (void)fread(firmware_chunk, 1, incr, fw_file);
-            rslt = bhy2_upload_firmware_to_ram_partly(firmware_chunk, len, i, incr, bhy);
+            rslt = bhy_upload_firmware_to_ram_partly(firmware_chunk, len, i, incr, bhy);
 #ifdef PC
             progress = (float)(i + incr) / (float)len * 100.0f;
             if (progress != new_progress)
@@ -4136,7 +4146,7 @@ static bool upload_to_ram(const char *filepath, struct bhy2_dev *bhy)
         INFO("Firmware upload took %.2f seconds\r\n", (float)(coines_get_millis() - start_time_ms) / 1000.0f);
         fclose(fw_file);
 
-        if (rslt != BHY2_OK)
+        if (rslt != BHY_OK)
         {
             ERROR("Firmware upload failed. Returned with error code: %d. %s\r\n", rslt, get_api_error(rslt));
 
@@ -4162,42 +4172,43 @@ static bool upload_to_ram(const char *filepath, struct bhy2_dev *bhy)
 static void print_boot_status(uint8_t boot_status)
 {
     PRINT("Boot Status : 0x%02x: ", boot_status);
-    if (boot_status & BHY2_BST_FLASH_DETECTED)
+#if 0
+    if (boot_status & BHY_BST_FLASH_DETECTED)
     {
         PRINT("Flash detected. ");
     }
 
-    if (boot_status & BHY2_BST_FLASH_VERIFY_DONE)
+    if (boot_status & BHY_BST_FLASH_VERIFY_DONE)
     {
         PRINT("Flash verify done. ");
     }
 
-    if (boot_status & BHY2_BST_FLASH_VERIFY_ERROR)
+    if (boot_status & BHY_BST_FLASH_VERIFY_ERROR)
     {
         PRINT("Flash verification failed. ");
     }
 
-    if (boot_status & BHY2_BST_NO_FLASH)
+    if (boot_status & BHY_BST_NO_FLASH)
     {
         PRINT("No flash installed. ");
     }
-
-    if (boot_status & BHY2_BST_HOST_INTERFACE_READY)
+#endif
+    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
         PRINT("Host interface ready. ");
     }
 
-    if (boot_status & BHY2_BST_HOST_FW_VERIFY_DONE)
+    if (boot_status & BHY_BST_HOST_FW_VERIFY_DONE)
     {
         PRINT("Firmware verification done. ");
     }
 
-    if (boot_status & BHY2_BST_HOST_FW_VERIFY_ERROR)
+    if (boot_status & BHY_BST_HOST_FW_VERIFY_ERROR)
     {
         PRINT("Firmware verification error. ");
     }
 
-    if (boot_status & BHY2_BST_HOST_FW_IDLE)
+    if (boot_status & BHY_BST_HOST_FW_IDLE)
     {
         PRINT("Firmware halted. ");
     }
@@ -4209,7 +4220,7 @@ static void print_boot_status(uint8_t boot_status)
 * @brief Function to boot from RAM
 * @param[in] bhy : Device instance
 */
-static void boot_ram(struct bhy2_dev *bhy)
+static void boot_ram(struct bhy_dev *bhy)
 {
     int8_t rslt;
     uint8_t feat_status;
@@ -4220,24 +4231,24 @@ static void boot_ram(struct bhy2_dev *bhy)
     do
     {
         bhy->hif.delay_us(10000, NULL);
-        (void)(bhy2_get_boot_status(&boot_status, bhy));
-        if (boot_status & BHY2_BST_HOST_FW_VERIFY_DONE)
+        (void)(bhy_get_boot_status(&boot_status, bhy));
+        if (boot_status & BHY_BST_HOST_FW_VERIFY_DONE)
         {
             break;
         }
     } while (tries--);
 
     print_boot_status(boot_status);
-    if (boot_status & BHY2_BST_HOST_INTERFACE_READY)
+    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
-        if (boot_status & BHY2_BST_HOST_FW_VERIFY_DONE)
+        if (boot_status & BHY_BST_HOST_FW_VERIFY_DONE)
         {
             INFO("Booting from RAM\r\n");
-            rslt = bhy2_boot_from_ram(bhy);
-            if (rslt != BHY2_OK)
+            rslt = bhy_boot_from_ram(bhy);
+            if (rslt != BHY_OK)
             {
                 ERROR("Booting from RAM failed. API error code %d.\r\n%s\r\n", rslt, get_api_error(rslt));
-                (void)(bhy2_get_error_value(&error_val, bhy));
+                (void)(bhy_get_error_value(&error_val, bhy));
                 if (error_val)
                 {
                     ERROR("Sensor reports error 0x%X.\r\n%s", error_val, get_sensor_error_text(error_val));
@@ -4246,15 +4257,15 @@ static void boot_ram(struct bhy2_dev *bhy)
                 return;
             }
 
-            (void)(bhy2_get_feature_status(&feat_status, bhy));
-            if (feat_status & BHY2_FEAT_STATUS_OPEN_RTOS_MSK)
+            (void)(bhy_get_feature_status(&feat_status, bhy));
+            if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
             {
-                (void)(bhy2_update_virtual_sensor_list(bhy));
+                (void)(bhy_update_virtual_sensor_list(bhy));
 
                 for (uint16_t i = 0; i < 10; i++)
                 {
                     /* Process meta events over a period of 100ms*/
-                    (void)(bhy2_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), bhy));
+                    (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), bhy));
                     bhy->hif.delay_us(10000, NULL);
                 }
             }
@@ -4286,7 +4297,7 @@ static void boot_ram(struct bhy2_dev *bhy)
 * @brief Function to print information about state of device and sensors
 * @param[in] bhy : Device instance
 */
-static void show_info(struct bhy2_dev *bhy)
+static void show_info(struct bhy_dev *bhy)
 {
     uint16_t kernel_version = 0, user_version = 0;
     uint16_t rom_version = 0;
@@ -4297,43 +4308,43 @@ static void show_info(struct bhy2_dev *bhy)
     struct bhy_virtual_sensor_info_param_info info;
 
     /* Get product_id */
-    (void)(bhy2_get_product_id(&product_id, bhy));
+    (void)(bhy_get_product_id(&product_id, bhy));
 
     /* Get Kernel version */
-    (void)(bhy2_get_kernel_version(&kernel_version, bhy));
+    (void)(bhy_get_kernel_version(&kernel_version, bhy));
 
     /* Get User version */
-    (void)(bhy2_get_user_version(&user_version, bhy));
+    (void)(bhy_get_user_version(&user_version, bhy));
 
     /* Get ROM version */
-    (void)(bhy2_get_rom_version(&rom_version, bhy));
+    (void)(bhy_get_rom_version(&rom_version, bhy));
 
-    (void)(bhy2_get_host_status(&host_status, bhy));
+    (void)(bhy_get_host_status(&host_status, bhy));
 
-    (void)(bhy2_get_feature_status(&feat_status, bhy));
+    (void)(bhy_get_feature_status(&feat_status, bhy));
 
     PRINT("Product ID     : %02x\r\n", product_id);
     PRINT("Kernel version : %04u\r\n", kernel_version);
     PRINT("User version   : %04u\r\n", user_version);
     PRINT("ROM version    : %04u\r\n", rom_version);
-    PRINT("Power state    : %s\r\n", (host_status & BHY2_HST_POWER_STATE) ? "sleeping" : "active");
-    PRINT("Host interface : %s\r\n", (host_status & BHY2_HST_HOST_PROTOCOL) ? "SPI" : "I2C");
+    PRINT("Power state    : %s\r\n", (host_status & BHY_HST_POWER_STATE) ? "sleeping" : "active");
+    PRINT("Host interface : %s\r\n", (host_status & BHY_HST_HOST_PROTOCOL) ? "SPI" : "I2C");
     PRINT("Feature status : 0x%02x\r\n", feat_status);
 
     /* Read boot status */
-    (void)(bhy2_get_boot_status(&val, bhy));
+    (void)(bhy_get_boot_status(&val, bhy));
     print_boot_status(val);
 
     /* Read error value */
-    (void)(bhy2_get_error_value(&sensor_error, bhy));
+    (void)(bhy_get_error_value(&sensor_error, bhy));
     if (sensor_error)
     {
         ERROR("%s\r\n", get_sensor_error_text(sensor_error));
     }
 
-    if (feat_status & BHY2_FEAT_STATUS_OPEN_RTOS_MSK)
+    if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
     {
-        (void)bhy2_update_virtual_sensor_list(bhy);
+        (void)bhy_update_virtual_sensor_list(bhy);
 
         /* Get present virtual sensor */
         (void)bhy_system_param_get_virtual_sensor_present(bhy);
@@ -4341,20 +4352,20 @@ static void show_info(struct bhy2_dev *bhy)
         PRINT("Virtual sensor list.\r\n");
         PRINT("Sensor ID |                          Sensor Name |  ID | Ver |  Min rate |  Max rate |\r\n");
         PRINT("----------+--------------------------------------+-----+-----+-----------+-----------|\r\n");
-        for (uint8_t i = 0; i < BHY2_SENSOR_ID_MAX; i++)
+        for (uint8_t i = 0; i < BHY_SENSOR_ID_MAX; i++)
         {
-            if (bhy2_is_sensor_available(i, bhy))
+            if (bhy_is_sensor_available(i, bhy))
             {
-                if (i < BHY2_SENSOR_ID_CUSTOM_START)
+                if (i < BHY_SENSOR_ID_CUSTOM_START)
                 {
                     PRINT(" %8u | %36s ", i, get_sensor_name(i));
                 }
                 else
                 {
-                    PRINT(" %8u | %36s ", i, custom_driver_information[i - BHY2_SENSOR_ID_CUSTOM_START].sensor_name);
+                    PRINT(" %8u | %36s ", i, custom_driver_information[i - BHY_SENSOR_ID_CUSTOM_START].sensor_name);
                 }
 
-                (void)(bhy2_get_sensor_info(i, &info, bhy));
+                (void)(bhy_get_sensor_info(i, &info, bhy));
                 PRINT("| %3u | %3u | %9.4f | %9.4f |\r\n",
                       info.driver_id,
                       info.driver_version,
@@ -4365,11 +4376,13 @@ static void show_info(struct bhy2_dev *bhy)
     }
 }
 
+#if 0
+
 /**
 * @brief Function to boot from Flash
 * @param[in] bhy : Device instance
 */
-static void boot_flash(struct bhy2_dev *bhy)
+static void boot_flash(struct bhy_dev *bhy)
 {
     int8_t rslt;
     uint8_t boot_status, feat_status;
@@ -4380,27 +4393,27 @@ static void boot_flash(struct bhy2_dev *bhy)
     do
     {
         bhy->hif.delay_us(10000, NULL);
-        (void)(bhy2_get_boot_status(&boot_status, bhy));
-        if (boot_status & BHY2_BST_FLASH_VERIFY_DONE)
+        (void)(bhy_get_boot_status(&boot_status, bhy));
+        if (boot_status & BHY_BST_FLASH_VERIFY_DONE)
         {
             break;
         }
     } while (tries--);
 
-    (void)(bhy2_get_boot_status(&boot_status, bhy));
+    (void)(bhy_get_boot_status(&boot_status, bhy));
     print_boot_status(boot_status);
-    if (boot_status & BHY2_BST_HOST_INTERFACE_READY)
+    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
-        if (boot_status & BHY2_BST_FLASH_DETECTED)
+        if (boot_status & BHY_BST_FLASH_DETECTED)
         {
 
             /* If no firmware is running, boot from Flash */
             PRINT("Booting from flash\r\n");
-            rslt = bhy2_boot_from_flash(bhy);
-            if (rslt != BHY2_OK)
+            rslt = bhy_boot_from_flash(bhy);
+            if (rslt != BHY_OK)
             {
                 ERROR("%s. Booting from flash failed.\r\n", get_api_error(rslt));
-                (void)(bhy2_get_regs(BHY2_REG_ERROR_VALUE, &error_val, 1, bhy));
+                (void)(bhy_get_regs(BHY_REG_ERROR_VALUE, &error_val, 1, bhy));
                 if (error_val)
                 {
                     ERROR("%s\r\n", get_sensor_error_text(error_val));
@@ -4409,24 +4422,24 @@ static void boot_flash(struct bhy2_dev *bhy)
                 return;
             }
 
-            (void)(bhy2_get_boot_status(&boot_status, bhy));
+            (void)(bhy_get_boot_status(&boot_status, bhy));
             print_boot_status(boot_status);
 
-            if (!(boot_status & BHY2_BST_HOST_INTERFACE_READY))
+            if (!(boot_status & BHY_BST_HOST_INTERFACE_READY))
             {
                 /* hub is not ready, need reset hub */
                 PRINT("Host interface is not ready, triggering a reset\r\n");
 
-                (void)(bhy2_soft_reset(bhy));
+                (void)(bhy_soft_reset(bhy));
             }
 
-            (void)(bhy2_get_feature_status(&feat_status, bhy));
-            if (feat_status & BHY2_FEAT_STATUS_OPEN_RTOS_MSK)
+            (void)(bhy_get_feature_status(&feat_status, bhy));
+            if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
             {
-                (void)(bhy2_update_virtual_sensor_list(bhy));
+                (void)(bhy_update_virtual_sensor_list(bhy));
                 for (uint16_t i = 0; i < 10; i++) /* Process meta events */
                 {
-                    (void)(bhy2_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), bhy));
+                    (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), bhy));
                     bhy->hif.delay_us(10000, NULL);
                 }
             }
@@ -4454,31 +4467,29 @@ static void boot_flash(struct bhy2_dev *bhy)
     PRINT("Booting from flash successful\r\n");
 }
 
-#if 0
-
 /**
 * @brief Function to upload firmware to Flash
 * @param[in] filepath : Path to firmware file
 * @param[in] bhy      : Device instance
 * @return Status for uploading
 */
-static bool upload_to_flash(const char *filepath, struct bhy2_dev *bhy)
+static bool upload_to_flash(const char *filepath, struct bhy_dev *bhy)
 {
     FILE *fw_file;
     struct stat st;
     uint8_t firmware_chunk[BHY2_RD_WR_LEN];
     uint32_t len;
-    int8_t rslt = BHY2_OK;
+    int8_t rslt = BHY_OK;
     uint8_t boot_status;
     uint32_t start_time_ms;
 
 #ifdef PC
     uint8_t progress = 0, new_progress = 0;
 #endif
-    (void)(bhy2_get_boot_status(&boot_status, bhy));
-    if (boot_status & BHY2_BST_HOST_INTERFACE_READY)
+    (void)(bhy_get_boot_status(&boot_status, bhy));
+    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
-        if ((boot_status & BHY2_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY2_BST_FLASH_VERIFY_DONE))
+        if ((boot_status & BHY_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY_BST_FLASH_VERIFY_DONE))
         {
             ERROR("Reset the sensor before uploading firmware to external flash\r\n");
 
@@ -4509,33 +4520,33 @@ static bool upload_to_flash(const char *filepath, struct bhy2_dev *bhy)
         }
 
         PRINT("Erasing first %lu bytes of flash\r\n", len);
-        rslt = bhy2_erase_flash(BHY2_FLASH_SECTOR_START_ADDR, BHY2_FLASH_SECTOR_START_ADDR + len, bhy);
-        if (rslt != BHY2_OK)
+        rslt = bhy_erase_flash(BHY_FLASH_SECTOR_START_ADDR, BHY_FLASH_SECTOR_START_ADDR + len, bhy);
+        if (rslt != BHY_OK)
         {
             ERROR("Erasing flash failed with error code %d. %s\r\n", rslt, get_api_error(rslt));
         }
 
         PRINT("Uploading %lu bytes of firmware to flash\r\n", len);
         start_time_ms = coines_get_millis();
-        uint32_t incr = BHY2_RD_WR_LEN;
+        uint32_t incr = BHY_RD_WR_LEN;
         if ((incr % 4) != 0) /* Round of to lower 4 bytes */
         {
-            incr = BHY2_ROUND_WORD_LOWER(incr);
+            incr = BHY_ROUND_WORD_LOWER(incr);
         }
 
-        for (uint32_t i = 0; (i < len) && (rslt == BHY2_OK); i += incr)
+        for (uint32_t i = 0; (i < len) && (rslt == BHY_OK); i += incr)
         {
             if (incr > (len - i)) /* Last payload */
             {
                 incr = len - i;
                 if ((incr % 4) != 0) /* Round of to higher 4bytes */
                 {
-                    incr = BHY2_ROUND_WORD_HIGHER(incr);
+                    incr = BHY_ROUND_WORD_HIGHER(incr);
                 }
             }
 
             (void)fread(firmware_chunk, 1, incr, fw_file);
-            rslt = bhy2_upload_firmware_to_flash_partly(firmware_chunk, i, incr, bhy);
+            rslt = bhy_upload_firmware_to_flash_partly(firmware_chunk, i, incr, bhy);
 #ifdef PC
             progress = (float)(i + incr) / (float)len * 100.0f;
             if (progress != new_progress)
@@ -4549,7 +4560,7 @@ static bool upload_to_flash(const char *filepath, struct bhy2_dev *bhy)
 
         INFO("Firmware upload took %.2f seconds\r\n", (float)(coines_get_millis() - start_time_ms) / 1000.0f);
         fclose(fw_file);
-        if (rslt != BHY2_OK)
+        if (rslt != BHY_OK)
         {
             ERROR("%s. Firmware upload failed\r\n", get_api_error(rslt));
 
@@ -4572,7 +4583,7 @@ static bool upload_to_flash(const char *filepath, struct bhy2_dev *bhy)
 * @param[in] payload : Data to write, including register address
 * @param[in] bhy     : Device instance
 */
-static void wr_regs(const char *payload, struct bhy2_dev *bhy)
+static void wr_regs(const char *payload, struct bhy_dev *bhy)
 {
     char *start;
     char *end;
@@ -4609,7 +4620,7 @@ static void wr_regs(const char *payload, struct bhy2_dev *bhy)
     }
 
     /* Execution of bus write function */
-    (void)(bhy2_set_regs(reg, val, len, bhy));
+    (void)(bhy_set_regs(reg, val, len, bhy));
 
     PRINT("Writing address successful\r\n");
 }
@@ -4619,7 +4630,7 @@ static void wr_regs(const char *payload, struct bhy2_dev *bhy)
 * @param[in] payload : Data includes register address and length to read
 * @param[in] bhy     : Device instance
 */
-static void rd_regs(const char *payload, struct bhy2_dev *bhy)
+static void rd_regs(const char *payload, struct bhy_dev *bhy)
 {
     char *start;
     char *end;
@@ -4653,14 +4664,14 @@ static void rd_regs(const char *payload, struct bhy2_dev *bhy)
     }
 
     /* Execution of bus read function */
-    (void)(bhy2_get_regs(reg, val, len, bhy));
+    (void)(bhy_get_regs(reg, val, len, bhy));
 
     /* Print register data to console */
 
     /* Registers after the status channel are auto increment,
      * reading more than 1 byte will lead to reading
      * the subsequent register addresses */
-    if (reg <= BHY2_REG_CHAN_STATUS)
+    if (reg <= BHY_REG_CHAN_STATUS)
     {
         PRINT("Reading from register address 0x%02x:\r\n", reg);
         PRINT("Byte hex       dec | Data\r\n");
@@ -4705,7 +4716,7 @@ static void rd_regs(const char *payload, struct bhy2_dev *bhy)
 * @param[in] payload : Data includes parameter ID
 * @param[in] bhy     : Device instance
 */
-static void rd_param(const char *payload, struct bhy2_dev *bhy)
+static void rd_param(const char *payload, struct bhy_dev *bhy)
 {
     char str_param_id[8] = { 0 };
     uint8_t tmp_buf[1024] = { 0 };
@@ -4718,7 +4729,7 @@ static void rd_param(const char *payload, struct bhy2_dev *bhy)
     str_param_id[strlen(payload)] = '\0';
     param_id = (uint16_t)strtol(str_param_id, NULL, 0);
 
-    (void)(bhy2_get_parameter(param_id, tmp_buf, sizeof(tmp_buf), &ret_len, bhy));
+    (void)(bhy_get_parameter(param_id, tmp_buf, sizeof(tmp_buf), &ret_len, bhy));
 
     PRINT("Byte hex      dec | Data\r\n");
     PRINT("-------------------------------------------\r\n");
@@ -4751,7 +4762,7 @@ static void rd_param(const char *payload, struct bhy2_dev *bhy)
 * @param[in] payload : Data to write, including parameter ID
 * @param[in] bhy     : Device instance
 */
-static void wr_param(const char *payload, struct bhy2_dev *bhy)
+static void wr_param(const char *payload, struct bhy_dev *bhy)
 {
     char *start, *end;
     char str_param_id[8] = { 0 };
@@ -4799,7 +4810,7 @@ static void wr_param(const char *payload, struct bhy2_dev *bhy)
         buf_size = (uint16_t)((buf_size / 4 + 1) * 4);
     }
 
-    (void)(bhy2_set_parameter(param_id, data_buf, buf_size, bhy));
+    (void)(bhy_set_parameter(param_id, data_buf, buf_size, bhy));
     PRINT("Writing parameter successful\r\n");
 
 }
@@ -4809,7 +4820,7 @@ static void wr_param(const char *payload, struct bhy2_dev *bhy)
 * @param[in] payload : Data includes sensor ID
 * @param[in] bhy     : Device instance
 */
-static void rd_phy_sensor_info(const char *payload, struct bhy2_dev *bhy)
+static void rd_phy_sensor_info(const char *payload, struct bhy_dev *bhy)
 {
     uint16_t param_id;
     uint8_t sens_id;
@@ -4891,15 +4902,15 @@ static void rd_phy_sensor_info(const char *payload, struct bhy2_dev *bhy)
 * @param[in] end_addr : End address
 * @param[in] bhy      : Device instance
 */
-static void erase_flash(uint32_t end_addr, struct bhy2_dev *bhy)
+static void erase_flash(uint32_t end_addr, struct bhy_dev *bhy)
 {
     int8_t rslt;
     uint8_t boot_status;
 
-    (void)(bhy2_get_boot_status(&boot_status, bhy));
-    if (boot_status & BHY2_BST_HOST_INTERFACE_READY)
+    (void)(bhy_get_boot_status(&boot_status, bhy));
+    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
-        if ((boot_status & BHY2_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY2_BST_FLASH_VERIFY_DONE))
+        if ((boot_status & BHY_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY_BST_FLASH_VERIFY_DONE))
         {
             ERROR("Seems like a firmware is running. Reset the sensor before erasing external flash\r\n");
 
@@ -4908,8 +4919,8 @@ static void erase_flash(uint32_t end_addr, struct bhy2_dev *bhy)
     }
 
     PRINT("Erasing flash. May take a while\r\n");
-    rslt = bhy2_erase_flash(BHY2_FLASH_SECTOR_START_ADDR, BHY2_FLASH_SECTOR_START_ADDR + end_addr, bhy);
-    if (rslt != BHY2_OK)
+    rslt = bhy_erase_flash(BHY_FLASH_SECTOR_START_ADDR, BHY_FLASH_SECTOR_START_ADDR + end_addr, bhy);
+    if (rslt != BHY_OK)
     {
         ERROR("Erasing flash failed, status: %02d\r\n", rslt);
 
@@ -4924,7 +4935,7 @@ static void erase_flash(uint32_t end_addr, struct bhy2_dev *bhy)
 #define MAXIMUM_VIRTUAL_SENSOR_LIST  UINT16_C(256)
 static uint16_t sensor_list[MAXIMUM_VIRTUAL_SENSOR_LIST] = { 0 };
 static struct bhy_virtual_sensor_conf_param_conf sen_cfg_list[MAXIMUM_VIRTUAL_SENSOR_LIST] = { { 0 } };
-static bhy2_float ds_list[MAXIMUM_VIRTUAL_SENSOR_LIST] = { 0.0f };
+static bhy_float ds_list[MAXIMUM_VIRTUAL_SENSOR_LIST] = { 0.0f };
 static uint16_t num_sensor = 0;
 static bool lognstream_inprogress = false;
 static char file_name[50] = { '\0' };
@@ -5028,7 +5039,7 @@ static void activate_sensor(const char *sensor_parameters, uint8_t parse_flag, s
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-static void parse_custom_sensor_default(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+static void parse_custom_sensor_default(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint8_t this_sensor_id;
     uint8_t this_sensor_payload;
@@ -5057,7 +5068,7 @@ static void parse_custom_sensor_default(const struct bhy2_fifo_parse_data_info *
 
     this_sensor_id = callback_info->sensor_id;
     this_sensor_payload =
-        (uint8_t)custom_driver_information[this_sensor_id - BHY2_SENSOR_ID_CUSTOM_START].sensor_payload;
+        (uint8_t)custom_driver_information[this_sensor_id - BHY_SENSOR_ID_CUSTOM_START].sensor_payload;
 
     if (this_sensor_payload > callback_info->data_size)
     {
@@ -5104,7 +5115,7 @@ static void parse_custom_sensor_default(const struct bhy2_fifo_parse_data_info *
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-static void parse_custom_sensor(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+static void parse_custom_sensor(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint8_t idx;
     char *strtok_ptr;
@@ -5115,7 +5126,7 @@ static void parse_custom_sensor(const struct bhy2_fifo_parse_data_info *callback
     struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
     uint8_t parse_flag;
     struct parse_sensor_details *sensor_details;
-    union bhy2_float_conv offset;
+    union bhy_float_conv offset;
 
     uint8_t tmp_u8 = 0;
     uint16_t tmp_u16 = 0;
@@ -5143,7 +5154,7 @@ static void parse_custom_sensor(const struct bhy2_fifo_parse_data_info *callback
     parse_flag = sensor_details->parse_flag;
 
     /* Get sensor_id to access correct parsing information from global linked list  */
-    rel_sensor_id = callback_info->sensor_id - BHY2_SENSOR_ID_CUSTOM_START;
+    rel_sensor_id = callback_info->sensor_id - BHY_SENSOR_ID_CUSTOM_START;
 
     /* Fetch output_formats string from linked list */
     strcpy(tmp_output_formats, custom_driver_information[rel_sensor_id].output_formats);
@@ -5182,14 +5193,14 @@ static void parse_custom_sensor(const struct bhy2_fifo_parse_data_info *callback
             }
             else if (strcmp(strtok_ptr, "u16") == 0)
             {
-                tmp_u16 = BHY2_LE2U16(&callback_info->data_ptr[idx]);
+                tmp_u16 = BHY_LE2U16(&callback_info->data_ptr[idx]);
                 idx += 2;
 
                 PRINT_D("%u ", tmp_u16);
             }
             else if (strcmp(strtok_ptr, "u32") == 0)
             {
-                tmp_u32 = BHY2_LE2U32(&callback_info->data_ptr[idx]);
+                tmp_u32 = BHY_LE2U32(&callback_info->data_ptr[idx]);
                 idx += 4;
 
                 PRINT_D("%lu ", tmp_u32);
@@ -5203,14 +5214,14 @@ static void parse_custom_sensor(const struct bhy2_fifo_parse_data_info *callback
             }
             else if (strcmp(strtok_ptr, "s16") == 0)
             {
-                tmp_s16 = BHY2_LE2S16(&callback_info->data_ptr[idx]);
+                tmp_s16 = BHY_LE2S16(&callback_info->data_ptr[idx]);
                 idx += 2;
 
                 PRINT_D("%d ", tmp_s16);
             }
             else if (strcmp(strtok_ptr, "s32") == 0)
             {
-                tmp_s32 = BHY2_LE2S32(&callback_info->data_ptr[idx]);
+                tmp_s32 = BHY_LE2S32(&callback_info->data_ptr[idx]);
                 idx += 4;
 
                 PRINT_D("%ld ", tmp_s32);
@@ -5225,7 +5236,7 @@ static void parse_custom_sensor(const struct bhy2_fifo_parse_data_info *callback
             else if (strcmp(strtok_ptr, "f") == 0)
             {
                 /* Float values have to be read as unsigned and then interpreted as float */
-                offset.u32_val = BHY2_LE2U32(&callback_info->data_ptr[idx]);
+                offset.u32_val = BHY_LE2U32(&callback_info->data_ptr[idx]);
                 idx += 4;
 
                 /* The binary data has to be interpreted as a float */
@@ -5262,7 +5273,7 @@ static void parse_custom_sensor(const struct bhy2_fifo_parse_data_info *callback
 */
 static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
 {
-    struct bhy2_dev *bhy = &cli_ref->bhy;
+    struct bhy_dev *bhy = &cli_ref->bhy;
     struct parse_ref *parse_table = &cli_ref->parse_table;
     char *start;
     char *end;
@@ -5348,7 +5359,7 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
     output_formats[end - start] = '\0';
 
     /* Get the sensor information */
-    (void)(bhy2_get_sensor_info(sensor_id, &sensor_info, bhy));
+    (void)(bhy_get_sensor_info(sensor_id, &sensor_info, bhy));
 
     /* Check if supplied payload matches the event size. Note event size includes sensor id in the payload */
     if (sensor_info.event_size != (sensor_payload + 1))
@@ -5359,18 +5370,18 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
     }
 
     /* Store parsed data into the custom driver information table */
-    custom_driver_information[sensor_id - BHY2_SENSOR_ID_CUSTOM_START].sensor_id = sensor_id;
-    custom_driver_information[sensor_id - BHY2_SENSOR_ID_CUSTOM_START].sensor_payload = sensor_payload;
-    strncpy(custom_driver_information[sensor_id - BHY2_SENSOR_ID_CUSTOM_START].output_formats,
+    custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].sensor_id = sensor_id;
+    custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].sensor_payload = sensor_payload;
+    strncpy(custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].output_formats,
             output_formats,
             BHYCLI_MAX_STRING_LENGTH);
-    custom_driver_information[sensor_id - BHY2_SENSOR_ID_CUSTOM_START].is_registered = 1;
-    strncpy(custom_driver_information[sensor_id - BHY2_SENSOR_ID_CUSTOM_START].sensor_name,
+    custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].is_registered = 1;
+    strncpy(custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].sensor_name,
             sensor_name,
             BHYCLI_MAX_STRING_LENGTH);
 
     /* Register the custom sensor callback function*/
-    (void)(bhy2_register_fifo_parse_callback(sensor_id, parse_custom_sensor, parse_table, bhy));
+    (void)(bhy_register_fifo_parse_callback(sensor_id, parse_custom_sensor, parse_table, bhy));
 
     PRINT("Adding custom driver payload successful\r\n");
 }
@@ -5381,7 +5392,7 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
 * @brief Function to enable Klio
 * @param[in] bhy     : Device instance
 */
-static void klio_enable(struct bhy2_dev *bhy)
+static void klio_enable(struct bhy_dev *bhy)
 {
     if (!klio_enabled)
     {
@@ -5405,13 +5416,13 @@ static void klio_enable(struct bhy2_dev *bhy)
         if (major < 0 || minor < 0 || version < 0 || count != 3)
         {
             PRINT("Unable to get Klio firmware version.\r\n");
-            (void)(BHY2_E_MAGIC); /* Invalid firmware error */
+            (void)(BHY_E_MAGIC); /* Invalid firmware error */
         }
 
         if (major != 3)
         {
             PRINT("The supported Klio firmware is version 3.x.x.\r\n");
-            (void)(BHY2_E_MAGIC); /* Invalid firmware error */
+            (void)(BHY_E_MAGIC); /* Invalid firmware error */
         }
 
         (void)(bhy_klio_param_get_parameter(KLIO_PARAM_RECOGNITION_MAX_PATTERNS, buf, &size, bhy));
@@ -5450,7 +5461,7 @@ static void klio_enable(struct bhy2_dev *bhy)
 * @brief Function to get Klio status
 * @param[in] bhy : Device instance
 */
-static void klio_status(struct bhy2_dev *bhy)
+static void klio_status(struct bhy_dev *bhy)
 {
     uint32_t klio_driver_status;
 
@@ -5467,7 +5478,7 @@ static void klio_status(struct bhy2_dev *bhy)
 * @param[in] arg4 : Argument for recognition reset
 * @param[in] bhy  : Device instance
 */
-static void klio_set_state(const char *arg1, const char *arg2, const char *arg3, const char *arg4, struct bhy2_dev *bhy)
+static void klio_set_state(const char *arg1, const char *arg2, const char *arg3, const char *arg4, struct bhy_dev *bhy)
 {
     bhy_klio_param_sensor_state_t state = { 0 };
 
@@ -5491,7 +5502,7 @@ static void klio_set_state(const char *arg1, const char *arg2, const char *arg3,
 * @brief Function to get state of cyclic Klio
 * @param[in] bhy  : Device instance
 */
-static void klio_get_state(struct bhy2_dev *bhy)
+static void klio_get_state(struct bhy_dev *bhy)
 {
     bhy_klio_param_sensor_state_t state;
 
@@ -5511,7 +5522,7 @@ static void klio_get_state(struct bhy2_dev *bhy)
 * @param[in] arg  : Argument for gestures status
 * @param[in] bhy  : Device instance
 */
-static void klio_set_generic_recognition_state(const char *arg, struct bhy2_dev *bhy)
+static void klio_set_generic_recognition_state(const char *arg, struct bhy_dev *bhy)
 {
     bhy_klio_param_generic_sensor_state_t state = { 0 };
 
@@ -5526,7 +5537,7 @@ static void klio_set_generic_recognition_state(const char *arg, struct bhy2_dev 
 * @brief Function to get state of generic recognition
 * @param[in] bhy  : Device instance
 */
-static void klio_get_generic_recognition_state(struct bhy2_dev *bhy)
+static void klio_get_generic_recognition_state(struct bhy_dev *bhy)
 {
     bhy_klio_param_generic_sensor_state_t state;
 
@@ -5584,7 +5595,7 @@ static int32_t pattern_blob_to_bytes(const uint8_t *pattern_blob_char, uint8_t *
 * @param[in] arg2 : Argument for pattern/adaptive pattern
 * @param[in] bhy  : Device instance
 */
-static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct bhy2_dev *bhy)
+static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy)
 {
     uint8_t pattern_data[244];
     uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg2, (uint8_t *)pattern_data);
@@ -5626,7 +5637,7 @@ static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct 
 * @param[in] arg2 : Argument for pattern as bare hex bytestring
 * @param[in] bhy  : Device instance
 */
-static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct bhy2_dev *bhy)
+static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy)
 {
     static uint8_t pattern_data[10240];
     uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg2, (uint8_t *)pattern_data);
@@ -5663,7 +5674,7 @@ static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct
 * @param[in] arg2 : Argument for configuration as bare hex bytestring
 * @param[in] bhy  : Device instance
 */
-static void klio_set_gesture_config(const char *arg1, const char *arg2, struct bhy2_dev *bhy)
+static void klio_set_gesture_config(const char *arg1, const char *arg2, struct bhy_dev *bhy)
 {
     uint8_t config_data[128] = { 0 };
     uint8_t loop = (uint8_t)atoi(arg1);
@@ -5679,7 +5690,7 @@ static void klio_set_gesture_config(const char *arg1, const char *arg2, struct b
 * @param[in] arg : Argument for configuration as bare hex bytestring
 * @param[in] bhy : Device instance
 */
-static void klio_set_timing_config(const char *arg, struct bhy2_dev *bhy)
+static void klio_set_timing_config(const char *arg, struct bhy_dev *bhy)
 {
     uint8_t config_data[128] = { 0 };
     uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg, config_data);
@@ -5694,7 +5705,7 @@ static void klio_set_timing_config(const char *arg, struct bhy2_dev *bhy)
 * @param[in] arg : Argument for parameter ID
 * @param[in] bhy : Device instance
 */
-static void klio_get_parameter(const uint16_t *arg, struct bhy2_dev *bhy)
+static void klio_get_parameter(const uint16_t *arg, struct bhy_dev *bhy)
 {
     uint32_t param_id = (uint32_t)atoi((char *)arg);
     uint8_t buf[255];
@@ -5756,7 +5767,7 @@ static void klio_get_parameter(const uint16_t *arg, struct bhy2_dev *bhy)
 * @param[in] arg2 : Argument for value to set
 * @param[in] bhy  : Device instance
 */
-static void klio_set_parameter(const char *arg1, char *arg2, struct bhy2_dev *bhy)
+static void klio_set_parameter(const char *arg1, char *arg2, struct bhy_dev *bhy)
 {
     int param_id = atoi(arg1);
     char *param_value = arg2;
@@ -5786,7 +5797,7 @@ static void klio_set_parameter(const char *arg1, char *arg2, struct bhy2_dev *bh
 * @param[in] arg2 : Argument for second pattern as bare hex bytestring
 * @param[in] bhy  : Device instance
 */
-static void klio_similarity_score(const uint8_t *arg1, const uint8_t *arg2, struct bhy2_dev *bhy)
+static void klio_similarity_score(const uint8_t *arg1, const uint8_t *arg2, struct bhy_dev *bhy)
 {
     uint8_t first_pattern_data[244] = { 0 }, second_pattern_data[244] = { 0 };
     uint16_t pattern1_size = (uint16_t)pattern_blob_to_bytes(arg1, first_pattern_data);
@@ -5815,7 +5826,7 @@ static void klio_similarity_score(const uint8_t *arg1, const uint8_t *arg2, stru
 */
 
 /*lint -e772 -e830*/
-static void klio_similarity_score_multiple(const char *arg1, const char *arg2, struct bhy2_dev *bhy)
+static void klio_similarity_score_multiple(const char *arg1, const char *arg2, struct bhy_dev *bhy)
 {
     uint8_t loop = (uint8_t)atoi(arg1);
     char *indexes_str = (char *)strdup((const char *)arg2);
@@ -5852,7 +5863,7 @@ static void klio_similarity_score_multiple(const char *arg1, const char *arg2, s
 * @param[in] arg1      : Argument for pattern indices
 * @param[in] bhy       : Device instance
 */
-static void klio_pattern_state_operation(const uint8_t operation, const char *arg1, struct bhy2_dev *bhy)
+static void klio_pattern_state_operation(const uint8_t operation, const char *arg1, struct bhy_dev *bhy)
 {
     uint8_t count = 0;
     uint8_t pattern_states[klio_vars.max_cyclic_patterns];
@@ -5927,12 +5938,12 @@ static void log_data(uint8_t sid,
 * @param[in] payload : Sensor ID
 * @param[in] bhy     : Device instance
 */
-static void trigger_foc(const char *payload, struct bhy2_dev *bhy)
+static void trigger_foc(const char *payload, struct bhy_dev *bhy)
 {
 
     uint8_t str_param_id[8] = { 0 };
     uint16_t sensor_id;
-    struct bhy2_foc_resp foc_resp = { 0 };
+    struct bhy_foc_resp foc_resp = { 0 };
 
     strncpy((char *)str_param_id, payload, strlen(payload));
     str_param_id[strlen(payload)] = '\0';
@@ -5940,16 +5951,16 @@ static void trigger_foc(const char *payload, struct bhy2_dev *bhy)
     sensor_id = (uint16_t)strtol((char *)str_param_id, NULL, 10);
     switch (sensor_id)
     {
-        case BHY2_ACCEL_FOC:
+        case BHY_ACCEL_FOC:
             PRINT("Keep the sensor stable for accel foc\r\n");
-            (void)bhy2_perform_foc((uint8_t)sensor_id, &foc_resp, bhy);
+            (void)bhy_perform_foc((uint8_t)sensor_id, &foc_resp, bhy);
             break;
 
-        case BHY2_GYRO_FOC:
+        case BHY_GYRO_FOC:
             PRINT("Keep the sensor stable for accel foc\r\n");
-            (void)bhy2_perform_foc(BHY2_ACCEL_FOC, &foc_resp, bhy);
+            (void)bhy_perform_foc(BHY_ACCEL_FOC, &foc_resp, bhy);
             PRINT("Gyro foc getting enabled\r\n");
-            (void)bhy2_perform_foc((uint8_t)sensor_id, &foc_resp, bhy);
+            (void)bhy_perform_foc((uint8_t)sensor_id, &foc_resp, bhy);
             break;
 
         default:
@@ -5958,13 +5969,13 @@ static void trigger_foc(const char *payload, struct bhy2_dev *bhy)
 
     switch (foc_resp.foc_status)
     {
-        case BHY2_FOC_SUCCESS:
+        case BHY_FOC_SUCCESS:
             PRINT("FOC Success\r\n");
             break;
-        case BHY2_FOC_FAILURE:
+        case BHY_FOC_FAILURE:
             PRINT("FOC failed\r\n");
             break;
-        case BHY2_FOC_UNKNOWN_ERROR:
+        case BHY_FOC_UNKNOWN_ERROR:
             PRINT("Unknown FOC failure\r\n");
             break;
         default:
@@ -6001,11 +6012,11 @@ static void stream_hex_data(uint8_t sid, uint32_t ts, uint32_t tns, uint8_t even
 * @param[in] log : Device instance for log
 * @param[in] bhy : Device instance
 */
-static void write_meta_info(struct logbin_dev *logbin, struct bhy2_dev *bhy)
+static void write_meta_info(struct logbin_dev *logbin, struct bhy_dev *bhy)
 {
     logbin_start_meta(logbin);
 
-    (void)bhy2_update_virtual_sensor_list(bhy);
+    (void)bhy_update_virtual_sensor_list(bhy);
 
 #if !defined(PC) && defined(MCU_APP30)
     coines_set_pin_config(COINES_APP30_LED_G, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_LOW);
@@ -6015,9 +6026,9 @@ static void write_meta_info(struct logbin_dev *logbin, struct bhy2_dev *bhy)
     coines_set_pin_config(COINES_APP31_LED_G, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_HIGH);
 #endif
 
-    for (uint8_t i = 1; i < BHY2_SENSOR_ID_MAX; i++)
+    for (uint8_t i = 1; i < BHY_SENSOR_ID_MAX; i++)
     {
-        if (bhy2_is_sensor_available(i, bhy))
+        if (bhy_is_sensor_available(i, bhy))
         {
             logbin_add_meta(i,
                             get_sensor_name(i),
@@ -6045,10 +6056,10 @@ static void write_meta_info(struct logbin_dev *logbin, struct bhy2_dev *bhy)
 * @brief Function to print schema information
 * @param[in] bhy : Device instance
 */
-static void schema_info(struct bhy2_dev *bhy)
+static void schema_info(struct bhy_dev *bhy)
 {
     /* Update virtual sensor */
-    (void)bhy2_update_virtual_sensor_list(bhy);
+    (void)bhy_update_virtual_sensor_list(bhy);
 
     /* Get present virtual sensor */
     (void)bhy_system_param_get_virtual_sensor_present(bhy);
@@ -6056,17 +6067,17 @@ static void schema_info(struct bhy2_dev *bhy)
     PRINT("Schema List.\r\n");
     PRINT("ID: Name: Event size: Parse format: Axis names: Scaling\r\n");
 
-    for (uint8_t i = 1; i < BHY2_SENSOR_ID_MAX; i++)
+    for (uint8_t i = 1; i < BHY_SENSOR_ID_MAX; i++)
     {
-        if (bhy2_is_sensor_available(i, bhy))
+        if (bhy_is_sensor_available(i, bhy))
         {
-            if (i < BHY2_SENSOR_ID_CUSTOM_START)
+            if (i < BHY_SENSOR_ID_CUSTOM_START)
             {
                 PRINT("%u: %s: ", i, get_sensor_name(i));
             }
             else
             {
-                PRINT("%u: %s: ", i, custom_driver_information[i - BHY2_SENSOR_ID_CUSTOM_START].sensor_name);
+                PRINT("%u: %s: ", i, custom_driver_information[i - BHY_SENSOR_ID_CUSTOM_START].sensor_name);
             }
 
             PRINT("%u: %s: %s: %f\r\n",
@@ -6083,39 +6094,39 @@ static void schema_info(struct bhy2_dev *bhy)
 * @param[in] sensor_id : Sensor ID
 * @param[in] bhy       : Device instance
 */
-static float get_sensor_default_scaling_value(uint8_t sensor_id, struct bhy2_dev *bhy)
+static float get_sensor_default_scaling_value(uint8_t sensor_id, struct bhy_dev *bhy)
 {
     float scaling = -1.0f;
     struct bhy_system_param_phys_sensor_info psi = { 0 };
 
-    if (((sensor_id >= BHY2_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY2_SENSOR_ID_ACC_RAW_WU)) ||
-        ((sensor_id >= BHY2_SENSOR_ID_GRA) && (sensor_id == BHY2_SENSOR_ID_LACC_WU)) ||
-        (sensor_id == BHY2_SENSOR_ID_ACC_BIAS_WU))
+    if (((sensor_id >= BHY_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY_SENSOR_ID_ACC_RAW_WU)) ||
+        ((sensor_id >= BHY_SENSOR_ID_GRA) && (sensor_id == BHY_SENSOR_ID_LACC_WU)) ||
+        (sensor_id == BHY_SENSOR_ID_ACC_BIAS_WU))
     {
-        (void)(bhy_system_param_get_physical_sensor_info(BHY2_PHYS_SENSOR_ID_ACCELEROMETER, &psi, bhy));
+        (void)(bhy_system_param_get_physical_sensor_info(BHY_PHYS_SENSOR_ID_ACCELEROMETER, &psi, bhy));
         scaling = (float)psi.curr_range.u16_val / 32768.0f;
     }
-    else if (((sensor_id >= BHY2_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY2_SENSOR_ID_GYRO_RAW_WU)) ||
-             (sensor_id == BHY2_SENSOR_ID_GYRO_BIAS_WU))
+    else if (((sensor_id >= BHY_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY_SENSOR_ID_GYRO_RAW_WU)) ||
+             (sensor_id == BHY_SENSOR_ID_GYRO_BIAS_WU))
     {
-        (void)(bhy_system_param_get_physical_sensor_info(BHY2_PHYS_SENSOR_ID_GYROSCOPE, &psi, bhy));
+        (void)(bhy_system_param_get_physical_sensor_info(BHY_PHYS_SENSOR_ID_GYROSCOPE, &psi, bhy));
         scaling = (float)psi.curr_range.u16_val / 32768.0f;
     }
-    else if (((sensor_id >= BHY2_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY2_SENSOR_ID_MAG_RAW_WU)) ||
-             (sensor_id == BHY2_SENSOR_ID_MAG_BIAS_WU))
+    else if (((sensor_id >= BHY_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY_SENSOR_ID_MAG_RAW_WU)) ||
+             (sensor_id == BHY_SENSOR_ID_MAG_BIAS_WU))
     {
-        (void)(bhy_system_param_get_physical_sensor_info(BHY2_PHYS_SENSOR_ID_MAGNETOMETER, &psi, bhy));
+        (void)(bhy_system_param_get_physical_sensor_info(BHY_PHYS_SENSOR_ID_MAGNETOMETER, &psi, bhy));
         scaling = (float)psi.curr_range.u16_val / 32768.0f;
     }
-    else if ((sensor_id >= BHY2_SENSOR_ID_RV) && (sensor_id <= BHY2_SENSOR_ID_GEORV_WU))
+    else if ((sensor_id >= BHY_SENSOR_ID_RV) && (sensor_id <= BHY_SENSOR_ID_GEORV_WU))
     {
         scaling = 1.0f / 16384.0f;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_ORI) || (sensor_id == BHY2_SENSOR_ID_ORI_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_ORI) || (sensor_id == BHY_SENSOR_ID_ORI_WU))
     {
         scaling = 360.0f / 32768.0f;
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_TEMP) || (sensor_id == BHY2_SENSOR_ID_TEMP_WU) ||
+    else if ((sensor_id == BHY_SENSOR_ID_TEMP) || (sensor_id == BHY_SENSOR_ID_TEMP_WU) ||
              (sensor_id == BHY_SENSOR_BMP_TEMPERATURE) || (sensor_id == BHY_SENSOR_BMP_TEMPERATURE_WU))
     {
         scaling = 1.0f / 100.0f;
@@ -6129,7 +6140,7 @@ static float get_sensor_default_scaling_value(uint8_t sensor_id, struct bhy2_dev
 * @param[in] sensor_id : Sensor ID
 * @param[in] bhy       : Device instance
 */
-static float get_sensor_default_scaling(uint8_t sensor_id, struct bhy2_dev *bhy)
+static float get_sensor_default_scaling(uint8_t sensor_id, struct bhy_dev *bhy)
 {
     float scaling;
 
@@ -6137,31 +6148,32 @@ static float get_sensor_default_scaling(uint8_t sensor_id, struct bhy2_dev *bhy)
 
     if (scaling == -1.0f)
     {
-        if ((sensor_id == BHY2_SENSOR_ID_BARO) || (sensor_id == BHY2_SENSOR_ID_BARO_WU))
+        if ((sensor_id == BHY_SENSOR_ID_BARO) || (sensor_id == BHY_SENSOR_ID_BARO_WU))
         {
             scaling = 1.0f / 128.0f;
         }
-        else if ((sensor_id == BHY2_SENSOR_ID_HUM) || (sensor_id == BHY2_SENSOR_ID_HUM_WU))
+        else if ((sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU))
         {
             scaling = 1.0f;
         }
-        else if ((sensor_id == BHY2_SENSOR_ID_GAS) || (sensor_id == BHY2_SENSOR_ID_GAS_WU))
+        else if ((sensor_id == BHY_SENSOR_ID_GAS) || (sensor_id == BHY_SENSOR_ID_GAS_WU))
         {
             scaling = 1.0f;
         }
-        else if ((sensor_id == BHY2_SENSOR_ID_LIGHT) || (sensor_id == BHY2_SENSOR_ID_LIGHT_WU))
+        else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU))
         {
             scaling = 10000.0f / 216.0f;
         }
-        else if ((sensor_id == BHY2_SENSOR_ID_PROX) || (sensor_id == BHY2_SENSOR_ID_PROX_WU))
+        else if ((sensor_id == BHY_SENSOR_ID_PROX) || (sensor_id == BHY_SENSOR_ID_PROX_WU))
         {
             scaling = 1.0f;
         }
-        else if ((sensor_id == BHY2_SENSOR_ID_SI_ACCEL) || (sensor_id == BHY2_SENSOR_ID_SI_GYROS))
+        else if ((sensor_id == BHY_SENSOR_ID_SI_ACCEL) || (sensor_id == BHY_SENSOR_ID_SI_GYROS))
         {
             /* Scaling factor already applied in firmware */
         }
-        else if ((sensor_id >= BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) && (sensor_id <= BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
+        else if ((sensor_id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) || (sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_Q) ||
+                 (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
         {
             scaling = 1.0f / 16384.0f; /*2^14 -> 16384*/
         }
@@ -6248,7 +6260,7 @@ int8_t dmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    int8_t rslt = BHY2_OK;
+    int8_t rslt = BHY_OK;
     char injection_mode[20];
     struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
 
@@ -6261,21 +6273,21 @@ int8_t dmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     {
         case 'n':
             sprintf(injection_mode, "Normal"); /*Normal Mode */
-            rslt = bhy2_set_data_injection_mode(BHY2_NORMAL_MODE, &cli_ref->bhy);
+            rslt = bhy_set_data_injection_mode(BHY_NORMAL_MODE, &cli_ref->bhy);
             break;
         case 'r':
             sprintf(injection_mode, "Real-Time"); /*Real-Time Mode */
-            rslt = bhy2_set_data_injection_mode(BHY2_REAL_TIME_INJECTION, &cli_ref->bhy);
+            rslt = bhy_set_data_injection_mode(BHY_REAL_TIME_INJECTION, &cli_ref->bhy);
             break;
         case 's':
             sprintf(injection_mode, "Step-by-Step"); /*Step-by-Step Mode */
-            rslt = bhy2_set_data_injection_mode(BHY2_STEP_BY_STEP_INJECTION, &cli_ref->bhy);
+            rslt = bhy_set_data_injection_mode(BHY_STEP_BY_STEP_INJECTION, &cli_ref->bhy);
             break;
         default:
             break;
     }
 
-    if (rslt != BHY2_OK)
+    if (rslt != BHY_OK)
     {
         ERROR("Mode switching failed \r\n");
 
@@ -6283,9 +6295,9 @@ int8_t dmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     /*! Check if the status register is updated and read the status*/
-    rslt = bhy2_read_status(&code, status, 8, &actual_length, &cli_ref->bhy); /*Fix for mode switching not occurring
+    rslt = bhy_read_status(&code, status, 8, &actual_length, &cli_ref->bhy); /*Fix for mode switching not occurring
                                                                                 * cleanly */
-    if (rslt != BHY2_OK)
+    if (rslt != BHY_OK)
     {
         ERROR("Status check failed \r\n");
 
@@ -6349,7 +6361,7 @@ int8_t dinject_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         if (get_interrupt_status())
         {
             /*! Data from the FIFO is read and the relevant callback if registered are called */
-            (void)(bhy2_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
+            (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
 
             /*            coines_delay_msec(5); / *Added for stability. Maintained for future reference * / */
         }
@@ -6368,8 +6380,8 @@ int8_t dinject_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     /*! Clear the FIFO */
     memset(fifo_buffer, 0, sizeof(fifo_buffer)); /*Local Buffer */
-    (void)(bhy2_clear_fifo(0xFF, &cli_ref->bhy)); /*Read and Flush Wakeup and Non-Wakeup FIFO */
-    (void)(bhy2_clear_fifo(0xFE, &cli_ref->bhy)); /*Flush all the FIFOs */
+    (void)(bhy_clear_fifo(0xFF, &cli_ref->bhy)); /*Read and Flush Wakeup and Non-Wakeup FIFO */
+    (void)(bhy_clear_fifo(0xFE, &cli_ref->bhy)); /*Flush all the FIFOs */
 
     return CLI_OK;
 }
@@ -6405,7 +6417,7 @@ int8_t pm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     uint8_t error_value = 0, chip_ctrl_value = 0;
 
     /*! Check the Error Status */
-    rslt = bhy2_get_regs(BHY2_REG_ERROR_VALUE, &error_value, 1, &cli_ref->bhy);
+    rslt = bhy_get_regs(BHY_REG_ERROR_VALUE, &error_value, 1, &cli_ref->bhy);
 
     PRINT("Error Reg Value : %x\r\n", error_value);
 
@@ -6413,7 +6425,7 @@ int8_t pm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     {
         /*! Get the Post Mortem data */
         rslt = get_post_mortem_data(&post_mortem_data, &cli_ref->bhy);
-        if (rslt != BHY2_OK)
+        if (rslt != BHY_OK)
         {
             PRINT("Post Mortem Data Retrieval Failed. Error : %d\r\n", rslt);
 
@@ -6445,13 +6457,13 @@ int8_t pm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         memset((uint8_t*)&post_mortem_data, 0, sizeof(struct bhy_post_mortem));
 
         /*! Read the Chip Control Register */
-        rslt = bhy2_get_regs(BHY2_REG_CHIP_CTRL, &chip_ctrl_value, 1, &cli_ref->bhy);
+        rslt = bhy_get_regs(BHY_REG_CHIP_CTRL, &chip_ctrl_value, 1, &cli_ref->bhy);
 
-        if (rslt == BHY2_OK)
+        if (rslt == BHY_OK)
         {
             /*! Configure Chip Register to Clear Error and Debug Registers */
-            uint8_t clr_err = chip_ctrl_value | BHY2_CHIP_CTRL_CLR_ERR_REG;
-            rslt = bhy2_set_regs(BHY2_REG_CHIP_CTRL, &clr_err, 1, &cli_ref->bhy);
+            uint8_t clr_err = chip_ctrl_value | BHY_CHIP_CTRL_CLR_ERR_REG;
+            rslt = bhy_set_regs(BHY_REG_CHIP_CTRL, &clr_err, 1, &cli_ref->bhy);
         }
     }
     else
@@ -6459,7 +6471,7 @@ int8_t pm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         PRINT("No Fatal error observed. Post Mortem Data not available. \r\n");
     }
 
-    if (rslt == BHY2_OK)
+    if (rslt == BHY_OK)
     {
         PRINT("\r\n");
     }
@@ -6500,8 +6512,8 @@ int8_t dactse_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     /*! Clear the FIFO */
     memset(fifo_buffer, 0, sizeof(fifo_buffer)); /*Local Buffer */
-    (void)(bhy2_clear_fifo(0xFF, &cli_ref->bhy)); /*Read and Flush Wakeup and Non-Wakeup FIFO */
-    (void)(bhy2_clear_fifo(0xFE, &cli_ref->bhy)); /*Flush all the FIFOs */
+    (void)(bhy_clear_fifo(0xFF, &cli_ref->bhy)); /*Read and Flush Wakeup and Non-Wakeup FIFO */
+    (void)(bhy_clear_fifo(0xFE, &cli_ref->bhy)); /*Flush all the FIFOs */
 
     PRINT("Deactivated all the Sensors\r\n\r\n\r\n");
 
@@ -6623,7 +6635,7 @@ int8_t mtapen_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     rslt = bhy_multi_tap_param_set_config(&multitap_setting, &cli_ref->bhy);
 
-    if (rslt != BHY2_OK)
+    if (rslt != BHY_OK)
     {
         ERROR("Multi Tap Parameter Set Failed \r\n");
 
@@ -6665,14 +6677,14 @@ int8_t mtapinfo_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     int8_t rslt;
 
     /*lint -e778*/
-    uint16_t len = BHY2_LE24MUL(BHY_MULTI_TAP_PARAM_ENABLE_LENGTH);
+    uint16_t len = BHY_LE24MUL(BHY_MULTI_TAP_PARAM_ENABLE_LENGTH);
     bhy_event_data_multi_tap buffer[len];
 
     memset(buffer, 0, len);
 
     rslt = bhy_multi_tap_param_get_config(buffer, &cli_ref->bhy);
 
-    if (rslt != BHY2_OK)
+    if (rslt != BHY_OK)
     {
         ERROR("Multi Tap Parameter Get Failed \r\n");
 
@@ -6737,7 +6749,7 @@ int8_t mtapsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     rslt = bhy_multi_tap_param_detector_set_config(&multitap_cnfg, &cli_ref->bhy);
 
-    if (rslt != BHY2_OK)
+    if (rslt != BHY_OK)
     {
         ERROR("Multi Tap Detector Parameter Set Failed \r\n");
 
@@ -6782,7 +6794,7 @@ int8_t mtapgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     rslt = bhy_multi_tap_param_detector_get_config(&multitap_cnfg, &cli_ref->bhy);
 
-    if (rslt != BHY2_OK)
+    if (rslt != BHY_OK)
     {
         ERROR("Multi Tap Parameter Get Failed \r\n");
 
@@ -7448,12 +7460,12 @@ int8_t gyrogetcrt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-    uint8_t status;
+    bhy_phy_sensor_ctrl_param_gyro_crt_status status;
 
     (void)(bhy_phy_sensor_ctrl_param_gyro_get_crt_status(&status, &cli_ref->bhy));
 
     PRINT("Gyroscope CRT Status : %s\r\n",
-          (status == BHY_PHY_PARAM_GYRO_COMP_RETRIM_SUCCESS) ? "Successful" : "Failed");
+          (status.status == BHY_PHY_PARAM_GYRO_COMP_RETRIM_SUCCESS) ? "Successful" : "Failed");
 
     return CLI_OK;
 }
@@ -8718,14 +8730,14 @@ int8_t hmcsetcalcorrq_help(void *ref)
     PRINT("  hmcsetcalcorrq <quat_x> <quat_y> <quat_z> <quat_w> \r\n");
     PRINT("    \t= Set the Head Misalignment Quaternion Calibration Correction\r\n");
     PRINT(
-        "    \t <quat_x> : quaternion x, (i32), resolution 1 mg/LSB [includes 1 bit sign, 8 bits exponent and 23 bits fraction]\r\n");
+        "    \t <quat_x> : quaternion x, (float), resolution 1 mg/LSB [includes 1 bit sign, 8 bits exponent and 23 bits fraction]\r\n");
     PRINT(
-        "    \t <quat_y> : quaternion y, (i32), resolution 1 mg/LSB [includes 1 bit sign, 8 bits exponent and 23 bits fraction]\r\n");
+        "    \t <quat_y> : quaternion y, (float), resolution 1 mg/LSB [includes 1 bit sign, 8 bits exponent and 23 bits fraction]\r\n");
     PRINT(
-        "    \t <quat_z> : quaternion z, (i32), resolution 1 mg/LSB [includes 1 bit sign, 8 bits exponent and 23 bits fraction]\r\n");
+        "    \t <quat_z> : quaternion z, (float), resolution 1 mg/LSB [includes 1 bit sign, 8 bits exponent and 23 bits fraction]\r\n");
     PRINT(
-        "    \t <quat_w> : quaternion w, (i32), resolution 1 mg/LSB [includes 1 bit sign, 8 bits exponent and 23 bits fraction]\r\n");
-    PRINT("    \t eg. hmcsetcalcorrq 0x00000600 0x00000002 0x00320000 0x3f000000 \r\n");
+        "    \t <quat_w> : quaternion w, (float), resolution 1 mg/LSB [includes 1 bit sign, 8 bits exponent and 23 bits fraction]\r\n");
+    PRINT("    \t eg. hmcsetcalcorrq 1.000 1.000 1.000 1.000 \r\n");
 
     return CLI_OK;
 }
@@ -8745,11 +8757,11 @@ int8_t hmcsetcalcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     INFO("Executing %s\r\n", argv[0]);
 
-    hmc_quat_corr.quaternion_x = (int32_t)string_to_int((char *)argv[1]);
-    hmc_quat_corr.quaternion_y = (int32_t)string_to_int((char *)argv[2]);
-    hmc_quat_corr.quaternion_z = (int32_t)string_to_int((char *)argv[3]);
-    hmc_quat_corr.quaternion_w = (int32_t)string_to_int((char *)argv[4]);
-    hmc_quat_corr.accuracy = 0;
+    hmc_quat_corr.quaternion_x.f_val = (float)string_to_int((char *)argv[1]);
+    hmc_quat_corr.quaternion_y.f_val = (float)string_to_int((char *)argv[2]);
+    hmc_quat_corr.quaternion_z.f_val = (float)string_to_int((char *)argv[3]);
+    hmc_quat_corr.quaternion_w.f_val = (float)string_to_int((char *)argv[4]);
+    hmc_quat_corr.accuracy.f_val = 0.0f;
     (void)(bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg(&hmc_quat_corr, &cli_ref->bhy));
 
     PRINT("Head Misalignment Quaternion Calibration Correction set successfully\r\n");
@@ -8788,10 +8800,10 @@ int8_t hmcgetcalcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     (void)(bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg(&hmc_quat_corr, &cli_ref->bhy));
 
-    PRINT("quaternion_x : 0x%08x\r\n", hmc_quat_corr.quaternion_x);
-    PRINT("quaternion_y : 0x%08x\r\n", hmc_quat_corr.quaternion_y);
-    PRINT("quaternion_z : 0x%08x\r\n", hmc_quat_corr.quaternion_z);
-    PRINT("quaternion_w : 0x%08x\r\n", hmc_quat_corr.quaternion_w);
+    PRINT("quaternion_x : %f\r\n", hmc_quat_corr.quaternion_x.f_val);
+    PRINT("quaternion_y : %f\r\n", hmc_quat_corr.quaternion_y.f_val);
+    PRINT("quaternion_z : %f\r\n", hmc_quat_corr.quaternion_z.f_val);
+    PRINT("quaternion_w : %f\r\n", hmc_quat_corr.quaternion_w.f_val);
 
     return CLI_OK;
 }
@@ -8808,10 +8820,10 @@ int8_t hmcsetmode_help(void *ref)
     PRINT("  hmcsetmode <mode> <x[0]> <x[1]> <x[2]> \r\n");
     PRINT("    \t= Set the Head Misalignment Mode and Vector X value\r\n");
     PRINT("    \t <mode> : HMC mode, 0=default mode, 1=semi-automatic mode\r\n");
-    PRINT("    \t <x[0]> : x[0], (i32), includes 1 bit sign, 8 bits exponent and 23 bits fraction \r\n");
-    PRINT("    \t <x[1]> : x[1], (i32), includes 1 bit sign, 8 bits exponent and 23 bits fraction \r\n");
-    PRINT("    \t <x[2]> : x[2], (i32), includes 1 bit sign, 8 bits exponent and 23 bits fraction \r\n");
-    PRINT("    \t eg. hmcsetmode 0 0x00000000 0x00000000 0x3f800000 \r\n");
+    PRINT("    \t <x[0]> : x[0], (float), includes 1 bit sign, 8 bits exponent and 23 bits fraction \r\n");
+    PRINT("    \t <x[1]> : x[1], (float), includes 1 bit sign, 8 bits exponent and 23 bits fraction \r\n");
+    PRINT("    \t <x[2]> : x[2], (float), includes 1 bit sign, 8 bits exponent and 23 bits fraction \r\n");
+    PRINT("    \t eg. hmcsetmode 0 0.0 0.0 1.0 \r\n");
 
     return CLI_OK;
 }
@@ -8832,17 +8844,17 @@ int8_t hmcsetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     INFO("Executing %s\r\n", argv[0]);
 
     hmc_mode_vect_x.mode = (uint8_t)string_to_int((char *)argv[1]);
-    hmc_mode_vect_x.vector_x_0 = (int32_t)string_to_int((char *)argv[2]);
-    hmc_mode_vect_x.vector_x_1 = (int32_t)string_to_int((char *)argv[3]);
-    hmc_mode_vect_x.vector_x_2 = (int32_t)string_to_int((char *)argv[4]);
+    hmc_mode_vect_x.vector_x_0.f_val = (float)string_to_int((char *)argv[2]);
+    hmc_mode_vect_x.vector_x_1.f_val = (float)string_to_int((char *)argv[3]);
+    hmc_mode_vect_x.vector_x_2.f_val = (float)string_to_int((char *)argv[4]);
 
     (void)(bhy_head_orientation_param_set_hmc_mode_vector_x(&hmc_mode_vect_x, &cli_ref->bhy));
 
     PRINT("Set Head Misalignment Mode and Vector X value:\r\n");
     PRINT("    \t -<mode> : %d\r\n", hmc_mode_vect_x.mode);
-    PRINT("    \t -<vector_x_0> : 0x%08x\r\n", hmc_mode_vect_x.vector_x_0);
-    PRINT("    \t -<vector_x_1> : 0x%08x\r\n", hmc_mode_vect_x.vector_x_1);
-    PRINT("    \t -<vector_x_2> : 0x%08x\r\n", hmc_mode_vect_x.vector_x_2);
+    PRINT("    \t -<vector_x_0> : %f\r\n", hmc_mode_vect_x.vector_x_0.f_val);
+    PRINT("    \t -<vector_x_1> : %f\r\n", hmc_mode_vect_x.vector_x_1.f_val);
+    PRINT("    \t -<vector_x_2> : %f\r\n", hmc_mode_vect_x.vector_x_2.f_val);
 
     return CLI_OK;
 }
@@ -8880,9 +8892,9 @@ int8_t hmcgetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     PRINT("    \t- Head Misalignment Mode and Vector X value:\r\n");
     PRINT("    \t -<mode> : %d\r\n", hmc_mode_vect_x.mode);
-    PRINT("    \t -<vector_x_0> : 0x%08x\r\n", hmc_mode_vect_x.vector_x_0);
-    PRINT("    \t -<vector_x_1> : 0x%08x\r\n", hmc_mode_vect_x.vector_x_1);
-    PRINT("    \t -<vector_x_2> : 0x%08x\r\n", hmc_mode_vect_x.vector_x_2);
+    PRINT("    \t -<vector_x_0> : %f\r\n", hmc_mode_vect_x.vector_x_0.f_val);
+    PRINT("    \t -<vector_x_1> : %f\r\n", hmc_mode_vect_x.vector_x_1.f_val);
+    PRINT("    \t -<vector_x_2> : %f\r\n", hmc_mode_vect_x.vector_x_2.f_val);
 
     return CLI_OK;
 }
@@ -9148,7 +9160,7 @@ int8_t getchipid_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)(bhy2_get_chip_id(&chip_id, &cli_ref->bhy));
+    (void)(bhy_get_chip_id(&chip_id, &cli_ref->bhy));
 
     PRINT("CHIP ID : 0x%02x\r\n", chip_id);
 
@@ -9182,7 +9194,6 @@ int8_t syssetphyseninfo_callback(uint8_t argc, uint8_t * const argv[], void *ref
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
-    (void)(bhy_system_param_set_physical_sensor_info(sensor_id, &orient_matrix, &cli_ref->bhy));
     (void)(bhy_system_param_set_physical_sensor_info(sensor_id, &orient_matrix, &cli_ref->bhy));
 
     PRINT("Set the orientation matrix for the Physical Sensors successfully\r\n");
@@ -9312,7 +9323,7 @@ int8_t bsecsettempoff_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-    union bhy2_float_conv offset;
+    union bhy_float_conv offset;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
@@ -9374,7 +9385,7 @@ int8_t sysgetphysenlist_callback(uint8_t argc, uint8_t * const argv[], void *ref
     PRINT("----------+--------------------------------------|\r\n");
     for (uint8_t i = 0; i < BHY_PHYSICAL_SENSOR_ID_MAX; i++)
     {
-        if (bhy2_is_physical_sensor_available(i, &cli_ref->bhy))
+        if (bhy_is_physical_sensor_available(i, &cli_ref->bhy))
         {
             PRINT(" %8u | %36s \r\n", i, get_physical_sensor_name(i));
         }
@@ -9414,7 +9425,7 @@ int8_t sysgetvirtsenlist_callback(uint8_t argc, uint8_t * const argv[], void *re
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)bhy2_update_virtual_sensor_list(&cli_ref->bhy);
+    (void)bhy_update_virtual_sensor_list(&cli_ref->bhy);
 
     /* Get present virtual sensor */
     (void)bhy_system_param_get_virtual_sensor_present(&cli_ref->bhy);
@@ -9422,17 +9433,17 @@ int8_t sysgetvirtsenlist_callback(uint8_t argc, uint8_t * const argv[], void *re
     PRINT("Virtual sensor list.\r\n");
     PRINT("Sensor ID |                          Sensor Name |\r\n");
     PRINT("----------+--------------------------------------|\r\n");
-    for (uint8_t i = 0; i < BHY2_SENSOR_ID_MAX; i++)
+    for (uint8_t i = 0; i < BHY_SENSOR_ID_MAX; i++)
     {
-        if (bhy2_is_sensor_available(i, &cli_ref->bhy))
+        if (bhy_is_sensor_available(i, &cli_ref->bhy))
         {
-            if (i < BHY2_SENSOR_ID_CUSTOM_START)
+            if (i < BHY_SENSOR_ID_CUSTOM_START)
             {
                 PRINT(" %8u | %36s \r\n", i, get_sensor_name(i));
             }
             else
             {
-                PRINT(" %8u | %36s \r\n", i, custom_driver_information[i - BHY2_SENSOR_ID_CUSTOM_START].sensor_name);
+                PRINT(" %8u | %36s \r\n", i, custom_driver_information[i - BHY_SENSOR_ID_CUSTOM_START].sensor_name);
             }
         }
     }
@@ -9468,7 +9479,7 @@ int8_t bsecgettempoff_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-    union bhy2_float_conv offset;
+    union bhy_float_conv offset;
 
     INFO("Executing %s\r\n", argv[0]);
 
@@ -10256,7 +10267,7 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
                     break;
                 }
 
-                (void)(bhy2_set_parameter(param_id, (uint8_t *)buffer, bytes_read - 2, &cli_ref->bhy));
+                (void)(bhy_set_parameter(param_id, (uint8_t *)buffer, bytes_read - 2, &cli_ref->bhy));
                 memset(buffer, 0, sizeof(buffer));
                 file_idx++;
 
@@ -10585,7 +10596,7 @@ int8_t phyrangeconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     str_value_id[strlen((char *)argv[2])] = '\0';
     value = (uint16_t)strtol(str_value_id, NULL, 0);
 
-    (void)(bhy2_set_virt_sensor_range(sen_id, value, &cli_ref->bhy));
+    (void)(bhy_set_virt_sensor_range(sen_id, value, &cli_ref->bhy));
     PRINT("Setting the range of sensor successfully\r\n");
 
     return CLI_OK;
@@ -10604,16 +10615,16 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
                              struct bhy_cli_ref *ref)
 {
     uint8_t phy_sen_id;
-    struct bhy2_dev *bhy = &(ref->bhy);
+    struct bhy_dev *bhy = &(ref->bhy);
     struct parse_ref *parse_table = &(ref->parse_table);
-    bhy2_fifo_parse_callback_t callback;
+    bhy_fifo_parse_callback_t callback;
     struct parse_sensor_details *sensor_details;
     struct bhy_system_param_phys_sensor_info psi = { 0 };
 
     if (first_run)
     {
         first_run = false;
-        (void)bhy2_update_virtual_sensor_list(bhy);
+        (void)bhy_update_virtual_sensor_list(bhy);
 
         /* Get present virtual sensor */
         (void)bhy_system_param_get_virtual_sensor_present(bhy);
@@ -10621,14 +10632,14 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
 
     /* If the payload of this sensor is not yet registered and within the custom virtual sensor id range, register the
      * default parsing function */
-    if (bhy2_is_sensor_available(sen_id, bhy))
+    if (bhy_is_sensor_available(sen_id, bhy))
     {
-        if ((sen_id >= BHY2_SENSOR_ID_CUSTOM_START) && (sen_id <= BHY2_SENSOR_ID_CUSTOM_END) &&
-            (custom_driver_information[sen_id - BHY2_SENSOR_ID_CUSTOM_START].is_registered != 1))
+        if ((sen_id >= BHY_SENSOR_ID_CUSTOM_START) && (sen_id <= BHY_SENSOR_ID_CUSTOM_END) &&
+            (custom_driver_information[sen_id - BHY_SENSOR_ID_CUSTOM_START].is_registered != 1))
         {
-            custom_driver_information[sen_id - BHY2_SENSOR_ID_CUSTOM_START].sensor_payload = bhy->event_size[sen_id];
+            custom_driver_information[sen_id - BHY_SENSOR_ID_CUSTOM_START].sensor_payload = bhy->event_size[sen_id];
 
-            (void)(bhy2_register_fifo_parse_callback(sen_id, parse_custom_sensor_default, parse_table, bhy));
+            (void)(bhy_register_fifo_parse_callback(sen_id, parse_custom_sensor_default, parse_table, bhy));
             PRINT("No output interpretation has been provided for this sensor. ");
             PRINT("FIFO data will be printed as hex values. ");
             PRINT("For registering the payload interpretation, use the addse option\r\n");
@@ -10658,13 +10669,13 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
         if (sensor_details->parse_flag == PARSE_FLAG_NONE)
         {
             callback = bhy_get_callback(sen_id);
-            (void)(bhy2_register_fifo_parse_callback(sen_id, callback, parse_table, bhy));
+            (void)(bhy_register_fifo_parse_callback(sen_id, callback, parse_table, bhy));
         }
 
         sensor_details->parse_flag = PARSE_SET_FLAG(sensor_details->parse_flag, parse_flag);
 
         phy_sen_id = get_physical_sensor_id(sen_id);
-        if (phy_sen_id == BHY2_PHYS_SENSOR_ID_NOT_SUPPORTED)
+        if (phy_sen_id == BHY_PHYS_SENSOR_ID_NOT_SUPPORTED)
         {
             /* FW does not support this physical sensor. Use default scaling factor */
             sensor_details->scaling_factor = get_sensor_default_scaling(sen_id, bhy);
@@ -10679,7 +10690,7 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
         sensors_active[sen_id] = true;
 
         /* Flush sensor data from the FIFO */
-        (void)(bhy2_flush_fifo(sen_id, bhy));
+        (void)(bhy_flush_fifo(sen_id, bhy));
 
         /* Enable sensor and set sample rate if there is a source requesting it */
         if (sensor_details->parse_flag != PARSE_FLAG_NONE)
@@ -10690,7 +10701,7 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
     else
     {
         /* Flush sensor data from the FIFO */
-        (void)(bhy2_flush_fifo(sen_id, bhy));
+        (void)(bhy_flush_fifo(sen_id, bhy));
 
         sensor_details->parse_flag = PARSE_CLEAR_FLAG(sensor_details->parse_flag, parse_flag);
 
@@ -10699,7 +10710,7 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
         {
             (void)(bhy_virtual_sensor_conf_param_set_cfg(sen_id, &sensor_conf, bhy));
             sensors_active[sen_id] = false;
-            (void)(bhy2_deregister_fifo_parse_callback(sen_id, bhy));
+            (void)(bhy_deregister_fifo_parse_callback(sen_id, bhy));
             sensor_details->id = 0;
         }
     }
@@ -10961,7 +10972,7 @@ int8_t logandstream_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
         PRINT("Stopping log and stream command ...\r\n");
 
-        struct bhy2_dev *bhy = &(cli_ref->bhy);
+        struct bhy_dev *bhy = &(cli_ref->bhy);
         struct parse_ref *parse_table = &(cli_ref->parse_table);
         struct parse_sensor_details *sensor_details;
 
@@ -10970,14 +10981,14 @@ int8_t logandstream_callback(uint8_t argc, uint8_t * const argv[], void *ref)
             sensor_details = parse_add_sensor_details((uint8_t)sensor_list[idx], parse_table);
 
             /* Flush sensor data from the FIFO */
-            (void)(bhy2_flush_fifo((uint8_t)sensor_list[idx], bhy));
+            (void)(bhy_flush_fifo((uint8_t)sensor_list[idx], bhy));
 
             /* Disable if there is no source requesting it */
             sensor_details->parse_flag = PARSE_FLAG_NONE;
             sensor_conf.sample_rate = 0;
             (void)(bhy_virtual_sensor_conf_param_set_cfg((uint8_t)sensor_list[idx], &sensor_conf, bhy));
             sensors_active[sensor_list[idx]] = false;
-            (void)(bhy2_deregister_fifo_parse_callback((uint8_t)sensor_list[idx], bhy));
+            (void)(bhy_deregister_fifo_parse_callback((uint8_t)sensor_list[idx], bhy));
             sensor_details->id = 0;
         }
 

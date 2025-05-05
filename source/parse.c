@@ -123,7 +123,7 @@ static void parse_meta_event_sensor_status(char *event_text,
 * @param[in] ns            : Nanosecond part of time
 * @param[in] parse_table   : Pointer to parse table
 */
-static void parse_meta_event_type(const struct bhy2_fifo_parse_data_info *callback_info,
+static void parse_meta_event_type(const struct bhy_fifo_parse_data_info *callback_info,
                                   char *event_text,
                                   uint32_t s,
                                   uint32_t ns,
@@ -135,56 +135,56 @@ static void parse_meta_event_type(const struct bhy2_fifo_parse_data_info *callba
 
     switch (meta_event_type)
     {
-        case BHY2_META_EVENT_FLUSH_COMPLETE:
+        case BHY_META_EVENT_FLUSH_COMPLETE:
             DATA("%s; T: %lu.%09lu; Flush complete for sensor id %u\r\n", event_text, s, ns, byte1);
             break;
-        case BHY2_META_EVENT_SAMPLE_RATE_CHANGED:
+        case BHY_META_EVENT_SAMPLE_RATE_CHANGED:
             DATA("%s; T: %lu.%09lu; Sample rate changed for sensor id %u\r\n", event_text, s, ns, byte1);
             break;
-        case BHY2_META_EVENT_POWER_MODE_CHANGED:
+        case BHY_META_EVENT_POWER_MODE_CHANGED:
             DATA("%s; T: %lu.%09lu; Power mode changed for sensor id %u\r\n", event_text, s, ns, byte1);
             break;
-        case BHY2_META_EVENT_ALGORITHM_EVENTS:
+        case BHY_META_EVENT_ALGORITHM_EVENTS:
             DATA("%s; T: %lu.%09lu; Algorithm event\r\n", event_text, s, ns);
             break;
-        case BHY2_META_EVENT_SENSOR_STATUS:
+        case BHY_META_EVENT_SENSOR_STATUS:
             parse_meta_event_sensor_status(event_text, s, ns, byte1, byte2, parse_table);
             break;
-        case BHY2_META_EVENT_BSX_DO_STEPS_MAIN:
+        case BHY_META_EVENT_BSX_DO_STEPS_MAIN:
             DATA("%s; T: %lu.%09lu; BSX event (do steps main)\r\n", event_text, s, ns);
             break;
-        case BHY2_META_EVENT_BSX_DO_STEPS_CALIB:
+        case BHY_META_EVENT_BSX_DO_STEPS_CALIB:
             DATA("%s; T: %lu.%09lu; BSX event (do steps calib)\r\n", event_text, s, ns);
             break;
-        case BHY2_META_EVENT_BSX_GET_OUTPUT_SIGNAL:
+        case BHY_META_EVENT_BSX_GET_OUTPUT_SIGNAL:
             DATA("%s; T: %lu.%09lu; BSX event (get output signal)\r\n", event_text, s, ns);
             break;
-        case BHY2_META_EVENT_SENSOR_ERROR:
+        case BHY_META_EVENT_SENSOR_ERROR:
             DATA("%s; T: %lu.%09lu; Sensor id %u reported error 0x%02X\r\n", event_text, s, ns, byte1, byte2);
             break;
-        case BHY2_META_EVENT_FIFO_OVERFLOW:
+        case BHY_META_EVENT_FIFO_OVERFLOW:
             DATA("%s; T: %lu.%09lu; FIFO overflow\r\n", event_text, s, ns);
             break;
-        case BHY2_META_EVENT_DYNAMIC_RANGE_CHANGED:
+        case BHY_META_EVENT_DYNAMIC_RANGE_CHANGED:
             DATA("%s; T: %lu.%09lu; Dynamic range changed for sensor id %u\r\n", event_text, s, ns, byte1);
             break;
-        case BHY2_META_EVENT_FIFO_WATERMARK:
+        case BHY_META_EVENT_FIFO_WATERMARK:
             DATA("%s; T: %lu.%09lu; FIFO watermark reached\r\n", event_text, s, ns);
             break;
-        case BHY2_META_EVENT_INITIALIZED:
+        case BHY_META_EVENT_INITIALIZED:
             DATA("%s; T: %lu.%09lu; Firmware initialized. Firmware version %u\r\n", event_text, s, ns,
                  ((uint16_t)byte2 << 8) | byte1);
             break;
-        case BHY2_META_TRANSFER_CAUSE:
+        case BHY_META_TRANSFER_CAUSE:
             DATA("%s; T: %lu.%09lu; Transfer cause for sensor id %u\r\n", event_text, s, ns, byte1);
             break;
-        case BHY2_META_EVENT_SENSOR_FRAMEWORK:
+        case BHY_META_EVENT_SENSOR_FRAMEWORK:
             DATA("%s; T: %lu.%09lu; Sensor framework event for sensor id %u\r\n", event_text, s, ns, byte1);
             break;
-        case BHY2_META_EVENT_RESET:
+        case BHY_META_EVENT_RESET:
             DATA("%s; T: %lu.%09lu; Reset event. Cause : %u\r\n", event_text, s, ns, byte2);
             break;
-        case BHY2_META_EVENT_SPACER:
+        case BHY_META_EVENT_SPACER:
             break;
         default:
             DATA("%s; T: %lu.%09lu; Unknown meta event with id: %u\r\n", event_text, s, ns, meta_event_type);
@@ -256,62 +256,62 @@ static void stream_hex_data(uint8_t sid, uint32_t ts, uint32_t tns, uint8_t even
 */
 static void print_activity(uint16_t activity)
 {
-    if (activity & BHY2_STILL_ACTIVITY_ENDED)
+    if (activity & BHY_STILL_ACTIVITY_ENDED)
     {
         PRINT_D(" Still activity ended,");
     }
 
-    if (activity & BHY2_WALKING_ACTIVITY_ENDED)
+    if (activity & BHY_WALKING_ACTIVITY_ENDED)
     {
         PRINT_D(" Walking activity ended,");
     }
 
-    if (activity & BHY2_RUNNING_ACTIVITY_ENDED)
+    if (activity & BHY_RUNNING_ACTIVITY_ENDED)
     {
         PRINT_D(" Running activity ended,");
     }
 
-    if (activity & BHY2_ON_BICYCLE_ACTIVITY_ENDED)
+    if (activity & BHY_ON_BICYCLE_ACTIVITY_ENDED)
     {
         PRINT_D(" On bicycle activity ended,");
     }
 
-    if (activity & BHY2_IN_VEHICLE_ACTIVITY_ENDED)
+    if (activity & BHY_IN_VEHICLE_ACTIVITY_ENDED)
     {
         PRINT_D(" In vehicle ended,");
     }
 
-    if (activity & BHY2_TILTING_ACTIVITY_ENDED)
+    if (activity & BHY_TILTING_ACTIVITY_ENDED)
     {
         PRINT_D(" Tilting activity ended,");
     }
 
-    if (activity & BHY2_STILL_ACTIVITY_STARTED)
+    if (activity & BHY_STILL_ACTIVITY_STARTED)
     {
         PRINT_D(" Still activity started,");
     }
 
-    if (activity & BHY2_WALKING_ACTIVITY_STARTED)
+    if (activity & BHY_WALKING_ACTIVITY_STARTED)
     {
         PRINT_D(" Walking activity started,");
     }
 
-    if (activity & BHY2_RUNNING_ACTIVITY_STARTED)
+    if (activity & BHY_RUNNING_ACTIVITY_STARTED)
     {
         PRINT_D(" Running activity started,");
     }
 
-    if (activity & BHY2_ON_BICYCLE_ACTIVITY_STARTED)
+    if (activity & BHY_ON_BICYCLE_ACTIVITY_STARTED)
     {
         PRINT_D(" On bicycle activity started,");
     }
 
-    if (activity & BHY2_IN_VEHICLE_ACTIVITY_STARTED)
+    if (activity & BHY_IN_VEHICLE_ACTIVITY_STARTED)
     {
         PRINT_D(" In vehicle activity started,");
     }
 
-    if (activity & BHY2_TILTING_ACTIVITY_STARTED)
+    if (activity & BHY_TILTING_ACTIVITY_STARTED)
     {
         PRINT_D(" Tilting activity started,");
     }
@@ -327,7 +327,7 @@ struct parse_sensor_details *parse_get_sensor_details(uint8_t id, struct parse_r
 {
     uint8_t i;
 
-    for (i = 0; i < BHY2_MAX_SIMUL_SENSORS; i++)
+    for (i = 0; i < BHY_MAX_SIMUL_SENSORS; i++)
     {
         if (ref->sensor[i].id == id)
         {
@@ -360,7 +360,7 @@ struct parse_sensor_details *parse_add_sensor_details(uint8_t id, struct parse_r
     else
     {
         /* Find a new slot */
-        for (i = 0; i < BHY2_MAX_SIMUL_SENSORS; i++)
+        for (i = 0; i < BHY_MAX_SIMUL_SENSORS; i++)
         {
             if (ref->sensor[i].id == 0)
             {
@@ -380,7 +380,7 @@ struct parse_sensor_details *parse_add_sensor_details(uint8_t id, struct parse_r
 * @param[in] callback_info  : Pointer to callback information
 * @param[in] parse_flag     : Stream log flags
 */
-static void check_stream_log_flags(const struct bhy2_fifo_parse_data_info *callback_info, uint8_t parse_flag)
+static void check_stream_log_flags(const struct bhy_fifo_parse_data_info *callback_info, uint8_t parse_flag)
 {
     if ((parse_flag & PARSE_FLAG_STREAM) && (count[callback_info->sensor_id] % odr_ds[callback_info->sensor_id] == 0))
     {
@@ -400,7 +400,7 @@ static void check_stream_log_flags(const struct bhy2_fifo_parse_data_info *callb
 * @param[in] ns             : Nanosecond part of time
 * @param[in] sensor_details : Pointer to sensor details
 */
-static void print_log_3axis_s16(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_3axis_s16(const struct bhy_fifo_parse_data_info *callback_info,
                                 struct bhy_event_data_xyz data,
                                 float scaling_factor,
                                 uint32_t s,
@@ -431,7 +431,7 @@ static void print_log_3axis_s16(const struct bhy2_fifo_parse_data_info *callback
 * @param[in] scaling_factor : Scaling factor
 */
 static void stream_and_log_3axis_s16(bool flag,
-                                     const struct bhy2_fifo_parse_data_info *callback_info,
+                                     const struct bhy_fifo_parse_data_info *callback_info,
                                      struct bhy_event_data_xyz data,
                                      uint32_t s,
                                      uint32_t ns,
@@ -480,7 +480,7 @@ static void stream_and_log_3axis_s16(bool flag,
 * @param[in] ns             : Nanosecond part of time
 * @param[in] sensor_details : Pointer to sensor details
 */
-static void print_log_euler(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_euler(const struct bhy_fifo_parse_data_info *callback_info,
                             struct bhy_event_data_orientation data,
                             float scaling_factor,
                             uint32_t s,
@@ -511,7 +511,7 @@ static void print_log_euler(const struct bhy2_fifo_parse_data_info *callback_inf
 * @param[in] scaling_factor : Scaling factor
 */
 static void stream_and_log_euler(bool flag,
-                                 const struct bhy2_fifo_parse_data_info *callback_info,
+                                 const struct bhy_fifo_parse_data_info *callback_info,
                                  struct bhy_event_data_orientation data,
                                  uint32_t s,
                                  uint32_t ns,
@@ -560,7 +560,7 @@ static void stream_and_log_euler(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_quaternion(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_quaternion(const struct bhy_fifo_parse_data_info *callback_info,
                                  struct bhy_event_data_quaternion data,
                                  uint32_t s,
                                  uint32_t ns)
@@ -588,7 +588,7 @@ static void print_log_quaternion(const struct bhy2_fifo_parse_data_info *callbac
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_log_quaternion(bool flag,
-                                      const struct bhy2_fifo_parse_data_info *callback_info,
+                                      const struct bhy_fifo_parse_data_info *callback_info,
                                       struct bhy_event_data_quaternion data,
                                       uint32_t s,
                                       uint32_t ns,
@@ -636,7 +636,7 @@ static void stream_and_log_quaternion(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_s16_as_float(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_s16_as_float(const struct bhy_fifo_parse_data_info *callback_info,
                                    int16_t data,
                                    float scaling_factor,
                                    uint32_t s,
@@ -658,7 +658,7 @@ static void print_log_s16_as_float(const struct bhy2_fifo_parse_data_info *callb
 * @param[in] scaling_factor : Scaling factor
 */
 static void stream_and_log_s16_as_float(bool flag,
-                                        const struct bhy2_fifo_parse_data_info *callback_info,
+                                        const struct bhy_fifo_parse_data_info *callback_info,
                                         int16_t data,
                                         uint32_t s,
                                         uint32_t ns,
@@ -706,7 +706,7 @@ static void stream_and_log_s16_as_float(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_scalar_u32(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_scalar_u32(const struct bhy_fifo_parse_data_info *callback_info,
                                  uint32_t data,
                                  uint32_t s,
                                  uint32_t ns)
@@ -726,7 +726,7 @@ static void print_log_scalar_u32(const struct bhy2_fifo_parse_data_info *callbac
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_log_scalar_u32(bool flag,
-                                      const struct bhy2_fifo_parse_data_info *callback_info,
+                                      const struct bhy_fifo_parse_data_info *callback_info,
                                       uint32_t data,
                                       uint32_t s,
                                       uint32_t ns,
@@ -772,7 +772,7 @@ static void stream_and_log_scalar_u32(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_scalar_event(const struct bhy2_fifo_parse_data_info *callback_info, uint32_t s, uint32_t ns)
+static void print_log_scalar_event(const struct bhy_fifo_parse_data_info *callback_info, uint32_t s, uint32_t ns)
 {
     DATA("SID: %u; T: %lu.%09lu;\r\n", callback_info->sensor_id, s, ns);
 }
@@ -788,7 +788,7 @@ static void print_log_scalar_event(const struct bhy2_fifo_parse_data_info *callb
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_log_scalar_event(bool flag,
-                                        const struct bhy2_fifo_parse_data_info *callback_info,
+                                        const struct bhy_fifo_parse_data_info *callback_info,
                                         uint32_t s,
                                         uint32_t ns,
                                         uint64_t tns,
@@ -834,7 +834,7 @@ static void stream_and_log_scalar_event(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_activity(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_activity(const struct bhy_fifo_parse_data_info *callback_info,
                                uint16_t activity,
                                uint32_t s,
                                uint32_t ns)
@@ -858,7 +858,7 @@ static void print_log_activity(const struct bhy2_fifo_parse_data_info *callback_
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_log_activity(bool flag,
-                                    const struct bhy2_fifo_parse_data_info *callback_info,
+                                    const struct bhy_fifo_parse_data_info *callback_info,
                                     uint16_t activity,
                                     uint32_t s,
                                     uint32_t ns,
@@ -908,7 +908,7 @@ static void stream_and_log_activity(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_u16_as_float(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_u16_as_float(const struct bhy_fifo_parse_data_info *callback_info,
                                    uint16_t data,
                                    float scaling_factor,
                                    uint32_t s,
@@ -930,7 +930,7 @@ static void print_log_u16_as_float(const struct bhy2_fifo_parse_data_info *callb
 * @param[in] scaling_factor : Scaling factor
 */
 static void stream_and_log_u16_as_float(bool flag,
-                                        const struct bhy2_fifo_parse_data_info *callback_info,
+                                        const struct bhy_fifo_parse_data_info *callback_info,
                                         uint16_t data,
                                         uint32_t s,
                                         uint32_t ns,
@@ -980,7 +980,7 @@ static void stream_and_log_u16_as_float(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_u24_as_float(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_u24_as_float(const struct bhy_fifo_parse_data_info *callback_info,
                                    uint32_t data,
                                    float scaling_factor,
                                    uint32_t s,
@@ -1002,7 +1002,7 @@ static void print_log_u24_as_float(const struct bhy2_fifo_parse_data_info *callb
 * @param[in] scaling_factor : Scaling factor
 */
 static void stream_and_log_u24_as_float(bool flag,
-                                        const struct bhy2_fifo_parse_data_info *callback_info,
+                                        const struct bhy_fifo_parse_data_info *callback_info,
                                         uint32_t data,
                                         uint32_t s,
                                         uint32_t ns,
@@ -1052,7 +1052,7 @@ static void stream_and_log_u24_as_float(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_proxmity(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_proxmity(const struct bhy_fifo_parse_data_info *callback_info,
                                char *text,
                                uint32_t s,
                                uint32_t ns)
@@ -1072,7 +1072,7 @@ static void print_log_proxmity(const struct bhy2_fifo_parse_data_info *callback_
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_log_proxmity(bool flag,
-                                    const struct bhy2_fifo_parse_data_info *callback_info,
+                                    const struct bhy_fifo_parse_data_info *callback_info,
                                     char *text,
                                     uint32_t s,
                                     uint32_t ns,
@@ -1120,7 +1120,7 @@ static void stream_and_log_proxmity(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_scalar_u8(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_scalar_u8(const struct bhy_fifo_parse_data_info *callback_info,
                                 uint8_t data,
                                 uint32_t s,
                                 uint32_t ns)
@@ -1140,7 +1140,7 @@ static void print_log_scalar_u8(const struct bhy2_fifo_parse_data_info *callback
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_scalar_u8(bool flag,
-                                 const struct bhy2_fifo_parse_data_info *callback_info,
+                                 const struct bhy_fifo_parse_data_info *callback_info,
                                  uint8_t data,
                                  uint32_t s,
                                  uint32_t ns,
@@ -1186,7 +1186,7 @@ static void stream_and_scalar_u8(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_generic(const struct bhy2_fifo_parse_data_info *callback_info, uint32_t s, uint32_t ns)
+static void print_log_generic(const struct bhy_fifo_parse_data_info *callback_info, uint32_t s, uint32_t ns)
 {
     DATA("SID: %u; T: %lu.%09lu; D: ", callback_info->sensor_id, s, ns);
 
@@ -1209,7 +1209,7 @@ static void print_log_generic(const struct bhy2_fifo_parse_data_info *callback_i
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_log_generic(bool flag,
-                                   const struct bhy2_fifo_parse_data_info *callback_info,
+                                   const struct bhy_fifo_parse_data_info *callback_info,
                                    uint32_t s,
                                    uint32_t ns,
                                    uint64_t tns,
@@ -1255,7 +1255,7 @@ static void stream_and_log_generic(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_device_ori(const struct bhy2_fifo_parse_data_info *callback_info,
+static void print_log_device_ori(const struct bhy_fifo_parse_data_info *callback_info,
                                  char *ori,
                                  uint32_t s,
                                  uint32_t ns)
@@ -1275,7 +1275,7 @@ static void print_log_device_ori(const struct bhy2_fifo_parse_data_info *callbac
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_log_device_ori(bool flag,
-                                      const struct bhy2_fifo_parse_data_info *callback_info,
+                                      const struct bhy_fifo_parse_data_info *callback_info,
                                       char *ori,
                                       uint32_t s,
                                       uint32_t ns,
@@ -1323,7 +1323,7 @@ static void stream_and_log_device_ori(bool flag,
 * @param[in] s              : Second part of time
 * @param[in] ns             : Nanosecond part of time
 */
-static void print_log_gps(const struct bhy2_fifo_parse_data_info *callback_info, uint32_t s, uint32_t ns)
+static void print_log_gps(const struct bhy_fifo_parse_data_info *callback_info, uint32_t s, uint32_t ns)
 {
     DATA("[GPS]; T: %lu.%09lu; data: %s\r\n", s, ns, callback_info->data_ptr);
 }
@@ -1339,7 +1339,7 @@ static void print_log_gps(const struct bhy2_fifo_parse_data_info *callback_info,
 * @param[in] parse_flag     : Parse flag
 */
 static void stream_and_log_gps(bool flag,
-                               const struct bhy2_fifo_parse_data_info *callback_info,
+                               const struct bhy_fifo_parse_data_info *callback_info,
                                uint32_t s,
                                uint32_t ns,
                                uint64_t tns,
@@ -1384,7 +1384,7 @@ static void stream_and_log_gps(bool flag,
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_meta_event(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_meta_event(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
     uint32_t s, ns;
@@ -1398,11 +1398,11 @@ void parse_meta_event(const struct bhy2_fifo_parse_data_info *callback_info, voi
         return;
     }
 
-    if (callback_info->sensor_id == BHY2_SYS_ID_META_EVENT)
+    if (callback_info->sensor_id == BHY_SYS_ID_META_EVENT)
     {
         event_text = "[META EVENT]";
     }
-    else if (callback_info->sensor_id == BHY2_SYS_ID_META_EVENT_WU)
+    else if (callback_info->sensor_id == BHY_SYS_ID_META_EVENT_WU)
     {
         event_text = "[META EVENT WAKE UP]";
     }
@@ -1421,7 +1421,7 @@ void parse_meta_event(const struct bhy2_fifo_parse_data_info *callback_info, voi
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_3axis_s16(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_3axis_s16(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     struct bhy_event_data_xyz data;
     uint32_t s, ns;
@@ -1496,7 +1496,7 @@ void parse_3axis_s16(const struct bhy2_fifo_parse_data_info *callback_info, void
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_euler(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_euler(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     struct bhy_event_data_orientation data;
     uint32_t s, ns;
@@ -1568,7 +1568,7 @@ void parse_euler(const struct bhy2_fifo_parse_data_info *callback_info, void *ca
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_quaternion(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_quaternion(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     struct bhy_event_data_quaternion data;
     uint32_t s, ns;
@@ -1619,7 +1619,7 @@ void parse_quaternion(const struct bhy2_fifo_parse_data_info *callback_info, voi
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_s16_as_float(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_s16_as_float(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     int16_t data;
     uint32_t s, ns;
@@ -1648,7 +1648,7 @@ void parse_s16_as_float(const struct bhy2_fifo_parse_data_info *callback_info, v
     scaling_factor = sensor_details->scaling_factor;
     parse_flag = sensor_details->parse_flag;
 
-    data = BHY2_LE2S16(callback_info->data_ptr);
+    data = BHY_LE2S16(callback_info->data_ptr);
 
     time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
 
@@ -1672,7 +1672,7 @@ void parse_s16_as_float(const struct bhy2_fifo_parse_data_info *callback_info, v
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_scalar_u32(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_scalar_u32(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t data;
     uint32_t s, ns;
@@ -1689,7 +1689,7 @@ void parse_scalar_u32(const struct bhy2_fifo_parse_data_info *callback_info, voi
         return;
     }
 
-    data = BHY2_LE2U32(callback_info->data_ptr);
+    data = BHY_LE2U32(callback_info->data_ptr);
 
     time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
 
@@ -1723,7 +1723,7 @@ void parse_scalar_u32(const struct bhy2_fifo_parse_data_info *callback_info, voi
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_scalar_event(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_scalar_event(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -1771,7 +1771,7 @@ void parse_scalar_event(const struct bhy2_fifo_parse_data_info *callback_info, v
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_activity(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_activity(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint16_t activity;
     uint32_t s, ns;
@@ -1798,7 +1798,7 @@ void parse_activity(const struct bhy2_fifo_parse_data_info *callback_info, void 
 
     parse_flag = sensor_details->parse_flag;
 
-    activity = BHY2_LE2U16(callback_info->data_ptr);
+    activity = BHY_LE2U16(callback_info->data_ptr);
 
     time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
 
@@ -1824,7 +1824,7 @@ void parse_activity(const struct bhy2_fifo_parse_data_info *callback_info, void 
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_u16_as_float(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_u16_as_float(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint16_t data;
     uint32_t s, ns;
@@ -1853,7 +1853,7 @@ void parse_u16_as_float(const struct bhy2_fifo_parse_data_info *callback_info, v
     scaling_factor = sensor_details->scaling_factor;
     parse_flag = sensor_details->parse_flag;
 
-    data = BHY2_LE2U16(callback_info->data_ptr);
+    data = BHY_LE2U16(callback_info->data_ptr);
 
     time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
 
@@ -1878,7 +1878,7 @@ void parse_u16_as_float(const struct bhy2_fifo_parse_data_info *callback_info, v
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_u24_as_float(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_u24_as_float(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t data;
     uint32_t s, ns;
@@ -1907,7 +1907,7 @@ void parse_u24_as_float(const struct bhy2_fifo_parse_data_info *callback_info, v
     scaling_factor = sensor_details->scaling_factor;
     parse_flag = sensor_details->parse_flag;
 
-    data = BHY2_LE2U24(callback_info->data_ptr);
+    data = BHY_LE2U24(callback_info->data_ptr);
 
     time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
 
@@ -1933,7 +1933,7 @@ void parse_u24_as_float(const struct bhy2_fifo_parse_data_info *callback_info, v
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_proximity(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_proximity(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     char *text;
     uint32_t s, ns;
@@ -1986,7 +1986,7 @@ void parse_proximity(const struct bhy2_fifo_parse_data_info *callback_info, void
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_scalar_u8(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_scalar_u8(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint8_t data;
     uint32_t s, ns;
@@ -2036,7 +2036,7 @@ void parse_scalar_u8(const struct bhy2_fifo_parse_data_info *callback_info, void
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_generic(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_generic(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -2084,7 +2084,7 @@ void parse_generic(const struct bhy2_fifo_parse_data_info *callback_info, void *
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_device_ori(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_device_ori(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     char *ori;
     uint32_t s, ns;
@@ -2154,7 +2154,7 @@ void parse_device_ori(const struct bhy2_fifo_parse_data_info *callback_info, voi
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_gps(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_gps(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     uint32_t s, ns;
     uint64_t tns;
@@ -2204,7 +2204,7 @@ void parse_gps(const struct bhy2_fifo_parse_data_info *callback_info, void *call
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_debug_message(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref)
+void parse_debug_message(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
 {
     (void)callback_ref;
 

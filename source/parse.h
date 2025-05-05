@@ -45,8 +45,8 @@ extern "C" {
 
 #include <stdbool.h>
 
-#include "bhy2.h"
-#include "bhy_klio_param.h"
+#include "bhy.h"
+//#include "bhy_klio_param.h"
 #include "logbin.h"
 
 #define PARSE_FLAG_NONE              UINT8_C(0x00)
@@ -67,8 +67,8 @@ struct parse_sensor_details
 
 struct parse_ref
 {
-    struct parse_sensor_details sensor[BHY2_MAX_SIMUL_SENSORS];
-    struct bhy2_dev *bhy;
+    struct parse_sensor_details sensor[BHY_MAX_SIMUL_SENSORS];
+    struct bhy_dev *bhy;
     struct logbin_dev logdev;
 };
 
@@ -93,112 +93,112 @@ struct parse_sensor_details *parse_add_sensor_details(uint8_t id, struct parse_r
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_meta_event(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_meta_event(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse 3-axis format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_3axis_s16(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_3axis_s16(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse euler format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_euler(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_euler(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse quaternion format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_quaternion(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_quaternion(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse 16-bit signed format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_s16_as_float(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_s16_as_float(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse 32-bit scalar format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_scalar_u32(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_scalar_u32(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse scalar event format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_scalar_event(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_scalar_event(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse activity format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_activity(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_activity(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse 16-bit unsigned format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_u16_as_float(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_u16_as_float(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse 24-bit unsigned format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_u24_as_float(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_u24_as_float(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse proximity format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_proximity(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_proximity(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse 8-bit unsigned scalar format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_scalar_u8(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_scalar_u8(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse generic format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_generic(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_generic(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse device orientation format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_device_ori(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_device_ori(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse GPS format
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_gps(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_gps(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to parse debug message
 * @param[in] callback_info : Pointer to callback information
 * @param[in] callback_ref  : Pointer to callback reference
 */
-void parse_debug_message(const struct bhy2_fifo_parse_data_info *callback_info, void *callback_ref);
+void parse_debug_message(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /**
 * @brief Function to add accuracy to sensor data

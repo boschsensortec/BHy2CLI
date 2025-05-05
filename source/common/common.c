@@ -106,25 +106,25 @@ char *get_accel_sensor_name(uint8_t sensor_id)
 
     switch (sensor_id)
     {
-        case BHY2_SENSOR_ID_ACC_PASS:
+        case BHY_SENSOR_ID_ACC_PASS:
             ret = "Accelerometer passthrough";
             break;
-        case BHY2_SENSOR_ID_ACC_RAW:
+        case BHY_SENSOR_ID_ACC_RAW:
             ret = "Accelerometer uncalibrated";
             break;
-        case BHY2_SENSOR_ID_ACC:
+        case BHY_SENSOR_ID_ACC:
             ret = "Accelerometer corrected";
             break;
-        case BHY2_SENSOR_ID_ACC_BIAS:
+        case BHY_SENSOR_ID_ACC_BIAS:
             ret = "Accelerometer offset";
             break;
-        case BHY2_SENSOR_ID_ACC_WU:
+        case BHY_SENSOR_ID_ACC_WU:
             ret = "Accelerometer corrected wake up";
             break;
-        case BHY2_SENSOR_ID_ACC_RAW_WU:
+        case BHY_SENSOR_ID_ACC_RAW_WU:
             ret = "Accelerometer uncalibrated wake up";
             break;
-        case BHY2_SENSOR_ID_ACC_BIAS_WU:
+        case BHY_SENSOR_ID_ACC_BIAS_WU:
             ret = "Accelerometer offset wake up";
             break;
         default:
@@ -145,25 +145,25 @@ char *get_gyro_sensor_name(uint8_t sensor_id)
 
     switch (sensor_id)
     {
-        case BHY2_SENSOR_ID_GYRO_PASS:
+        case BHY_SENSOR_ID_GYRO_PASS:
             ret = "Gyroscope passthrough";
             break;
-        case BHY2_SENSOR_ID_GYRO_RAW:
+        case BHY_SENSOR_ID_GYRO_RAW:
             ret = "Gyroscope uncalibrated";
             break;
-        case BHY2_SENSOR_ID_GYRO:
+        case BHY_SENSOR_ID_GYRO:
             ret = "Gyroscope corrected";
             break;
-        case BHY2_SENSOR_ID_GYRO_BIAS:
+        case BHY_SENSOR_ID_GYRO_BIAS:
             ret = "Gyroscope offset";
             break;
-        case BHY2_SENSOR_ID_GYRO_WU:
+        case BHY_SENSOR_ID_GYRO_WU:
             ret = "Gyroscope wake up";
             break;
-        case BHY2_SENSOR_ID_GYRO_RAW_WU:
+        case BHY_SENSOR_ID_GYRO_RAW_WU:
             ret = "Gyroscope uncalibrated wake up";
             break;
-        case BHY2_SENSOR_ID_GYRO_BIAS_WU:
+        case BHY_SENSOR_ID_GYRO_BIAS_WU:
             ret = "Gyroscope offset wake up";
             break;
         default:
@@ -184,25 +184,25 @@ char *get_mag_sensor_name(uint8_t sensor_id)
 
     switch (sensor_id)
     {
-        case BHY2_SENSOR_ID_MAG_PASS:
+        case BHY_SENSOR_ID_MAG_PASS:
             ret = "Magnetometer passthrough";
             break;
-        case BHY2_SENSOR_ID_MAG_RAW:
+        case BHY_SENSOR_ID_MAG_RAW:
             ret = "Magnetometer uncalibrated";
             break;
-        case BHY2_SENSOR_ID_MAG:
+        case BHY_SENSOR_ID_MAG:
             ret = "Magnetometer corrected";
             break;
-        case BHY2_SENSOR_ID_MAG_BIAS:
+        case BHY_SENSOR_ID_MAG_BIAS:
             ret = "Magnetometer offset";
             break;
-        case BHY2_SENSOR_ID_MAG_WU:
+        case BHY_SENSOR_ID_MAG_WU:
             ret = "Magnetometer wake up";
             break;
-        case BHY2_SENSOR_ID_MAG_RAW_WU:
+        case BHY_SENSOR_ID_MAG_RAW_WU:
             ret = "Magnetometer uncalibrated wake up";
             break;
-        case BHY2_SENSOR_ID_MAG_BIAS_WU:
+        case BHY_SENSOR_ID_MAG_BIAS_WU:
             ret = "Magnetometer offset wake up";
             break;
         default:
@@ -223,49 +223,49 @@ char *get_motion_sensor_names(uint8_t sensor_id)
 
     switch (sensor_id)
     {
-        case BHY2_SENSOR_ID_GRA:
+        case BHY_SENSOR_ID_GRA:
             ret = "Gravity vector";
             break;
-        case BHY2_SENSOR_ID_GRA_WU:
+        case BHY_SENSOR_ID_GRA_WU:
             ret = "Gravity vector wake up";
             break;
-        case BHY2_SENSOR_ID_LACC:
+        case BHY_SENSOR_ID_LACC:
             ret = "Linear acceleration";
             break;
-        case BHY2_SENSOR_ID_LACC_WU:
+        case BHY_SENSOR_ID_LACC_WU:
             ret = "Linear acceleration wake up";
             break;
-        case BHY2_SENSOR_ID_RV:
+        case BHY_SENSOR_ID_RV:
             ret = "Rotation vector";
             break;
-        case BHY2_SENSOR_ID_RV_WU:
+        case BHY_SENSOR_ID_RV_WU:
             ret = "Rotation vector wake up";
             break;
-        case BHY2_SENSOR_ID_GAMERV:
+        case BHY_SENSOR_ID_GAMERV:
             ret = "Game rotation vector";
             break;
-        case BHY2_SENSOR_ID_GAMERV_WU:
+        case BHY_SENSOR_ID_GAMERV_WU:
             ret = "Game rotation vector wake up";
             break;
-        case BHY2_SENSOR_ID_GEORV:
+        case BHY_SENSOR_ID_GEORV:
             ret = "Geo-magnetic rotation vector";
             break;
-        case BHY2_SENSOR_ID_GEORV_WU:
+        case BHY_SENSOR_ID_GEORV_WU:
             ret = "Geo-magnetic rotation vector wake up";
             break;
-        case BHY2_SENSOR_ID_ORI:
+        case BHY_SENSOR_ID_ORI:
             ret = "Orientation";
             break;
-        case BHY2_SENSOR_ID_ORI_WU:
+        case BHY_SENSOR_ID_ORI_WU:
             ret = "Orientation wake up";
             break;
-        case BHY2_SENSOR_ID_SIG:
+        case BHY_SENSOR_ID_SIG:
             ret = "Significant motion";
             break;
-        case BHY2_SENSOR_ID_STD:
+        case BHY_SENSOR_ID_STD:
             ret = "Step detector";
             break;
-        case BHY2_SENSOR_ID_STD_WU:
+        case BHY_SENSOR_ID_STD_WU:
             ret = "Step detector wake up";
             break;
         default:
@@ -291,57 +291,57 @@ char *get_motion_sensor_name(uint8_t sensor_id)
         switch (sensor_id)
         {
             #if 0
-            case BHY2_SENSOR_ID_TILT_DETECTOR:
+            case BHY_SENSOR_ID_TILT_DETECTOR:
                 ret = "Tilt detector";
                 break;
-            case BHY2_SENSOR_ID_WAKE_GESTURE:
+            case BHY_SENSOR_ID_WAKE_GESTURE:
                 ret = "Wake gesture";
                 break;
-            case BHY2_SENSOR_ID_GLANCE_GESTURE:
+            case BHY_SENSOR_ID_GLANCE_GESTURE:
                 ret = "Glance gesture";
                 break;
-            case BHY2_SENSOR_ID_PICKUP_GESTURE:
+            case BHY_SENSOR_ID_PICKUP_GESTURE:
                 ret = "Pickup gesture";
                 break;
-            case BHY2_SENSOR_ID_STC:
+            case BHY_SENSOR_ID_STC:
                 ret = "Step counter";
                 break;
-            case BHY2_SENSOR_ID_STC_WU:
+            case BHY_SENSOR_ID_STC_WU:
                 ret = "Step counter wake up";
                 break;
-            case BHY2_SENSOR_ID_AR:
+            case BHY_SENSOR_ID_AR:
                 ret = "Activity recognition";
                 break;
-            case BHY2_SENSOR_ID_WRIST_TILT_GESTURE:
+            case BHY_SENSOR_ID_WRIST_TILT_GESTURE:
                 ret = "Wrist tilt gesture";
                 break;
-            case BHY2_SENSOR_ID_DEVICE_ORI:
+            case BHY_SENSOR_ID_DEVICE_ORI:
                 ret = "Device orientation";
                 break;
-            case BHY2_SENSOR_ID_DEVICE_ORI_WU:
+            case BHY_SENSOR_ID_DEVICE_ORI_WU:
                 ret = "Device orientation wake up";
                 break;
-            case BHY2_SENSOR_ID_STATIONARY_DET:
+            case BHY_SENSOR_ID_STATIONARY_DET:
                 ret = "Stationary detect";
                 break;
-            case BHY2_SENSOR_ID_MOTION_DET:
+            case BHY_SENSOR_ID_MOTION_DET:
                 ret = "Motion detect";
                 break;
             #endif
 
-            case BHY2_SENSOR_ID_AIR_QUALITY:
+            case BHY_SENSOR_ID_AIR_QUALITY:
                 ret = "Air Quality";
                 break;
-            case BHY2_SENSOR_ID_TEMP:
+            case BHY_SENSOR_ID_TEMP:
                 ret = "Temperature";
                 break;
-            case BHY2_SENSOR_ID_BARO:
+            case BHY_SENSOR_ID_BARO:
                 ret = "Barometer";
                 break;
-            case BHY2_SENSOR_ID_HUM:
+            case BHY_SENSOR_ID_HUM:
                 ret = "Humidity";
                 break;
-            case BHY2_SENSOR_ID_GAS:
+            case BHY_SENSOR_ID_GAS:
                 ret = "Gas";
                 break;
             default:
@@ -363,16 +363,16 @@ char *get_misc_sensor_names(uint8_t sensor_id)
 
     switch (sensor_id)
     {
-        case BHY2_SENSOR_ID_TEMP_WU:
+        case BHY_SENSOR_ID_TEMP_WU:
             ret = "Temperature wake up";
             break;
-        case BHY2_SENSOR_ID_BARO_WU:
+        case BHY_SENSOR_ID_BARO_WU:
             ret = "Barometer wake up";
             break;
-        case BHY2_SENSOR_ID_HUM_WU:
+        case BHY_SENSOR_ID_HUM_WU:
             ret = "Humidity wake up";
             break;
-        case BHY2_SENSOR_ID_GAS_WU:
+        case BHY_SENSOR_ID_GAS_WU:
             ret = "Gas wake up";
             break;
     #if 0
@@ -389,32 +389,32 @@ char *get_misc_sensor_names(uint8_t sensor_id)
             ret = "Swim recognition";
             break;
     #endif
-        case BHY2_SENSOR_ID_SI_ACCEL:
+        case BHY_SENSOR_ID_SI_ACCEL:
             ret = "SI Accel";
             break;
-        case BHY2_SENSOR_ID_SI_GYROS:
+        case BHY_SENSOR_ID_SI_GYROS:
             ret = "SI Gyro";
             break;
 
         #if 0
-        case BHY2_SENSOR_ID_LIGHT:
+        case BHY_SENSOR_ID_LIGHT:
             ret = "Light";
             break;
-        case BHY2_SENSOR_ID_LIGHT_WU:
+        case BHY_SENSOR_ID_LIGHT_WU:
             ret = "Light wake up";
             break;
-        case BHY2_SENSOR_ID_PROX:
+        case BHY_SENSOR_ID_PROX:
             ret = "Proximity";
             break;
-        case BHY2_SENSOR_ID_PROX_WU:
+        case BHY_SENSOR_ID_PROX_WU:
             ret = "Proximity wake up";
             break;
         #endif
 
-        case BHY2_SENSOR_ID_STC_LP:
+        case BHY_SENSOR_ID_STC_LP:
             ret = "Low Power Step counter";
             break;
-        case BHY2_SENSOR_ID_STC_LP_WU:
+        case BHY_SENSOR_ID_STC_LP_WU:
             ret = "Low Power Step counter wake up";
             break;
         case BHY_SENSOR_BMP_TEMPERATURE:
@@ -442,21 +442,21 @@ char *get_misc_sensor_name(uint8_t sensor_id)
     {
         switch (sensor_id)
         {
-            case BHY2_SENSOR_ID_SIG_LP_WU:
+            case BHY_SENSOR_ID_SIG_LP_WU:
                 ret = "Low Power Significant motion wake up";
                 break;
-            case BHY2_SENSOR_ID_STD_LP:
+            case BHY_SENSOR_ID_STD_LP:
                 ret = "Low Power Step detector";
                 break;
-            case BHY2_SENSOR_ID_STD_LP_WU:
+            case BHY_SENSOR_ID_STD_LP_WU:
                 ret = "Low Power Step detector wake up";
                 break;
 
             #if 0
-            case BHY2_SENSOR_ID_EXCAMERA:
+            case BHY_SENSOR_ID_EXCAMERA:
                 ret = "External camera trigger";
                 break;
-            case BHY2_SENSOR_ID_GPS:
+            case BHY_SENSOR_ID_GPS:
                 ret = "GPS";
                 break;
             #endif
@@ -464,7 +464,7 @@ char *get_misc_sensor_name(uint8_t sensor_id)
             case BHY_SENSOR_BMP_TEMPERATURE_WU:
                 ret = "BMP Temperature wake up";
                 break;
-            case BHY2_SENSOR_ID_ANY_MOTION_LP_WU:
+            case BHY_SENSOR_ID_ANY_MOTION_LP_WU:
                 ret = "Low Power Any motion wake up";
                 break;
             case BHI3_SENSOR_ID_NO_MOTION_LP_WU:
@@ -514,22 +514,22 @@ char *get_sensor_axis_name(uint8_t sensor_id)
 {
     char *ret = " ";
 
-    if (((sensor_id >= BHY2_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY2_SENSOR_ID_LACC_WU)) ||
-        (sensor_id == BHY2_SENSOR_ID_ACC_BIAS_WU) || (sensor_id == BHY2_SENSOR_ID_GYRO_BIAS_WU))
+    if (((sensor_id >= BHY_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY_SENSOR_ID_LACC_WU)) ||
+        (sensor_id == BHY_SENSOR_ID_ACC_BIAS_WU) || (sensor_id == BHY_SENSOR_ID_GYRO_BIAS_WU))
     {
         ret = "x,y,z";
     }
-    else if ((sensor_id >= BHY2_SENSOR_ID_RV) && (sensor_id <= BHY2_SENSOR_ID_GEORV_WU))
+    else if ((sensor_id >= BHY_SENSOR_ID_RV) && (sensor_id <= BHY_SENSOR_ID_GEORV_WU))
     {
         ret = "x,y,z,w,ar";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_ORI) || (sensor_id == BHY2_SENSOR_ID_ORI_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_ORI) || (sensor_id == BHY_SENSOR_ID_ORI_WU))
     {
         ret = "h,p,r";
     }
 
     #if 0
-    else if ((sensor_id == BHY2_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY2_SENSOR_ID_DEVICE_ORI_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY_SENSOR_ID_DEVICE_ORI_WU))
     {
         ret = "o";
     }
@@ -545,11 +545,11 @@ char *get_sensor_axis_name(uint8_t sensor_id)
     {
         ret = "d,lc,f,br,bu,ba,sc";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_LIGHT) || (sensor_id == BHY2_SENSOR_ID_LIGHT_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU))
     {
         ret = "l";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_PROX) || (sensor_id == BHY2_SENSOR_ID_PROX_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_PROX) || (sensor_id == BHY_SENSOR_ID_PROX_WU))
     {
         ret = "p";
     }
@@ -690,33 +690,33 @@ char *get_api_error(int8_t error_code)
 
     switch (error_code)
     {
-        case BHY2_OK:
+        case BHY_OK:
             break;
-        case BHY2_E_NULL_PTR:
+        case BHY_E_NULL_PTR:
             ret = "[API Error] Null pointer";
             break;
-        case BHY2_E_INVALID_PARAM:
+        case BHY_E_INVALID_PARAM:
             ret = "[API Error] Invalid parameter";
             break;
-        case BHY2_E_IO:
+        case BHY_E_IO:
             ret = "[API Error] IO error";
             break;
-        case BHY2_E_MAGIC:
+        case BHY_E_MAGIC:
             ret = "[API Error] Invalid firmware";
             break;
-        case BHY2_E_TIMEOUT:
+        case BHY_E_TIMEOUT:
             ret = "[API Error] Timed out";
             break;
-        case BHY2_E_BUFFER:
+        case BHY_E_BUFFER:
             ret = "[API Error] Invalid buffer";
             break;
-        case BHY2_E_INVALID_FIFO_TYPE:
+        case BHY_E_INVALID_FIFO_TYPE:
             ret = "[API Error] Invalid FIFO type";
             break;
-        case BHY2_E_INVALID_EVENT_SIZE:
+        case BHY_E_INVALID_EVENT_SIZE:
             ret = "[API Error] Invalid Event size";
             break;
-        case BHY2_E_PARAM_NOT_SET:
+        case BHY_E_PARAM_NOT_SET:
             ret = "[API Error] Parameter not set";
             break;
         default:
@@ -732,7 +732,7 @@ char *get_api_error(int8_t error_code)
 * @param[in] intf        : Type of interface
 * @param[in] com_port    : COM port
 */
-void setup_interfaces(bool reset_power, enum bhy2_intf intf, const char *com_port)
+void setup_interfaces(bool reset_power, enum bhy_intf intf, const char *com_port)
 {
     int16_t coines_rslt;
     enum coines_pin_direction pin_direction;
@@ -818,7 +818,7 @@ void setup_interfaces(bool reset_power, enum bhy2_intf intf, const char *com_por
         coines_delay_msec(10);
     }
 
-    if (intf == BHY2_SPI_INTERFACE)
+    if (intf == BHY_SPI_INTERFACE)
     {
         PRINT("Host Interface : SPI\r\n");
         coines_rslt = coines_config_spi_bus(COINES_SPI_BUS_0, COINES_SPI_SPEED_1_MHZ, COINES_SPI_MODE0);
@@ -867,9 +867,9 @@ void setup_interfaces(bool reset_power, enum bhy2_intf intf, const char *com_por
 * @brief Function to close interface
 * @param[in] intf : Type of interface
 */
-void close_interfaces(enum bhy2_intf intf)
+void close_interfaces(enum bhy_intf intf)
 {
-    if (intf == BHY2_I2C_INTERFACE)
+    if (intf == BHY_I2C_INTERFACE)
     {
         (void)coines_deconfig_i2c_bus(COINES_I2C_BUS_0);
     }
@@ -1327,43 +1327,43 @@ char *get_physical_sensor_names(uint8_t sensor_id)
 
     switch (sensor_id)
     {
-        case BHY2_PHYS_SENSOR_ID_ACCELEROMETER:
+        case BHY_PHYS_SENSOR_ID_ACCELEROMETER:
             ret = "Accelerometer";
             break;
-        case BHY2_PHYS_SENSOR_ID_NOT_SUPPORTED:
+        case BHY_PHYS_SENSOR_ID_NOT_SUPPORTED:
             ret = "Not supported now";
             break;
-        case BHY2_PHYS_SENSOR_ID_GYROSCOPE:
+        case BHY_PHYS_SENSOR_ID_GYROSCOPE:
             ret = "Gyroscope";
             break;
-        case BHY2_PHYS_SENSOR_ID_MAGNETOMETER:
+        case BHY_PHYS_SENSOR_ID_MAGNETOMETER:
             ret = "Magnetometer";
             break;
-        case BHY2_PHYS_SENSOR_ID_TEMP_GYRO:
+        case BHY_PHYS_SENSOR_ID_TEMP_GYRO:
             ret = "Temperature Gyroscope";
             break;
-        case BHY2_PHYS_SENSOR_ID_ANY_MOTION:
+        case BHY_PHYS_SENSOR_ID_ANY_MOTION:
             ret = "Any Motion not available now";
             break;
-        case BHY2_PHYS_SENSOR_ID_PRESSURE:
+        case BHY_PHYS_SENSOR_ID_PRESSURE:
             ret = "Pressure";
             break;
-        case BHY2_PHYS_SENSOR_ID_POSITION:
+        case BHY_PHYS_SENSOR_ID_POSITION:
             ret = "Position";
             break;
-        case BHY2_PHYS_SENSOR_ID_HUMIDITY:
+        case BHY_PHYS_SENSOR_ID_HUMIDITY:
             ret = "Humidity";
             break;
-        case BHY2_PHYS_SENSOR_ID_TEMPERATURE:
+        case BHY_PHYS_SENSOR_ID_TEMPERATURE:
             ret = "Temperature";
             break;
-        case BHY2_PHYS_SENSOR_ID_GAS_RESISTOR:
+        case BHY_PHYS_SENSOR_ID_GAS_RESISTOR:
             ret = "Gas Resistor";
             break;
-        case BHY2_PHYS_SENSOR_ID_PHYS_STEP_COUNTER:
+        case BHY_PHYS_SENSOR_ID_PHYS_STEP_COUNTER:
             ret = "Step Counter";
             break;
-        case BHY2_PHYS_SENSOR_ID_PHYS_STEP_DETECTOR:
+        case BHY_PHYS_SENSOR_ID_PHYS_STEP_DETECTOR:
             ret = "Step Detector";
             break;
         default:
@@ -1388,36 +1388,36 @@ char *get_physical_sensor_name(uint8_t sensor_id)
     {
         switch (sensor_id)
         {
-            case BHY2_PHYS_SENSOR_ID_PHYS_SIGN_MOTION:
+            case BHY_PHYS_SENSOR_ID_PHYS_SIGN_MOTION:
                 ret = "Significant Motion";
                 break;
-            case BHY2_PHYS_SENSOR_ID_PHYS_ANY_MOTION:
+            case BHY_PHYS_SENSOR_ID_PHYS_ANY_MOTION:
                 ret = "Any Motion";
                 break;
                 #if 0
-            case BHY2_PHYS_SENSOR_ID_EX_CAMERA_INPUT:
+            case BHY_PHYS_SENSOR_ID_EX_CAMERA_INPUT:
                 ret = "External Camera Input";
                 break;
-            case BHY2_PHYS_SENSOR_ID_GPS:
+            case BHY_PHYS_SENSOR_ID_GPS:
                 ret = "GPS";
                 break;
-            case BHY2_PHYS_SENSOR_ID_LIGHT:
+            case BHY_PHYS_SENSOR_ID_LIGHT:
                 ret = "Light";
                 break;
-            case BHY2_PHYS_SENSOR_ID_PROXIMITY:
+            case BHY_PHYS_SENSOR_ID_PROXIMITY:
                 ret = "Proximity";
                 break;
-            case BHY2_PHYS_SENSOR_ID_ACT_REC:
+            case BHY_PHYS_SENSOR_ID_ACT_REC:
                 ret = "Activity Recognition";
                 break;
                 #endif
-            case BHY2_PHYS_SENSOR_ID_PHYS_NO_MOTION:
+            case BHY_PHYS_SENSOR_ID_PHYS_NO_MOTION:
                 ret = "No Motion";
                 break;
-            case BHY2_PHYS_SENSOR_ID_WRIST_GESTURE_DETECT:
+            case BHY_PHYS_SENSOR_ID_WRIST_GESTURE_DETECT:
                 ret = "Wrist Gesture Detector";
                 break;
-            case BHY2_PHYS_SENSOR_ID_WRIST_WEAR_WAKEUP:
+            case BHY_PHYS_SENSOR_ID_WRIST_WEAR_WAKEUP:
                 ret = "Wrist Wear Wakeup";
                 break;
             default:
@@ -1438,23 +1438,23 @@ uint8_t get_physical_sensor_id(uint8_t virt_sensor_id)
 {
     uint8_t ret;
 
-    if ((virt_sensor_id >= BHY2_SENSOR_ID_ACC_PASS) && (virt_sensor_id <= BHY2_SENSOR_ID_ACC_RAW_WU))
+    if ((virt_sensor_id >= BHY_SENSOR_ID_ACC_PASS) && (virt_sensor_id <= BHY_SENSOR_ID_ACC_RAW_WU))
     {
-        ret = BHY2_PHYS_SENSOR_ID_ACCELEROMETER;
+        ret = BHY_PHYS_SENSOR_ID_ACCELEROMETER;
     }
-    else if (((virt_sensor_id >= BHY2_SENSOR_ID_GYRO_PASS) && (virt_sensor_id <= BHY2_SENSOR_ID_GYRO_RAW_WU)) ||
-             (virt_sensor_id == BHY2_SENSOR_ID_GYRO_BIAS_WU))
+    else if (((virt_sensor_id >= BHY_SENSOR_ID_GYRO_PASS) && (virt_sensor_id <= BHY_SENSOR_ID_GYRO_RAW_WU)) ||
+             (virt_sensor_id == BHY_SENSOR_ID_GYRO_BIAS_WU))
     {
-        ret = BHY2_PHYS_SENSOR_ID_GYROSCOPE;
+        ret = BHY_PHYS_SENSOR_ID_GYROSCOPE;
     }
-    else if (((virt_sensor_id >= BHY2_SENSOR_ID_MAG_PASS) && (virt_sensor_id <= BHY2_SENSOR_ID_MAG_RAW_WU)) ||
-             (virt_sensor_id == BHY2_SENSOR_ID_MAG_BIAS_WU))
+    else if (((virt_sensor_id >= BHY_SENSOR_ID_MAG_PASS) && (virt_sensor_id <= BHY_SENSOR_ID_MAG_RAW_WU)) ||
+             (virt_sensor_id == BHY_SENSOR_ID_MAG_BIAS_WU))
     {
-        ret = BHY2_PHYS_SENSOR_ID_MAGNETOMETER;
+        ret = BHY_PHYS_SENSOR_ID_MAGNETOMETER;
     }
     else
     {
-        ret = BHY2_PHYS_SENSOR_ID_NOT_SUPPORTED;
+        ret = BHY_PHYS_SENSOR_ID_NOT_SUPPORTED;
     }
 
     return ret;
@@ -1504,7 +1504,7 @@ char *get_sensor_name(uint8_t sensor_id)
         return ret;
     }
 
-    if ((sensor_id >= BHY2_SENSOR_ID_CUSTOM_START) && (sensor_id <= BHY2_SENSOR_ID_CUSTOM_END))
+    if ((sensor_id >= BHY_SENSOR_ID_CUSTOM_START) && (sensor_id <= BHY_SENSOR_ID_CUSTOM_END))
     {
         ret = "Custom sensor ID ";
     }
@@ -1526,11 +1526,11 @@ float get_sensor_dynamic_range_scaling(uint8_t sensor_id, float dynamic_range)
 {
     float scaling = -1.0f;
 
-    if (((sensor_id >= BHY2_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY2_SENSOR_ID_ACC_RAW_WU)) ||
-        ((sensor_id >= BHY2_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY2_SENSOR_ID_GYRO_RAW_WU)) ||
-        (sensor_id == BHY2_SENSOR_ID_GYRO_BIAS_WU) ||
-        ((sensor_id >= BHY2_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY2_SENSOR_ID_MAG_RAW_WU)) ||
-        (sensor_id == BHY2_SENSOR_ID_MAG_BIAS_WU))
+    if (((sensor_id >= BHY_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY_SENSOR_ID_ACC_RAW_WU)) ||
+        ((sensor_id >= BHY_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY_SENSOR_ID_GYRO_RAW_WU)) ||
+        (sensor_id == BHY_SENSOR_ID_GYRO_BIAS_WU) ||
+        ((sensor_id >= BHY_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY_SENSOR_ID_MAG_RAW_WU)) ||
+        (sensor_id == BHY_SENSOR_ID_MAG_BIAS_WU))
     {
         scaling = dynamic_range / 32768.0f;
     }
@@ -1552,17 +1552,17 @@ char *get_sensor_si_unit(uint8_t sensor_id)
 {
     char *ret = " ";
 
-    if ((sensor_id >= BHY2_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY2_SENSOR_ID_ACC_RAW_WU))
+    if ((sensor_id >= BHY_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY_SENSOR_ID_ACC_RAW_WU))
     {
         ret = "Earth g-s";
     }
-    else if (((sensor_id >= BHY2_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY2_SENSOR_ID_GYRO_RAW_WU)) ||
-             (sensor_id == BHY2_SENSOR_ID_GYRO_BIAS_WU))
+    else if (((sensor_id >= BHY_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY_SENSOR_ID_GYRO_RAW_WU)) ||
+             (sensor_id == BHY_SENSOR_ID_GYRO_BIAS_WU))
     {
         ret = "degrees/second";
     }
-    else if (((sensor_id >= BHY2_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY2_SENSOR_ID_MAG_RAW_WU)) ||
-             (sensor_id == BHY2_SENSOR_ID_MAG_BIAS_WU))
+    else if (((sensor_id >= BHY_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY_SENSOR_ID_MAG_RAW_WU)) ||
+             (sensor_id == BHY_SENSOR_ID_MAG_BIAS_WU))
     {
         ret = "microtesla";
     }
@@ -1583,23 +1583,25 @@ char *get_sensor_parse_format_text(uint8_t sensor_id)
 {
     char *ret = " ";
 
-    if ((sensor_id == BHY2_SENSOR_ID_SI_ACCEL) || (sensor_id == BHY2_SENSOR_ID_SI_GYROS))
+    if ((sensor_id == BHY_SENSOR_ID_SI_ACCEL) || (sensor_id == BHY_SENSOR_ID_SI_GYROS))
     {
         ret = "f,f,f";
     }
-    else if (((sensor_id >= BHY2_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY2_SENSOR_ID_LACC_WU)) ||
-             (sensor_id == BHY2_SENSOR_ID_ACC_BIAS_WU) || (sensor_id == BHY2_SENSOR_ID_GYRO_BIAS_WU))
+    else if (((sensor_id >= BHY_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY_SENSOR_ID_LACC_WU)) ||
+             (sensor_id == BHY_SENSOR_ID_ACC_BIAS_WU) || (sensor_id == BHY_SENSOR_ID_GYRO_BIAS_WU))
     {
         ret = "s16,s16,s16";
     }
-    else if ((sensor_id >= BHY2_SENSOR_ID_RV) && (sensor_id <= BHY2_SENSOR_ID_GEORV_WU))
+    else if ((sensor_id >= BHY_SENSOR_ID_RV) && (sensor_id <= BHY_SENSOR_ID_GEORV_WU))
     {
         ret = "s16,s16,s16,s16,u16";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_ORI) || (sensor_id == BHY2_SENSOR_ID_ORI_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_ORI) || (sensor_id == BHY_SENSOR_ID_ORI_WU))
     {
         ret = "s16,s16,s16";
     }
+
+#if 0
     else if (sensor_id == BHY_SENSOR_ID_KLIO)
     {
         ret = "u8,u8,u8,u8,u8,u8,f";
@@ -1612,7 +1614,8 @@ char *get_sensor_parse_format_text(uint8_t sensor_id)
     {
         ret = "u16,u16,u16,u16,u16,u16,u16";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_LIGHT) || (sensor_id == BHY2_SENSOR_ID_LIGHT_WU))
+#endif
+    else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU))
     {
         ret = "s16";
     }
@@ -1629,23 +1632,22 @@ char *get_sensor_parse_format_data(uint8_t sensor_id)
 {
     char *ret = " ";
 
-    if ((sensor_id == BHY2_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY2_SENSOR_ID_DEVICE_ORI_WU) ||
-        (sensor_id == BHY2_SENSOR_ID_HUM) || (sensor_id == BHY2_SENSOR_ID_HUM_WU) ||
-        (sensor_id == BHY2_SENSOR_ID_PROX) ||
-        (sensor_id == BHY2_SENSOR_ID_PROX_WU) || (sensor_id == BHY2_SENSOR_ID_EXCAMERA) ||
+    if ((sensor_id == BHY_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY_SENSOR_ID_DEVICE_ORI_WU) ||
+        (sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU) || (sensor_id == BHY_SENSOR_ID_PROX) ||
+        (sensor_id == BHY_SENSOR_ID_PROX_WU) || (sensor_id == BHY_SENSOR_ID_EXCAMERA) ||
         (sensor_id == BHI3_SENSOR_ID_MULTI_TAP))
     {
         ret = "u8";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_TEMP) || (sensor_id == BHY2_SENSOR_ID_TEMP_WU) ||
+    else if ((sensor_id == BHY_SENSOR_ID_TEMP) || (sensor_id == BHY_SENSOR_ID_TEMP_WU) ||
              (sensor_id == BHY_SENSOR_BMP_TEMPERATURE) || (sensor_id == BHY_SENSOR_BMP_TEMPERATURE_WU))
     {
         ret = "s16";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_GAS) || (sensor_id == BHY2_SENSOR_ID_GAS_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_STC) || (sensor_id == BHY2_SENSOR_ID_STC_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_STC_LP) ||
-             (sensor_id == BHY2_SENSOR_ID_STC_LP_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_GAS) || (sensor_id == BHY_SENSOR_ID_GAS_WU) ||
+             (sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU) ||
+             (sensor_id == BHY_SENSOR_ID_STC_LP) ||
+             (sensor_id == BHY_SENSOR_ID_STC_LP_WU))
     {
         ret = "u32";
     }
@@ -1662,21 +1664,21 @@ char *get_sensor_parse_format_rep(uint8_t sensor_id)
 {
     char *ret = " ";
 
-    if ((sensor_id == BHY2_SENSOR_ID_TILT_DETECTOR) || (sensor_id == BHY2_SENSOR_ID_STD) ||
-        ((sensor_id >= BHY2_SENSOR_ID_SIG) && (sensor_id <= BHY2_SENSOR_ID_PICKUP_GESTURE)) ||
-        (sensor_id == BHY2_SENSOR_ID_STD_WU) || (sensor_id == BHY2_SENSOR_ID_SIG_LP_WU) ||
-        (sensor_id == BHY2_SENSOR_ID_STD_LP) || (sensor_id == BHY2_SENSOR_ID_STD_LP_WU) ||
-        (sensor_id == BHY2_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY2_SENSOR_ID_STATIONARY_DET) ||
-        (sensor_id == BHY2_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
-        (sensor_id == BHY2_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU))
+    if ((sensor_id == BHY_SENSOR_ID_TILT_DETECTOR) || (sensor_id == BHY_SENSOR_ID_STD) ||
+        ((sensor_id >= BHY_SENSOR_ID_SIG) && (sensor_id <= BHY_SENSOR_ID_PICKUP_GESTURE)) ||
+        (sensor_id == BHY_SENSOR_ID_STD_WU) || (sensor_id == BHY_SENSOR_ID_SIG_LP_WU) ||
+        (sensor_id == BHY_SENSOR_ID_STD_LP) || (sensor_id == BHY_SENSOR_ID_STD_LP_WU) ||
+        (sensor_id == BHY_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY_SENSOR_ID_STATIONARY_DET) ||
+        (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
+        (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU))
     {
         ret = "";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
     {
         ret = "u16";
     }
-    else if (sensor_id == BHY2_SENSOR_ID_GPS)
+    else if (sensor_id == BHY_SENSOR_ID_GPS)
     {
         ret = "st";
     }
@@ -1705,7 +1707,7 @@ char *get_sensor_parse_format(uint8_t sensor_id)
 
             if (strcmp(ret, " ") == 0)
             {
-                if ((sensor_id == BHY2_SENSOR_ID_BARO) || (sensor_id == BHY2_SENSOR_ID_BARO_WU))
+                if ((sensor_id == BHY_SENSOR_ID_BARO) || (sensor_id == BHY_SENSOR_ID_BARO_WU))
                 {
                     ret = "u24";
                 }
@@ -1714,11 +1716,12 @@ char *get_sensor_parse_format(uint8_t sensor_id)
                 {
                     ret = "u8";
                 }
-                else if (sensor_id == BHY2_SENSOR_ID_AIR_QUALITY)
+                else if (sensor_id == BHY_SENSOR_ID_AIR_QUALITY)
                 {
                     ret = "f32,f32,f32,f32,f32,f32,f32,u8";
                 }
-                else if ((sensor_id <= BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) && (sensor_id <= BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
+                else if ((sensor_id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) || (sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_Q) ||
+                         (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
                 {
                     ret = "s16,s16,s16,s16";
                 }
@@ -1726,13 +1729,13 @@ char *get_sensor_parse_format(uint8_t sensor_id)
                 {
                     ret = "s16,s16,s16";
                 }
-                else if ((sensor_id == BHY2_SENSOR_ID_GAS) || (sensor_id == BHY2_SENSOR_ID_GAS_WU))
+                else if ((sensor_id == BHY_SENSOR_ID_GAS) || (sensor_id == BHY_SENSOR_ID_GAS_WU))
                 {
                     ret = "g";
                 }
-                else if ((sensor_id == BHY2_SENSOR_ID_STC) || (sensor_id == BHY2_SENSOR_ID_STC_WU) ||
-                         (sensor_id == BHY2_SENSOR_ID_STC_LP) || (sensor_id == BHY2_SENSOR_ID_STC_LP_WU) ||
-                         (sensor_id == BHY2_SENSOR_ID_EXCAMERA))
+                else if ((sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU) ||
+                         (sensor_id == BHY_SENSOR_ID_STC_LP) || (sensor_id == BHY_SENSOR_ID_STC_LP_WU) ||
+                         (sensor_id == BHY_SENSOR_ID_EXCAMERA))
                 {
                     ret = "c";
                 }
@@ -1756,18 +1759,18 @@ char *get_sensor_axes_name(uint8_t sensor_id)
 {
     char *ret = " ";
 
-    if ((sensor_id == BHY2_SENSOR_ID_TEMP) || (sensor_id == BHY2_SENSOR_ID_TEMP_WU) ||
+    if ((sensor_id == BHY_SENSOR_ID_TEMP) || (sensor_id == BHY_SENSOR_ID_TEMP_WU) ||
         (sensor_id == BHY_SENSOR_BMP_TEMPERATURE) || (sensor_id == BHY_SENSOR_BMP_TEMPERATURE_WU))
     {
         ret = "t";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_TILT_DETECTOR) || (sensor_id == BHY2_SENSOR_ID_STD) ||
-             ((sensor_id >= BHY2_SENSOR_ID_SIG) && (sensor_id <= BHY2_SENSOR_ID_PICKUP_GESTURE)) ||
-             (sensor_id == BHY2_SENSOR_ID_STD_WU) || (sensor_id == BHY2_SENSOR_ID_SIG_LP_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_STD_LP) || (sensor_id == BHY2_SENSOR_ID_STD_LP_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY2_SENSOR_ID_STATIONARY_DET) ||
-             (sensor_id == BHY2_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
-             (sensor_id == BHY2_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_TILT_DETECTOR) || (sensor_id == BHY_SENSOR_ID_STD) ||
+             ((sensor_id >= BHY_SENSOR_ID_SIG) && (sensor_id <= BHY_SENSOR_ID_PICKUP_GESTURE)) ||
+             (sensor_id == BHY_SENSOR_ID_STD_WU) || (sensor_id == BHY_SENSOR_ID_SIG_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_STD_LP) || (sensor_id == BHY_SENSOR_ID_STD_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY_SENSOR_ID_STATIONARY_DET) ||
+             (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU))
     {
         ret = "e";
     }
@@ -1784,13 +1787,13 @@ char *get_sensor_axis_name_format(uint8_t sensor_id)
 {
     char *ret = " ";
 
-    if ((sensor_id == BHY2_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
+    if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
     {
         ret = "a";
     }
 
     #if 0
-    else if (sensor_id == BHY2_SENSOR_ID_GPS)
+    else if (sensor_id == BHY_SENSOR_ID_GPS)
     {
         ret = "g";
     }
@@ -1804,11 +1807,12 @@ char *get_sensor_axis_name_format(uint8_t sensor_id)
     {
         ret = "taps";
     }
-    else if (sensor_id == BHY2_SENSOR_ID_AIR_QUALITY)
+    else if (sensor_id == BHY_SENSOR_ID_AIR_QUALITY)
     {
         ret = "t,h,g,i,si,c,v,a";
     }
-    else if ((sensor_id <= BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) && (sensor_id <= BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
+    else if ((sensor_id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) || (sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_Q) ||
+             (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
     {
         ret = "x,y,z,w";
     }
@@ -1816,11 +1820,11 @@ char *get_sensor_axis_name_format(uint8_t sensor_id)
     {
         ret = "h,p,r";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_BARO) || (sensor_id == BHY2_SENSOR_ID_BARO_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_BARO) || (sensor_id == BHY_SENSOR_ID_BARO_WU))
     {
         ret = "p";
     }
-    else if ((sensor_id == BHY2_SENSOR_ID_HUM) || (sensor_id == BHY2_SENSOR_ID_HUM_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU))
     {
         ret = "h";
     }

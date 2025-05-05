@@ -37,7 +37,7 @@
 
 #include "post_mortem.h"
 #include "verbose.h"
-#include "bhy2_hif.h"
+#include "bhy_hif.h"
 
 /**
 * @brief Function to get the Post Mortem data
@@ -45,12 +45,12 @@
 * @param[in] bhy        : Device reference
 * @return API error codes
 */
-int8_t get_post_mortem_data(struct bhy_post_mortem *pminfo, struct bhy2_dev *bhy)
+int8_t get_post_mortem_data(struct bhy_post_mortem *pminfo, struct bhy_dev *bhy)
 {
     uint32_t pmlen = 0;
     int8_t rslt;
 
-    rslt = bhy2_get_post_mortem_data((uint8_t*)pminfo, sizeof(struct bhy_post_mortem), &pmlen, bhy);
+    rslt = bhy_get_post_mortem_data((uint8_t*)pminfo, sizeof(struct bhy_post_mortem), &pmlen, bhy);
 
     return rslt;
 }

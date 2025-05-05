@@ -37,7 +37,7 @@
 
 #include <stdio.h>
 #include "parse.h"
-#include "bhy2_parse.h"
+#include "bhy_parse.h"
 #include "verbose.h"
 #include "coines.h"
 
@@ -114,11 +114,11 @@ int dinject_hex_to_dec(const char *hex, uint8_t length)
 * @param[in] bhy  : Device reference
 * @return API error codes
 */
-int8_t inject_data(uint16_t size, struct bhy2_dev *bhy)
+int8_t inject_data(uint16_t size, struct bhy_dev *bhy)
 {
     int8_t rslt;
 
-    rslt = bhy2_inject_data(inject_log, size, bhy);
+    rslt = bhy_inject_data(inject_log, size, bhy);
     if (rslt == 0)
     {
         memset(inject_log, 0, sizeof(inject_log));
@@ -148,7 +148,7 @@ void parse_file(int event_id, const struct data_inject *dinject)
 * @param[in] bhy       : Device reference
 * @return API error codes
 */
-int8_t dinject_timestamp_data(int event_id, const struct data_inject *dinject, struct bhy2_dev *bhy)
+int8_t dinject_timestamp_data(int event_id, const struct data_inject *dinject, struct bhy_dev *bhy)
 {
     static uint8_t last_timestamp = 0;
     int8_t rslt = 0;
@@ -279,12 +279,12 @@ int8_t dinject_parse_file(FILE *fp, size_t hex_len, size_t event_size_t, uint8_t
 * @param[in] bhy        : Device reference
 * @return API error codes
 */
-int8_t dinject_init(char *input, struct data_inject *dinject, const struct bhy2_dev *bhy)
+int8_t dinject_init(char *input, struct data_inject *dinject, const struct bhy_dev *bhy)
 {
     (void)bhy;
 
     struct stat st;
-    int8_t rslt = BHY2_OK;
+    int8_t rslt = BHY_OK;
 
     /*! Open the Field Log*/
 #ifdef PC
@@ -297,7 +297,7 @@ int8_t dinject_init(char *input, struct data_inject *dinject, const struct bhy2_
     {
         ERROR("Could not open file %s\r\n\r\n", input);
 
-        return BHY2_E_INVALID_PARAM;
+        return BHY_E_INVALID_PARAM;
     }
     else
     {
@@ -319,7 +319,7 @@ int8_t dinject_init(char *input, struct data_inject *dinject, const struct bhy2_
 * @param[in] bhy         : Device reference
 * @return API error codes
 */
-int8_t dinject_inject_data(int event_id, const struct data_inject *dinject, struct bhy2_dev *bhy)
+int8_t dinject_inject_data(int event_id, const struct data_inject *dinject, struct bhy_dev *bhy)
 {
     int8_t rslt;
 
@@ -385,7 +385,7 @@ int8_t dinject_inject_data(int event_id, const struct data_inject *dinject, stru
 * @param[in] bhy        : Device reference
 * @return API error codes
 */
-int8_t dinject_deinit(struct data_inject *dinject, const struct bhy2_dev *bhy)
+int8_t dinject_deinit(struct data_inject *dinject, const struct bhy_dev *bhy)
 {
     (void)bhy;
 
@@ -403,5 +403,5 @@ int8_t dinject_deinit(struct data_inject *dinject, const struct bhy2_dev *bhy)
     /*! Reset the Data Injection Structure */
     memset(dinject, 0, sizeof(struct data_inject));
 
-    return BHY2_OK;
+    return BHY_OK;
 }

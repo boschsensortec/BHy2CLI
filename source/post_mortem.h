@@ -47,7 +47,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bhy2.h"
+#include "bhy.h"
 
 #define STACK_SIZE            4096
 
@@ -103,7 +103,7 @@ typedef struct bhy_post_mortem
 * @param[in] bhy        : Device reference
 * @return API error codes
 */
-int8_t get_post_mortem_data(struct bhy_post_mortem *pminfo, struct bhy2_dev *bhy);
+int8_t get_post_mortem_data(struct bhy_post_mortem *pminfo, struct bhy_dev *bhy);
 
 /**
 * @brief Function to log the Post Mortem data

@@ -45,8 +45,8 @@ extern "C" {
 
 #include <stdbool.h>
 
-#include "bhy2.h"
-#include "bhy_klio_param.h"
+#include "bhy.h"
+//#include "bhy_klio_param.h"
 #include "logbin.h"
 
 #include "dinject_defs.h"
@@ -72,7 +72,7 @@ struct data_inject
 * @param[in] bhy        : Device reference
 * @return API error codes
 */
-int8_t dinject_init(char *input, struct data_inject *dinject, const struct bhy2_dev *bhy);
+int8_t dinject_init(char *input, struct data_inject *dinject, const struct bhy_dev *bhy);
 
 /**
 * @brief Function to inject the data
@@ -81,7 +81,7 @@ int8_t dinject_init(char *input, struct data_inject *dinject, const struct bhy2_
 * @param[in] bhy         : Device reference
 * @return API error codes
 */
-int8_t dinject_inject_data(int event_id, const struct data_inject *dinject, struct bhy2_dev *bhy);
+int8_t dinject_inject_data(int event_id, const struct data_inject *dinject, struct bhy_dev *bhy);
 
 /**
 * @brief Function to uninitialize the Data Injection structure
@@ -89,7 +89,7 @@ int8_t dinject_inject_data(int event_id, const struct data_inject *dinject, stru
 * @param[in] bhy        : Device reference
 * @return API error codes
 */
-int8_t dinject_deinit(struct data_inject *dinject, const struct bhy2_dev *bhy);
+int8_t dinject_deinit(struct data_inject *dinject, const struct bhy_dev *bhy);
 
 /**
 * @brief Function to parse the Input File

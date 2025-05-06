@@ -10,7 +10,7 @@
 ## Compatibility
 | Items      | BHyCLI | FW     | BSX4   |BHy SensorAPI | COINES SDK   | Supported Boards | Supported Sensors |
 | :---:      | :---:  | :----: | :----: | :----:       | :----:       | :----: | :----: |
-| version    | 0.5.1  | 1.1.18 | IR84.3 | 2.0.0        | 2.10.2       | APP30<br>APP31 | BHI360 |
+| version    | 0.5.1  | 1.1.18.2 | IR84.3 | 2.1.0        | 2.10       | APP30<br>APP31 | BHI360 |
 
 ## Getting Started
 

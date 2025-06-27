@@ -44,7 +44,7 @@ git submodule update --recursive
 ```
 
 
-2. By default, BHI360 will be cloned as submodule and the source code and Makefile locate the BHI360 sensor API v2.2.0 under "submodules/bhi360/source".
+2. By default, BHI360 will be cloned as submodule and the source code and Makefile locate the BHI360 sensor API v2.2.0 under "submodules/bhi360".
    
 ### Steps to include a new sensor API (Optional)
 
@@ -53,7 +53,7 @@ git submodule update --recursive
 2. Update the Makefile of the CLI to include definitions and source code for the new sensor API. Follow these steps:
    - Add the location of the new sensor API:
 	 ```
-	 CLIxxx_API_LOCATION ?= submodules/bhixxx/source
+	 CLIxxx_API_LOCATION ?= submodules/bhixxx
 	 ```
    - Add the source files of the new sensor API to the build process:
 	 ```

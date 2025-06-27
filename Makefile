@@ -3,7 +3,7 @@ EXAMPLE_FILE ?= bhy2cli.c
 BHY_INTF ?= 
 COINES_BACKEND ?= COINES_BRIDGE
 
-CLI360_API_LOCATION ?= submodules/bhi360/source
+CLI360_API_LOCATION ?= submodules/bhi360
 
 API_LOCATION ?= source
 BHY_DEF_LOCATION ?= $(API_LOCATION)/bhy_def

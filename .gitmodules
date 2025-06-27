@@ -3,4 +3,4 @@
 	url = https://github.com/boschsensortec/COINES_SDK.git
 [submodule "submodules/bhi360"]
 	path = submodules/bhi360
-	url = https://github.com/boschsensortec/BHI360_SensorAPI
+	url = https://github.com/boschsensortec/BHI360_SensorAPI.git

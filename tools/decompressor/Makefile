@@ -3,6 +3,7 @@ COINES_INSTALL_PATH ?= ../../submodules/coines
 EXAMPLE_FILE ?= decompressor.c
 
 INCLUDEPATHS += ../../source
+INCLUDEPATHS += ../../source/bhy_def
 
 # Override other target definitions
 VALID_TARGET := PC

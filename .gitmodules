@@ -1,6 +1,6 @@
 [submodule "submodules/coines"]
 	path = submodules/coines
 	url = https://github.com/boschsensortec/COINES_SDK.git
-[submodule "submodules/BHy-SensorAPI/source"]
-	path = submodules/BHy-SensorAPI/source
-	url = https://github.com/boschsensortec/BHI360_SensorAPI.git
+[submodule "submodules/bhi360"]
+	path = submodules/bhi360
+	url = https://github.com/boschsensortec/BHI360_SensorAPI

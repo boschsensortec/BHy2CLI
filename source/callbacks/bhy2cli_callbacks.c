@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -30,14 +30,14 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @file    bhycli_callbacks.c
+ * @file    bhy2cli_callbacks.c
  * @brief   Source file for the command line utility callbacks
  *
  */
 
 #define BHY2CLI_VER_MAJOR       "0"
-#define BHY2CLI_VER_MINOR       "5"
-#define BHY2CLI_VER_BUGFIX      "1"
+#define BHY2CLI_VER_MINOR       "6"
+#define BHY2CLI_VER_BUGFIX      "0"
 
 #ifdef __STDC_ALLOC_LIB__
 #define __STDC_WANT_LIB_EXT2__  1
@@ -59,64 +59,37 @@
 #endif
 
 #include "coines.h"
-#include "bhycli_callbacks.h"
+#include "bhy2cli_callbacks.h"
 #include "common_callbacks.h"
 #include "common.h"
-#include "parse.h"
 #include "verbose.h"
 #include "dinject.h"
 #include "post_mortem.h"
-#include "bhy_system_param.h"
-#include "bhy_virtual_sensor_conf_param.h"
-#include "bhy_activity_param.h"
-#include "bhy_param_defs.h"
-#include "bhy_bsx_algo_param.h"
-#include "bhy_bsec_param.h"
-#include "bhy_virtual_sensor_info_param.h"
+#include "bhi360.h"
 
-#define BHYCLI_MAX_STRING_LENGTH  UINT16_C(32)
+#define MAX_FILENAME_LENGTH  255
 
-#define MAX_FILENAME_LENGTH       255
-
-/* Contains all parameters of the of custom virtual sensors
- * required for parsing */
 typedef struct BHY_PACKED custom_driver_information
 {
-    char sensor_name[BHYCLI_MAX_STRING_LENGTH];
+    char sensor_name[BHY2CLI_MAX_STRING_LENGTH];
     uint16_t sensor_payload : 7;
     uint16_t sensor_id : 8;
     uint16_t is_registered : 1;
-    char output_formats[BHYCLI_MAX_STRING_LENGTH];
+    char output_formats[BHY2CLI_MAX_STRING_LENGTH];
 } custom_driver_information_t;
-
-/* *INDENT-OFF* */
-/* Contains information about klio capabilities and current state, as well as runtime configuration */
-/*
-static struct
-{
-    uint8_t max_cyclic_patterns;
-    uint8_t max_cyclic_pattern_blob_size;
-    uint8_t auto_load_pattern_write_index;
-    uint8_t auto_load_pattern;
-    uint8_t max_generic_patterns;
-    uint16_t max_generic_pattern_blob_size;
-}klio_vars;
-*/
-/* *INDENT-ON* */
 
 static int8_t assert_rslt;
 static uint8_t fifo_buffer[2048];
 static bool sensors_active[256] = { false };
 static bool first_run = true;
 
-/* Added to report the final swim data to mobile APP when swim is disabled */
-/*static bhy_event_data_swim_output_t swim_data; */
+static uint8_t main_chip_id = 0;
+
+static bool klio_enabled = false;
 
 /* Static global table that contains the payloads of present custom virtual sensors, derived by a parameter read */
 static custom_driver_information_t custom_driver_information[(BHY_SENSOR_ID_CUSTOM_END - BHY_SENSOR_ID_CUSTOM_START) +
                                                              1];
-
-/* static bool klio_enabled = false; */
 
 struct data_inject dinject;
 static struct bhy_virtual_sensor_conf_param_conf sensor_conf;
@@ -135,6 +108,23 @@ uint32_t string_to_int(const char *str)
 
     return (uint32_t)strtol(int_str, NULL, 0);
 }
+
+/**
+* @brief Function to convert input string to float
+* @param[in] str : Input string
+* @return Float corresponds to string
+*/
+
+bhy_float string_to_float(const char *str)
+{
+    char float_str[8] = { 0 };
+
+    strncpy(float_str, str, strlen(str));
+    float_str[strlen(str)] = '\0';
+
+    return (bhy_float)strtof(float_str, NULL);
+}
+#ifndef PC
 
 /* BEGIN GenAI Github Copilot */
 
@@ -162,8 +152,9 @@ uint8_t file_exists(const char *file_name)
 }
 
 /* END GenAI Github Copilot */
+#endif
 
-static cli_callback_table_t bhy_cli_callbacks[] = {
+static cli_callback_table_t bhy2cli_callbacks[] = {
     { 0, "", 0, NULL, NULL }, /* Empty characters creates a new line */
     { 'h', "help", 0, help_callback, help_help }, /* Print all available commands */
     { 0, "version", 0, version_callback, version_help }, /* Prints the HW, SW versions and build date*/
@@ -171,7 +162,7 @@ static cli_callback_table_t bhy_cli_callbacks[] = {
     { 'b', "ramb", 1, ramb_callback, ramb_help }, /* Reset, Load firmware to RAM and boot */
     { 'n', "reset", 0, reset_callback, reset_help }, /* Trigger a soft reset to the sensor */
     { 'a', "addse", 1, addse_callback, addse_help }, /* Add a custom sensor */
-    { 'g', "boot", 1, boot_callback, boot_help }, /* Boot from RAM or Flash */
+    { 'g', "boot", 1, boot_callback, boot_help }, /* Boot from RAM */
     { 'c', "actse", 1, actse_callback, actse_help }, /* Activate/De-activate a sensor */
     { 0, "schema", 0, schema_callback, schema_help }, /* Get schema information of the loaded sensors */
     { 0, "hexse", 1, hexse_callback, hexse_help }, /* Stream sensor data in hex */
@@ -179,12 +170,6 @@ static cli_callback_table_t bhy_cli_callbacks[] = {
     { 0, "lsactse", 0, lsactse_callback, lsactse_help }, /* List all the active sensors */
     { 0, "dmode", 1, dmode_callback, dmode_help }, /* Switch to Data Injection mode */
     { 0, "dinject", 1, dinject_callback, dinject_help }, /* Compute virtual sensor output from raw IMU data */
-    #if 0
-    { 'e', "erase", 0, erase_callback, erase_help }, /* Erase the external Flash */
-    { 'd', "flb", 1, flb_callback, flb_help }, /* Reset, Load firmware to Flash and boot */
-    { 0, "efd", 0, efd_callback, efd_help }, /* Erase the Flash descriptor */
-    { 'f', "fl", 1, fl_callback, fl_help }, /* Upload firmware to Flash */
-    #endif
     { 'r', "rd", 1, rd_callback, rd_help }, /* Read registers */
     { 'u', "ram", 1, ram_callback, ram_help }, /* Upload firmware to RAM */
     { 'w', "wr", 1, wr_callback, wr_help }, /* Write registers */
@@ -192,14 +177,14 @@ static cli_callback_table_t bhy_cli_callbacks[] = {
     { 's', "rdp", 1, rdp_callback, rdp_help }, /* Read a parameter */
     { 't', "wrp", 1, wrp_callback, wrp_help }, /* Write a parameter */
     { 'p', "physeninfo", 1, physeninfo_callback, physeninfo_help }, /* Read Physical Sensor Information */
+#ifndef PC
     { 'm', "postm", 1, pm_callback, pm_help }, /* Get Post Mortem Data */
+#endif
     { 0, "logse", 1, logse_callback, logse_help }, /* Log sensor data in binary */
     { 0, "attlog", 1, attlog_callback, attlog_help }, /* Attach a log file for logging */
     { 0, "detlog", 1, detlog_callback, detlog_help }, /* Detach a log file for logging */
     { 0, "setvirtsenconf", 3, setvirtsenconf_callback, setvirtsenconf_help }, /* Setting virtual sensor configuration */
     { 0, "getvirtsenconf", 1, getvirtsenconf_callback, getvirtsenconf_help }, /* Getting virtual sensor configuration */
-
-    #if 0
     { 0, "kstatus", 0, kstatus_callback, kstatus_help }, /* Get Klio status */
     { 0, "ksetstate", 4, ksetstate_callback, ksetstate_help }, /* Set state of cyclic Klio */
     { 0, "kgetstate", 0, kgetstate_callback, kgetstate_help }, /* Get state of cyclic Klio */
@@ -226,7 +211,6 @@ static cli_callback_table_t bhy_cli_callbacks[] = {
     { 0, "swimgetaxes", 0, swimgetaxes_callback, swimgetaxes_help }, /* Get the Swim orientation sensor */
     { 0, "swimsetaxes", 1, swimsetaxes_callback, swimsetaxes_help }, /* Set the Swim orientation sensor */
     { 0, "swimsetlogging", 1, swimsetlogging_callback, swimsetlogging_help }, /* Set the Swim logging sensor */
-    #endif
     { 0, "mtapen", 1, mtapen_callback, mtapen_help }, /* Enable/Disable Multi Tap Sensor */
     { 0, "mtapinfo", 0, mtapinfo_callback, mtapinfo_help }, /* Get Multi Tap Sensor Info */
     { 0, "mtapsetcnfg", 3, mtapsetcnfg_callback, mtapsetcnfg_help }, /* Set the Multi Tap Configuration */
@@ -298,7 +282,7 @@ static cli_callback_table_t bhy_cli_callbacks[] = {
                                                                                * Correction */
     { 0, "foc", 1, foc_callback, foc_help }, /* Set FOC configuration */
     { 0, "chipid", 0, getchipid_callback, getchipid_help }, /* Gets chip id of the sensor */
-    { 0, "syssetphyseninfo", 0, syssetphyseninfo_callback, syssetphyseninfo_help }, /* Set system param physical sensor
+    { 0, "syssetphyseninfo", 2, syssetphyseninfo_callback, syssetphyseninfo_help }, /* Set system param physical sensor
                                                                                      * info */
     { 0, "sysgetphysenlist", 0, sysgetphysenlist_callback, sysgetphysenlist_help }, /* Get list of physical sensor */
     { 0, "sysgetvirsenlist", 0, sysgetvirtsenlist_callback, sysgetvirtsenlist_help }, /* Get list of physical sensor */
@@ -378,24 +362,6 @@ static void boot_ram(struct bhy_dev *bhy);
 */
 static void show_info(struct bhy_dev *bhy);
 
-#if 0
-
-/**
-* @brief Function to boot from Flash
-* @param[in] bhy : Device instance
-*/
-static void boot_flash(struct bhy_dev *bhy);
-
-/**
-* @brief Function to upload firmware to Flash
-* @param[in] filepath : Path to firmware file
-* @param[in] bhy      : Device instance
-* @return Status for uploading
-*/
-static bool upload_to_flash(const char *filepath, struct bhy_dev *bhy);
-
-#endif
-
 /**
 * @brief Function to write value to register
 * @param[in] payload : Data to write, including register address
@@ -431,17 +397,6 @@ static void wr_param(const char *payload, struct bhy_dev *bhy);
 */
 static void rd_phy_sensor_info(const char *payload, struct bhy_dev *bhy);
 
-#if 0
-
-/**
-* @brief Function to erase flash
-* @param[in] end_addr : End address
-* @param[in] bhy      : Device instance
-*/
-static void erase_flash(uint32_t end_addr, struct bhy_dev *bhy);
-
-#endif
-
 /**
 * @brief Function to configure sensor
 * @param[in] sen_cfg    : Sensor configuration
@@ -452,7 +407,7 @@ static void erase_flash(uint32_t end_addr, struct bhy_dev *bhy);
 static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
                              uint8_t sen_id,
                              uint8_t parse_flag,
-                             struct bhy_cli_ref *ref);
+                             struct bhy2cli_ref *ref);
 
 /**
 * @brief Function to activate sensor
@@ -460,30 +415,14 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
 * @param[in] parse_flag        : Parse flag
 * @param[in] ref               : Reference to device and command line
 */
-static void activate_sensor(const char *sensor_parameters, uint8_t parse_flag, struct bhy_cli_ref *ref);
-
-/**
-* @brief Default function to parse for custom sensor
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-static void parse_custom_sensor_default(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse for custom sensor
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-static void parse_custom_sensor(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
+static void activate_sensor(const char *sensor_parameters, uint8_t parse_flag, struct bhy2cli_ref *ref);
 
 /**
 * @brief Function to add a sensor
 * @param[in] payload : Data contains sensor information
 * @param[in] ref     : Reference to device and command line
 */
-static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref);
-
-#if 0
+static void add_sensor(const char *payload, struct bhy2cli_ref *cli_ref);
 
 /**
 * @brief Function to enable Klio
@@ -505,8 +444,7 @@ static void klio_status(struct bhy_dev *bhy);
 * @param[in] arg4 : Argument for recognition reset
 * @param[in] bhy  : Device instance
 */
-static void klio_set_state(const char *arg1, const char *arg2, const char *arg3, const char *arg4,
-                           struct bhy_dev *bhy);
+static void klio_set_state(const char *arg1, const char *arg2, const char *arg3, const char *arg4, struct bhy_dev *bhy);
 
 /**
 * @brief Function to get state of cyclic Klio
@@ -597,84 +535,7 @@ static void klio_similarity_score_multiple(const char *arg1, const char *arg2, s
 */
 static void klio_pattern_state_operation(const uint8_t operation, const char *arg1, struct bhy_dev *bhy);
 
-/**
-* @brief Function to parse cyclic Klio
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_klio(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse generic Klio
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_klio_generic(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse log Klio
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_klio_log(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse for swim
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_swim(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-#endif
-
-/**
-* @brief Function to parse for Accelerometer and Gyroscope sensors
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_acc_gyro(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse for Multi-tap
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_multitap(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse for Wrist Gesture Detector
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_wrist_gesture_detect(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse for Air quality
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_air_quality(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse for Head Misalignment Calibration
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_hmc(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse for Head Orientation Quaternion
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_oc(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-/**
-* @brief Function to parse for Head Orientation Euler
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_ec(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
+#ifndef PC
 
 /**
 * @brief Function to log sensor data
@@ -688,7 +549,9 @@ static void log_data(uint8_t sid,
                      uint64_t tns,
                      uint8_t event_size,
                      const uint8_t *event_payload,
-                     struct logbin_dev *logdev);
+                     struct bhy_logbin_dev *logdev);
+
+#endif
 
 /**
 * @brief Function to trigger FOC
@@ -702,17 +565,7 @@ static void trigger_foc(const char *payload, struct bhy_dev *bhy);
 * @param[in] log : Device instance for log
 * @param[in] bhy : Device instance
 */
-static void write_meta_info(struct logbin_dev *log, struct bhy_dev *bhy);
-
-/**
-* @brief Function to stream HEX data
-* @param[in] sid           : Sensor ID
-* @param[in] ts            : Timestamp in seconds
-* @param[in] tns           : Timestamp in nanoseconds
-* @param[in] event_size    : Event size
-* @param[in] event_payload : Event payload
-*/
-static void stream_hex_data(uint8_t sid, uint32_t ts, uint32_t tns, uint8_t event_size, const uint8_t *event_payload);
+static void log_write_meta_info(struct bhy_logbin_dev *log, struct bhy_dev *bhy);
 
 /**
 * @brief Function to print schema information
@@ -744,30 +597,102 @@ static void print_bsx_algo_param_states(bhy_bsx_algo_param_state_exg *bsx_state)
 * @brief Function to get all command lines callback
 * @return Reference to callback table
 */
-cli_callback_table_t *bhy_get_cli_callbacks(void)
+cli_callback_table_t *bhy2cli_get_cli_callbacks(void)
 {
-    return bhy_cli_callbacks;
+    return bhy2cli_callbacks;
 }
 
 /**
 * @brief Function to get number of command line callbacks
 * @return Number of command line callbacks
 */
-uint8_t bhy_get_n_cli_callbacks(void)
+uint8_t bhy2cli_get_n_cli_callbacks(void)
 {
-    return sizeof(bhy_cli_callbacks) / sizeof(cli_callback_table_t);
+    return sizeof(bhy2cli_callbacks) / sizeof(cli_callback_table_t);
 }
 
 /**
 * @brief Function to initialize interface and sensor callbacks
 * @param[in] cli_ref  : Reference to command line
 */
-void bhy_callbacks_init(struct bhy_cli_ref *cli_ref)
+void bhy2cli_callbacks_init(struct bhy2cli_ref *cli_ref)
 {
     struct bhy_dev *bhy = &cli_ref->bhy;
     uint8_t expected_data;
-    uint8_t chip_id;
     uint8_t feat_status;
+
+    /* Print Copyright build date */
+    PRINT("Copyright (c) 2025 Bosch Sensortec GmbH\r\n");
+    PRINT("Version %s.%s.%s Build date: " __DATE__ "\r\n", BHY2CLI_VER_MAJOR, BHY2CLI_VER_MINOR, BHY2CLI_VER_BUGFIX);
+
+    /*by default, it loads BHI360 initialization*/
+    bhy_init = (bhy_init_func)bhi360_init;
+    bhy_get_chip_id = (bhy_get_chip_id_func)bhi360_get_chip_id;
+
+#ifdef BHY_USE_I2C
+    if (BHY_OK !=
+        bhy_init(BHY_I2C_INTERFACE, bhydev_i2c_read, bhydev_i2c_write, bhydev_delay_us, BHY_RD_WR_LEN, NULL, bhy))
+#else
+    if (BHY_OK !=
+        bhy_init(BHY_SPI_INTERFACE, bhydev_spi_read, bhydev_spi_write, bhydev_delay_us, BHY_RD_WR_LEN, NULL, bhy))
+#endif
+    {
+        ERROR("Failed to initialize BHI chip\r\n");
+        PRINT("Please check the connection and power\r\n");
+
+        return;
+    }
+
+    if (BHY_OK != bhy_get_chip_id(&main_chip_id, bhy))
+    {
+        ERROR("Failed to read chip ID\r\n");
+
+        return;
+    }
+
+    if (BHY_OK != cli_load_sensor_api_entry(main_chip_id))
+    {
+        ERROR("Failed to find the Sensor APIs\r\n");
+        PRINT("The corresponding Sensor API is not included\r\n");
+
+        return;
+    }
+
+    /*reinitialize bus read write driver, when connected chip id is not default */
+    if (main_chip_id != BHI360_CHIP_ID)
+    {
+#ifdef BHY_USE_I2C
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_init,
+                                     "bhy_init",
+                                     BHY_I2C_INTERFACE,
+                                     bhydev_i2c_read,
+                                     bhydev_i2c_write,
+                                     bhydev_delay_us,
+                                     BHY_RD_WR_LEN,
+                                     NULL,
+                                     bhy);
+#else
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_init,
+                                     "bhy_init",
+                                     BHY_SPI_INTERFACE,
+                                     bhydev_spi_read,
+                                     bhydev_spi_write,
+                                     bhydev_delay_us,
+                                     BHY_RD_WR_LEN,
+                                     NULL,
+                                     bhy);
+#endif
+    }
+
+    PRINT("Device found. Chip ID read 0x%X\r\n", main_chip_id);
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_feature_status, "bhy_get_feature_status", &feat_status, bhy);
+    if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
+    {
+        INFO("RTOS based firmware running\r\n");
+
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_update_virtual_sensor_list, "bhy_update_virtual_sensor_list", bhy);
+    }
 
     for (uint8_t i = BHY_SENSOR_ID_CUSTOM_START;
          i <= BHY_SENSOR_ID_CUSTOM_END; i++)
@@ -776,54 +701,17 @@ void bhy_callbacks_init(struct bhy_cli_ref *cli_ref)
         strcpy(custom_driver_information[i - BHY_SENSOR_ID_CUSTOM_START].sensor_name, "Undefined custom sensor");
     }
 
-    /* Print Copyright build date */
-    PRINT("Copyright (c) 2024 Bosch Sensortec GmbH\r\n");
-    PRINT("Version %s.%s.%s Build date: " __DATE__ "\r\n", BHY2CLI_VER_MAJOR, BHY2CLI_VER_MINOR, BHY2CLI_VER_BUGFIX);
-#ifdef BHY_USE_I2C
-    (void)(bhy_init(BHY_I2C_INTERFACE, bhy2_i2c_read, bhy2_i2c_write, bhy2_delay_us, BHY2_RD_WR_LEN, NULL, bhy));
-#else
-    (void)(bhy_init(BHY_SPI_INTERFACE, bhy2_spi_read, bhy2_spi_write, bhy2_delay_us, BHY2_RD_WR_LEN, NULL, bhy));
-#endif
-
     /* Install virtual sensor callbacks */
-    bhy_install_callbacks(&cli_ref->bhy, &cli_ref->parse_table);
+    bhy2cli_initial_fifo_parser_table(&cli_ref->bhy, &cli_ref->parse_table);
 
     coines_delay_msec(100); /* Wait for flash firmware to load if applicable */
 
-    (void)(bhy_get_chip_id(&chip_id, bhy));
-
-    switch (chip_id)
-    {
-        #if 0
-        case BHY_CHIP_ID_BHI260AP_BHI260AB_0:
-        case BHY_CHIP_ID_BHI260AP_BHI260AB_1:
-        #endif
-        case BHI3_CHIP_ID_BHI360:
-        #if 0
-        case BHI3_CHIP_ID_BHI380:
-        case BHY_CHIP_ID_BHA260AB_0:
-        case BHY_CHIP_ID_BHA260AB_1:
-        #endif
-            (void)(bhy_get_feature_status(&feat_status, bhy));
-            PRINT("Device found. Chip ID read 0x%X\r\n", chip_id);
-            if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
-            {
-                INFO("RTOS based firmware running\r\n");
-
-                (void)(bhy_update_virtual_sensor_list(bhy));
-            }
-
-            break;
-        default:
-            ERROR("Device not found, Check connections and power. Chip ID read 0x%x\r\n", chip_id);
-#ifdef PC
-            exit(1);
-#endif
-    }
-
     /* Config status channel */
-    (void)(bhy_set_host_intf_ctrl(BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL, bhy));
-    (void)(bhy_get_host_intf_ctrl(&expected_data, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_host_intf_ctrl,
+                                 "bhy_set_host_intf_ctrl",
+                                 BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL,
+                                 bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_host_intf_ctrl, "bhy_get_host_intf_ctrl", &expected_data, bhy);
     if (!(expected_data & BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL))
     {
         WARNING("Expected Host Interface Control (0x06) to have bit 0x%x to be set\r\n",
@@ -835,7 +723,7 @@ void bhy_callbacks_init(struct bhy_cli_ref *cli_ref)
 * @brief Function to check whether any sensor is active or not
 * @return Sensor active status
 */
-bool bhy_are_sensors_active(void)
+bool bhy2cli_are_sensors_active(void)
 {
     for (uint16_t i = 0; i < 256; i++)
     {
@@ -852,10 +740,10 @@ bool bhy_are_sensors_active(void)
 * @brief Function to deactivate all sensors and release some resources
 * @param[in] cli_ref  : Reference to command line
 */
-void bhy_exit(struct bhy_cli_ref *cli_ref)
+void bhy2cli_exit(struct bhy2cli_ref *cli_ref)
 {
-    struct parse_ref *parse_table = &(cli_ref->parse_table);
-    struct parse_sensor_details *sensor_details;
+    struct bhy_parse_ref *parse_table = &(cli_ref->parse_table);
+    struct bhy_parse_sensor_details *sensor_details = NULL;
 
     sensor_conf.sample_rate = 0.0f;
     sensor_conf.latency = 0;
@@ -863,17 +751,26 @@ void bhy_exit(struct bhy_cli_ref *cli_ref)
     {
         if (sensors_active[i])
         {
-            (void)bhy_virtual_sensor_conf_param_set_cfg((uint8_t)i, &sensor_conf, &cli_ref->bhy);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_set_cfg,
+                                         "bhy_virtual_sensor_conf_param_set_cfg",
+                                         (uint8_t)i,
+                                         &sensor_conf,
+                                         &cli_ref->bhy);
             sensors_active[i] = false;
-            sensor_details = parse_add_sensor_details((uint8_t)i, parse_table);
-            sensor_details->parse_flag = PARSE_FLAG_NONE;
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_parse_add_sensor_details, "bhy_parse_add_sensor_details", sensor_details,
+                                        (uint8_t)i, parse_table);
+            if (sensor_details != NULL)
+            {
+                sensor_details->parse_flag = PARSE_FLAG_NONE;
+            }
         }
     }
 
     for (uint8_t i = 0; i < 10; i++)
     {
         /* Process meta events over a period of 10ms*/
-        (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_and_process_fifo, "bhy_get_and_process_fifo", fifo_buffer,
+                                     sizeof(fifo_buffer), &cli_ref->bhy);
         cli_ref->bhy.hif.delay_us(10000, NULL);
     }
 
@@ -889,11 +786,12 @@ void bhy_exit(struct bhy_cli_ref *cli_ref)
 * @brief Function to parse the callback
 * @param[in] cli_ref  : Reference to command line
 */
-void bhy_data_parse_callback(struct bhy_cli_ref *cli_ref)
+void bhy2cli_data_parse_callback(struct bhy2cli_ref *cli_ref)
 {
     if (get_interrupt_status())
     {
-        (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_and_process_fifo, "bhy_get_and_process_fifo", fifo_buffer,
+                                     sizeof(fifo_buffer), &cli_ref->bhy);
     }
 }
 
@@ -902,7 +800,7 @@ void bhy_data_parse_callback(struct bhy_cli_ref *cli_ref)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy_fifo_parse_callback_t bhy_get_parse_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy2cli_get_parse_callback(uint8_t sensor_id)
 {
     bhy_fifo_parse_callback_t callback = NULL;
 
@@ -912,23 +810,23 @@ bhy_fifo_parse_callback_t bhy_get_parse_callback(uint8_t sensor_id)
         ((sensor_id >= BHY_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY_SENSOR_ID_LACC_WU)) ||
         (sensor_id == BHY_SENSOR_ID_MAG_BIAS) || (sensor_id == BHY_SENSOR_ID_MAG_BIAS_WU))
     {
-        callback = parse_3axis_s16;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_3axis_s16, "bhy_parse_3axis_s16", callback);
     }
     else if ((sensor_id == BHY_SENSOR_ID_ORI) || (sensor_id == BHY_SENSOR_ID_ORI_WU))
     {
-        callback = parse_euler;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_euler, "bhy_parse_euler", callback);
     }
     else if ((sensor_id >= BHY_SENSOR_ID_RV) && (sensor_id <= BHY_SENSOR_ID_GEORV_WU))
     {
-        callback = parse_quaternion;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_quaternion, "bhy_parse_quaternion", callback);
     }
     else if ((sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU))
     {
-        callback = parse_scalar_u8;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_scalar_u8, "bhy_parse_scalar_u8", callback);
     }
     else if ((sensor_id == BHY_SENSOR_ID_GAS) || (sensor_id == BHY_SENSOR_ID_GAS_WU))
     {
-        callback = parse_scalar_u32;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_scalar_u32, "bhy_parse_scalar_u32", callback);
     }
 
     return callback;
@@ -939,59 +837,38 @@ bhy_fifo_parse_callback_t bhy_get_parse_callback(uint8_t sensor_id)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy_fifo_parse_callback_t bhy_get_func_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy2cli_get_func_callback(uint8_t sensor_id)
 {
     bhy_fifo_parse_callback_t callback = NULL;
 
     if ((sensor_id == BHY_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY_SENSOR_ID_DEVICE_ORI_WU))
     {
-        callback = parse_device_ori;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_device_ori, "bhy_parse_device_ori", callback);
     }
     else if ((sensor_id == BHY_SENSOR_ID_TEMP) || (sensor_id == BHY_SENSOR_ID_TEMP_WU))
     {
-        callback = parse_s16_as_float;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_s16_as_float, "bhy_parse_s16_as_float", callback);
     }
     else if ((sensor_id == BHY_SENSOR_ID_BARO) || (sensor_id == BHY_SENSOR_ID_BARO_WU))
     {
-        callback = parse_u24_as_float;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_u24_as_float, "bhy_parse_u24_as_float", callback);
     }
-
-    #if 0
     else if (sensor_id == BHY_SENSOR_ID_KLIO)
     {
-        callback = parse_klio;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_klio, "bhy_parse_klio", callback);
     }
     else if (sensor_id == BHY_SENSOR_ID_KLIO_GENERIC)
     {
-        callback = parse_klio_generic;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_klio_generic, "bhy_parse_klio_generic", callback);
     }
     else if (sensor_id == BHY_SENSOR_ID_KLIO_LOG)
     {
-        callback = parse_klio_log;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_klio_log, "bhy_parse_klio_log", callback);
     }
     else if (sensor_id == BHY_SENSOR_ID_SWIM)
     {
-        callback = parse_swim;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_swim, "bhy_parse_swim", callback);
     }
-    #endif
-    else if ((sensor_id == BHY_SENSOR_ID_SI_ACCEL) || (sensor_id == BHY_SENSOR_ID_SI_GYROS))
-    {
-        callback = parse_acc_gyro;
-    }
-
-    #if 0
-    else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU) ||
-             (sensor_id == BHY_SENSOR_BMP_TEMPERATURE) || (sensor_id == BHY_SENSOR_BMP_TEMPERATURE_WU))
-    {
-        callback = parse_s16_as_float;
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_PROX) || (sensor_id == BHY_SENSOR_ID_PROX_WU) ||
-             (sensor_id == BHY_SENSOR_ID_EXCAMERA))
-    {
-        callback = parse_scalar_u8;
-    }
-
-    #endif
 
     return callback;
 }
@@ -1001,24 +878,24 @@ bhy_fifo_parse_callback_t bhy_get_func_callback(uint8_t sensor_id)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy_fifo_parse_callback_t bhy_get_motion_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy2cli_get_motion_callback(uint8_t sensor_id)
 {
     bhy_fifo_parse_callback_t callback = NULL;
 
     if ((sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU) ||
         (sensor_id == BHY_SENSOR_ID_STC_LP) || (sensor_id == BHY_SENSOR_ID_STC_LP_WU))
     {
-        callback = parse_scalar_u32;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_scalar_u32, "bhy_parse_scalar_u32", callback);
     }
     else if ((sensor_id == BHY_SENSOR_ID_STD) || (sensor_id == BHY_SENSOR_ID_STD_WU) ||
              (sensor_id == BHY_SENSOR_ID_TILT_DETECTOR) || (sensor_id == BHY_SENSOR_ID_SIG_LP_WU) ||
              (sensor_id == BHY_SENSOR_ID_STD_LP) || (sensor_id == BHY_SENSOR_ID_STD_LP_WU) ||
              (sensor_id == BHY_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY_SENSOR_ID_STATIONARY_DET) ||
-             (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
-             (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHY_SENSOR_ID_NO_MOTION_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHY_SENSOR_ID_WRIST_WEAR_LP_WU) ||
              ((sensor_id >= BHY_SENSOR_ID_SIG) && (sensor_id <= BHY_SENSOR_ID_PICKUP_GESTURE)))
     {
-        callback = parse_scalar_event;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_scalar_event, "bhy_parse_scalar_event", callback);
     }
 
     return callback;
@@ -1029,49 +906,41 @@ bhy_fifo_parse_callback_t bhy_get_motion_callback(uint8_t sensor_id)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy_fifo_parse_callback_t bhy_get_misc_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy2cli_get_misc_callback(uint8_t sensor_id)
 {
     bhy_fifo_parse_callback_t callback = NULL;
 
-    if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
+    if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHY_SENSOR_ID_AR_WEAR_WU))
     {
-        callback = parse_activity;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_activity, "bhy_parse_activity", callback);
     }
-    else if (sensor_id == BHI3_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
+    else if (sensor_id == BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
     {
-        callback = parse_wrist_gesture_detect;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_wrist_gesture_detect, "bhy_parse_wrist_gesture_detect", callback);
     }
-
-    #if 0
-    else if (sensor_id == BHY_SENSOR_ID_GPS)
+    else if (sensor_id == BHY_SENSOR_ID_MULTI_TAP)
     {
-        callback = parse_gps;
-    }
-    #endif
-
-    else if (sensor_id == BHI3_SENSOR_ID_MULTI_TAP)
-    {
-        callback = parse_multitap;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_multitap, "bhy_parse_multitap", callback);
     }
     else if (sensor_id == BHY_SENSOR_ID_AIR_QUALITY)
     {
-        callback = parse_air_quality;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_air_quality, "bhy_parse_air_quality", callback);
     }
     else if (sensor_id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG)
     {
-        callback = parse_hmc;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_hmc, "bhy_parse_hmc", callback);
     }
     else if ((sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_Q) || (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
     {
-        callback = parse_oc;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_oc, "bhy_parse_oc", callback);
     }
     else if ((sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_E) || (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_E))
     {
-        callback = parse_ec;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_ec, "bhy_parse_ec", callback);
     }
     else
     {
-        callback = parse_generic;
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_generic, "bhy_parse_generic", callback);
     }
 
     return callback;
@@ -1082,31 +951,29 @@ bhy_fifo_parse_callback_t bhy_get_misc_callback(uint8_t sensor_id)
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy_fifo_parse_callback_t bhy_get_callback(uint8_t sensor_id)
+bhy_fifo_parse_callback_t bhy2cli_get_callback(uint8_t sensor_id)
 {
     bhy_fifo_parse_callback_t callback;
 
-    callback = bhy_get_parse_callback(sensor_id);
+    callback = bhy2cli_get_parse_callback(sensor_id);
 
     if (callback == NULL)
     {
-        callback = bhy_get_func_callback(sensor_id);
+        callback = bhy2cli_get_func_callback(sensor_id);
 
         if (callback == NULL)
         {
-            callback = bhy_get_motion_callback(sensor_id);
+            callback = bhy2cli_get_motion_callback(sensor_id);
 
             if (callback == NULL)
             {
-                callback = bhy_get_misc_callback(sensor_id);
+                callback = bhy2cli_get_misc_callback(sensor_id);
             }
         }
     }
 
     return callback;
 }
-
-#if 0
 
 /**
 * @brief Function to print help for kstatus command
@@ -1133,7 +1000,7 @@ int8_t kstatus_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
     klio_enable(&cli_ref->bhy);
@@ -1171,7 +1038,7 @@ int8_t ksetstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s %s %s %s\r\n",
          (char *)argv[0],
@@ -1212,7 +1079,7 @@ int8_t ksetgstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     klio_set_generic_recognition_state((char *)argv[1], &cli_ref->bhy);
@@ -1245,7 +1112,7 @@ int8_t kgetgstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
     klio_get_generic_recognition_state(&cli_ref->bhy);
@@ -1293,10 +1160,10 @@ int8_t kreset_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", (char *)argv[0]);
-    (void)bhy_klio_param_reset(&cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_reset, "bhy_klio_param_reset", &cli_ref->bhy);
     PRINT("\r\n\r\n");
 
     return CLI_OK;
@@ -1330,7 +1197,7 @@ int8_t ksetgestconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", (char *)argv[0], (char *)argv[1]);
     klio_set_gesture_config((char *)argv[1], (char *)argv[2], &cli_ref->bhy);
@@ -1366,7 +1233,7 @@ int8_t ksettimeconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", (char *)argv[0]);
     klio_set_timing_config((char *)argv[1], &cli_ref->bhy);
@@ -1518,7 +1385,7 @@ int8_t kgetstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
     klio_enable(&cli_ref->bhy);
@@ -1526,6 +1393,7 @@ int8_t kgetstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("\r\n\r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -1538,7 +1406,7 @@ int8_t kldpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     klio_enable(&cli_ref->bhy);
@@ -1558,7 +1426,7 @@ int8_t kldgpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     klio_enable(&cli_ref->bhy);
@@ -1578,11 +1446,11 @@ int8_t kenpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     klio_enable(&cli_ref->bhy);
-    klio_pattern_state_operation(KLIO_PATTERN_STATE_ENABLE, (char *)argv[1], &cli_ref->bhy);
+    klio_pattern_state_operation(BHY_KLIO_PATTERN_STATE_ENABLE, (char *)argv[1], &cli_ref->bhy);
     PRINT("Enabled pattern %s for recognition\r\n", argv[1]);
 
     return CLI_OK;
@@ -1598,11 +1466,11 @@ int8_t kdispatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     klio_enable(&cli_ref->bhy);
-    klio_pattern_state_operation(KLIO_PATTERN_STATE_DISABLE, (char *)argv[1], &cli_ref->bhy);
+    klio_pattern_state_operation(BHY_KLIO_PATTERN_STATE_DISABLE, (char *)argv[1], &cli_ref->bhy);
     PRINT("Disabled pattern %s from recognition\r\n", argv[1]);
 
     return CLI_OK;
@@ -1618,11 +1486,11 @@ int8_t kdisapatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     klio_enable(&cli_ref->bhy);
-    klio_pattern_state_operation(KLIO_PATTERN_STATE_AP_DISABLE, (char *)argv[1], &cli_ref->bhy);
+    klio_pattern_state_operation(BHY_KLIO_PATTERN_STATE_AP_DISABLE, (char *)argv[1], &cli_ref->bhy);
     PRINT("Disable adaptation for pattern %s\r\n", argv[1]);
 
     return CLI_OK;
@@ -1638,11 +1506,11 @@ int8_t kswpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     klio_enable(&cli_ref->bhy);
-    klio_pattern_state_operation(KLIO_PATTERN_STATE_SWITCH_HAND, (char *)argv[1], &cli_ref->bhy);
+    klio_pattern_state_operation(BHY_KLIO_PATTERN_STATE_SWITCH_HAND, (char *)argv[1], &cli_ref->bhy);
     PRINT("Switched pattern to opposite hand for pattern %s\r\n", argv[1]);
 
     return CLI_OK;
@@ -1656,14 +1524,19 @@ int8_t kswpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 */
 int8_t kautldpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
+    bhy_klio_info klio_vars;
+    bhy_klio_info *ret;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-
     INFO("Executing %s %s %s\r\n", argv[0], argv[1], argv[2]);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
+    klio_vars = *ret;
     klio_enable(&cli_ref->bhy);
     klio_vars.auto_load_pattern = (uint8_t) atoi((char *)argv[1]);
     klio_vars.auto_load_pattern_write_index = (uint8_t) atoi((char *)argv[2]);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_klio_info, "bhy_set_klio_info", &klio_vars);
     PRINT("Klio auto load pattern %s, starting from index %s\r\n",
           (klio_vars.auto_load_pattern == 0) ? "Disabled" : "Enabled",
           argv[2]);
@@ -1682,7 +1555,7 @@ int8_t kgetparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     klio_enable(&cli_ref->bhy);
@@ -1704,7 +1577,7 @@ int8_t ksetparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s %s\r\n", argv[0], argv[1], argv[2]);
     klio_enable(&cli_ref->bhy);
@@ -1724,7 +1597,7 @@ int8_t ksimscore_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0], argv[1], argv[2]);
     klio_enable(&cli_ref->bhy);
@@ -1732,6 +1605,7 @@ int8_t ksimscore_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("\r\n\r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -1744,7 +1618,7 @@ int8_t kmsimscore_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0], argv[1], argv[2]);
     klio_enable(&cli_ref->bhy);
@@ -1752,6 +1626,7 @@ int8_t kmsimscore_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("\r\n\r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -1805,8 +1680,6 @@ int8_t kmsimscore_help(void *ref)
 
     return CLI_OK;
 }
-
-#endif
 
 /**
 * @brief Function to print help for version command
@@ -1868,7 +1741,8 @@ int8_t help_help(void *ref)
     PRINT(
         "<port_name>: optional input parameter, use it when want to support running multiple applications in parallel\r\n");
     PRINT("Options:\r\n");
-    PRINT("  -h OR help\t= Print this usage message\r\n");
+    PRINT("  -h OR help\r\n");
+    PRINT("        = Print this usage message\r\n");
 
     return CLI_OK;
 }
@@ -1883,7 +1757,7 @@ int8_t help_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
 
@@ -1903,7 +1777,8 @@ int8_t info_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  -i OR info\t= Show device information: Device ID,\r\n");
+    PRINT("  -i OR info\r\n");
+    PRINT("        = Show device information: Device ID,\r\n");
     PRINT("    \t  ROM version, RAM version, Power state,\r\n");
     PRINT("    \t  list of available sensors,\r\n");
     PRINT("    \t  content of Boot Status register,\r\n");
@@ -1922,7 +1797,7 @@ int8_t info_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
     show_info(&cli_ref->bhy);
@@ -1957,64 +1832,22 @@ int8_t ramb_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     reset_hub(&cli_ref->bhy);
     if (upload_to_ram((char *)argv[1], &cli_ref->bhy))
     {
         boot_ram(&cli_ref->bhy);
-        (void)bhy_system_param_get_virtual_sensor_present(&cli_ref->bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_virtual_sensor_present,
+                                     "bhy_system_param_get_virtual_sensor_present",
+                                     &cli_ref->bhy);
     }
 
     PRINT("\r\n\r\n");
 
     return CLI_OK;
 }
-
-#if 0
-
-/**
-* @brief Function to print help for flb command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t flb_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("   -d OR flb <firmware path>\r\n");
-    PRINT("    \t= Reset, upload specified firmware to Flash and boot from Flash\r\n");
-    PRINT("    \t  [equivalent to using \"reset fl <firmware path> boot f\" successively]\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for flb command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t flb_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-
-    INFO("Executing %s %s\r\n", argv[0], argv[1]);
-    reset_hub(&cli_ref->bhy);
-    if (upload_to_flash((char *)argv[1], &cli_ref->bhy))
-    {
-        boot_flash(&cli_ref->bhy);
-        (void)bhy_system_param_get_virtual_sensor_present(&cli_ref->bhy);
-    }
-
-    PRINT("\r\n\r\n");
-
-    return CLI_OK;
-}
-#endif
 
 /**
 * @brief Function to print help for reset command
@@ -2025,7 +1858,8 @@ int8_t reset_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  -n OR reset\t= Reset sensor hub\r\n");
+    PRINT("  -n OR reset\r\n");
+    PRINT("    \t= Reset sensor hub\r\n");
 
     return CLI_OK;
 }
@@ -2040,7 +1874,7 @@ int8_t reset_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
     reset_hub(&cli_ref->bhy);
@@ -2118,7 +1952,7 @@ int8_t rd_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     rd_regs((char *)argv[1], &cli_ref->bhy);
@@ -2158,7 +1992,7 @@ int8_t wr_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     wr_regs((char *)argv[1], &cli_ref->bhy);
@@ -2192,7 +2026,7 @@ int8_t rdp_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     rd_param((char *)argv[1], &cli_ref->bhy);
@@ -2228,7 +2062,7 @@ int8_t wrp_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     wr_param((char *)argv[1], &cli_ref->bhy);
@@ -2262,7 +2096,7 @@ int8_t physeninfo_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     rd_phy_sensor_info((char *)argv[1], &cli_ref->bhy);
@@ -2296,7 +2130,7 @@ int8_t ram_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     (void)upload_to_ram((char *)argv[1], &cli_ref->bhy);
@@ -2304,43 +2138,6 @@ int8_t ram_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     return CLI_OK;
 }
-
-#if 0
-
-/**
-* @brief Function to print help for fl command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t fl_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  fl <firmware path>\r\n");
-    PRINT("    \t= Upload firmware to external-flash\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for fl command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t fl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-
-    INFO("Executing %s %s\r\n", argv[0], argv[1]);
-    (void)upload_to_flash((char *)argv[1], &cli_ref->bhy);
-    PRINT("\r\n\r\n");
-
-    return CLI_OK;
-}
-#endif
 
 /**
 * @brief Function to print help for boot command
@@ -2352,7 +2149,7 @@ int8_t boot_help(void *ref)
     (void)ref;
 
     PRINT("  -g OR boot <medium>\r\n");
-    PRINT("    \t= Boot from the specified <medium>: \"f\" for FLASH, \"r\" for RAM\r\n");
+    PRINT("    \t= Boot from the specified <medium>: \"r\" for RAM\r\n");
 
     return CLI_OK;
 }
@@ -2367,22 +2164,16 @@ int8_t boot_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     if ((argv[1][0]) == 'r')
     {
         boot_ram(&cli_ref->bhy);
-        (void)bhy_system_param_get_virtual_sensor_present(&cli_ref->bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_virtual_sensor_present,
+                                     "bhy_system_param_get_virtual_sensor_present",
+                                     &cli_ref->bhy);
     }
-
-#if 0
-    else if ((argv[1][0]) == 'f')
-    {
-        boot_flash(&cli_ref->bhy);
-        (void)bhy_system_param_get_virtual_sensor_present(&cli_ref->bhy);
-    }
-#endif
     else
     {
         ERROR("Invalid boot medium: %s\r\n", argv[1]);
@@ -2394,97 +2185,6 @@ int8_t boot_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     return CLI_OK;
 }
-
-#if 0
-
-/**
-* @brief Function to print help for erase command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t erase_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  -e OR erase\t= Erase external-flash\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for erase command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t erase_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-
-    INFO("Executing %s \r\n", argv[0]);
-    erase_flash(BHY2_FLASH_SIZE_4MB, &cli_ref->bhy);
-    PRINT("\r\n\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to print help for efd command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t efd_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  efd\t= Erase the flash descriptor\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for efd command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t efd_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-    (void)argv;
-
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-    struct bhy_dev *bhy = &cli_ref->bhy;
-    int8_t rslt;
-    uint8_t boot_status;
-
-    (void)(bhy_get_boot_status(&boot_status, bhy));
-    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
-    {
-        if ((boot_status & BHY_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY_BST_FLASH_VERIFY_DONE))
-        {
-            ERROR("Seems like a firmware is running. Reset the sensor before erasing the flash descriptor\r\n");
-
-            return CLI_OK;
-        }
-    }
-
-    PRINT("Erasing flash descriptor. This might hang if a reset command before this was not issued\r\n");
-    rslt = bhy_erase_flash(0, 0xFFF, bhy); /* 0xFFF is hopefully within the first sector */
-    if (rslt != BHY_OK)
-    {
-        ERROR("Erasing flash descriptor failed, status: %02d\r\n", rslt);
-
-        return CLI_OK;
-    }
-
-    PRINT("Erasing flash descriptor successful\r\n");
-
-    return CLI_OK;
-}
-#endif
 
 /**
 * @brief Function to print help for actse command
@@ -2500,7 +2200,8 @@ int8_t actse_help(void *ref)
     PRINT("    \t -latency <latency>, duration time <time>, sample counts <count>\r\n");
     PRINT("    \t -At least <frequency> is a must input parameter\r\n");
     PRINT("    \t -<latency> is optional\r\n");
-    PRINT("    \t -<downsampling> is optional\r\n");
+    PRINT(
+        "    \t -<downsampling> is optional, in case downsampling  = 0, it means there is no stream data is output\r\n");
     PRINT("    \t -One or more sensors can be active by passing multiple actse options\r\n");
     PRINT("    \t -id: sensor id\r\n");
     PRINT("    \t -frequency(Hz): sensor ODR\r\n");
@@ -2523,7 +2224,7 @@ int8_t actse_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
-    activate_sensor((char *)argv[1], PARSE_FLAG_STREAM, (struct bhy_cli_ref *)ref);
+    activate_sensor((char *)argv[1], PARSE_FLAG_STREAM, (struct bhy2cli_ref *)ref);
     PRINT("\r\n\r\n");
 
     return CLI_OK;
@@ -2538,7 +2239,8 @@ int8_t schema_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  schema\t= Show schema information: \r\n");
+    PRINT("  schema\r\n");
+    PRINT("    \t= Show schema information: \r\n");
     PRINT("    \t  ID: Name: Event size: Parsing format: Axis names: Scaling\r\n");
 
     return CLI_OK;
@@ -2554,9 +2256,9 @@ int8_t schema_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    INFO("Executing %s %s\r\n", argv[0], argv[1]);
+    INFO("Executing %s\r\n", argv[0]);
     schema_info(&cli_ref->bhy);
     PRINT("\r\n\r\n");
 
@@ -2596,7 +2298,7 @@ int8_t hexse_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
-    activate_sensor((char *)argv[1], PARSE_FLAG_HEXSTREAM, (struct bhy_cli_ref *)ref);
+    activate_sensor((char *)argv[1], PARSE_FLAG_HEXSTREAM, (struct bhy2cli_ref *)ref);
     PRINT("\r\n\r\n");
 
     return CLI_OK;
@@ -2635,7 +2337,7 @@ int8_t logse_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
-    activate_sensor((char *)argv[1], PARSE_FLAG_LOG, (struct bhy_cli_ref *)ref);
+    activate_sensor((char *)argv[1], PARSE_FLAG_LOG, (struct bhy2cli_ref *)ref);
     PRINT("\r\n\r\n");
 
     return CLI_OK;
@@ -2667,7 +2369,7 @@ int8_t attlog_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     if (cli_ref->parse_table.logdev.logfile == NULL)
     {
@@ -2679,7 +2381,7 @@ int8_t attlog_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         if (cli_ref->parse_table.logdev.logfile)
         {
             PRINT("File %s was created\r\n", cli_ref->parse_table.logdev.logfilename);
-            write_meta_info(&cli_ref->parse_table.logdev, &cli_ref->bhy);
+            log_write_meta_info(&cli_ref->parse_table.logdev, &cli_ref->bhy);
         }
         else
         {
@@ -2722,7 +2424,7 @@ int8_t detlog_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     if (cli_ref->parse_table.logdev.logfile != NULL)
     {
@@ -2760,7 +2462,7 @@ int8_t setvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     int8_t rslt;
 
     uint8_t sensor_id = (uint8_t) atoi((char *)argv[1]);
@@ -2768,7 +2470,12 @@ int8_t setvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     sensor_conf.sample_rate = (bhy_float) atof((char *)argv[2]);
     sensor_conf.latency = (uint32_t) atoi((char *)argv[3]);
 
-    rslt = bhy_virtual_sensor_conf_param_set_cfg(sensor_id, &sensor_conf, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_set_cfg,
+                                "bhy_virtual_sensor_conf_param_set_cfg",
+                                rslt,
+                                sensor_id,
+                                &sensor_conf,
+                                &cli_ref->bhy);
 
     if (rslt != BHY_OK)
     {
@@ -2807,16 +2514,21 @@ int8_t getvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     int8_t rslt;
 
     uint8_t sensor_id = (uint8_t) atoi((char *)argv[1]);
 
-    rslt = bhy_virtual_sensor_conf_param_get_cfg(sensor_id, &sensor_conf, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_get_cfg,
+                                "bhy_virtual_sensor_conf_param_get_cfg",
+                                rslt,
+                                sensor_id,
+                                &sensor_conf,
+                                &cli_ref->bhy);
 
     if (rslt != BHY_OK)
     {
-        ERROR("Virtual sensor configuration set failed \r\n");
+        ERROR("Virtual sensor configuration get failed \r\n");
 
         return rslt;
     }
@@ -2846,6 +2558,8 @@ int8_t getvirtsenconf_help(void *ref)
     return CLI_OK;
 }
 
+#ifndef PC
+
 /**
 * @brief Function to print help for slabel command
 * @param[in] ref  : Reference to command line
@@ -2871,7 +2585,7 @@ int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t label[LOGBIN_LABEL_SIZE] = { 0 };
     uint64_t timestamp_ns;
 
@@ -2887,7 +2601,7 @@ int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         }
 
         INFO("Executing %s %s %s\r\n", argv[0], argv[1], label);
-        (void)bhy_get_hw_timestamp_ns(&timestamp_ns, &cli_ref->bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_hw_timestamp_ns, "bhy_get_hw_timestamp_ns", &timestamp_ns, &cli_ref->bhy);
 
         /* System IDs start at 224 */
         log_data(LOGBIN_META_ID_LABEL, timestamp_ns, LOGBIN_LABEL_SIZE, label, &cli_ref->parse_table.logdev);
@@ -2899,8 +2613,7 @@ int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     return CLI_OK;
 }
-
-#if 0
+#endif
 
 /**
 * @brief Function to print help for swim command
@@ -3021,11 +2734,16 @@ int8_t swimgetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    assert_rslt = bhy_virtual_sensor_conf_param_get_cfg(BHY_SENSOR_ID_SWIM, &sensor_conf, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_get_cfg,
+                                "bhy_virtual_sensor_conf_param_get_cfg",
+                                assert_rslt,
+                                BHY_SENSOR_ID_SWIM,
+                                &sensor_conf,
+                                &cli_ref->bhy);
     if (assert_rslt)
     {
         PRINT("SWIMFREQ GET Failed %d\r\n\r\n\r\n", assert_rslt);
@@ -3036,6 +2754,7 @@ int8_t swimgetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     return CLI_OK;
+
 }
 
 /**
@@ -3048,7 +2767,7 @@ int8_t swimsetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     sensor_conf.sample_rate = 0.0F;
     sensor_conf.latency = 0;
@@ -3058,7 +2777,12 @@ int8_t swimsetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     sensor_conf.sample_rate = (bhy_float) atof((const char *)argv[1]);
     sensor_conf.latency = (uint32_t) atoi((const char *)argv[2]);
 
-    assert_rslt = bhy_virtual_sensor_conf_param_set_cfg(BHY_SENSOR_ID_SWIM, &sensor_conf, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_set_cfg,
+                                "bhy_virtual_sensor_conf_param_set_cfg",
+                                assert_rslt,
+                                BHY_SENSOR_ID_SWIM,
+                                &sensor_conf,
+                                &cli_ref->bhy);
 
     if (assert_rslt)
     {
@@ -3070,6 +2794,7 @@ int8_t swimsetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     return CLI_OK;
+
 }
 
 /**
@@ -3081,20 +2806,28 @@ int8_t swimsetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t swimver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
+    int8_t rtsl;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_swim_param_version_t swim_algo_ver;
     bhy_swim_param_config_t config;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    if (bhy_swim_param_get_version(&swim_algo_ver, &cli_ref->bhy))
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_swim_param_get_version,
+                                "bhy_swim_param_get_version",
+                                rtsl,
+                                &swim_algo_ver,
+                                &cli_ref->bhy);
+    if (rtsl)
     {
         PRINT("SWIMVER 0.0.0\r\n\r\n\r\n");
     }
     else
     {
-        if (bhy_swim_param_get_config(&config, &cli_ref->bhy))
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_swim_param_get_config, "bhy_swim_param_get_config", rtsl, &config,
+                                    &cli_ref->bhy);
+        if (rtsl)
         {
             PRINT("SWIMVER %u.%u.%u\r\n\r\n\r\n", swim_algo_ver.major, swim_algo_ver.minor, swim_algo_ver.platform);
         }
@@ -3122,12 +2855,17 @@ int8_t swimgetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     struct bhy_system_param_orient_matrix orient_matrix;
     uint8_t loop;
 
     INFO("Executing %s\r\n", argv[0]);
-    (void)(bhy_get_orientation_matrix(BHY_PHYS_SENSOR_ID_ACCELEROMETER, &orient_matrix, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_orientation_matrix,
+                                 "bhy_get_orientation_matrix",
+                                 BHY_PHYS_SENSOR_ID_ACCELEROMETER,
+                                 &orient_matrix,
+                                 &cli_ref->bhy);
     PRINT("Acc ");
 
     for (loop = 0; loop < 8; loop++)
@@ -3138,7 +2876,11 @@ int8_t swimgetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("%d\r\n\r\n", orient_matrix.c[loop]);
 
     memset(&orient_matrix.c[0], 0x0, sizeof(orient_matrix.c) / sizeof(orient_matrix.c[0]));
-    (void)(bhy_get_orientation_matrix(BHY_PHYS_SENSOR_ID_GYROSCOPE, &orient_matrix, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_orientation_matrix,
+                                 "bhy_get_orientation_matrix",
+                                 BHY_PHYS_SENSOR_ID_GYROSCOPE,
+                                 &orient_matrix,
+                                 &cli_ref->bhy);
     PRINT("Gyro ");
 
     for (loop = 0; loop < 8; loop++)
@@ -3149,6 +2891,7 @@ int8_t swimgetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("%d\r\n\r\n", orient_matrix.c[loop]);
 
     return CLI_OK;
+
 }
 
 /**
@@ -3161,7 +2904,8 @@ int8_t swimsetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     struct bhy_system_param_orient_matrix orient_matrix = { { 0 } };
     uint8_t loop = 0;
     char delimiter[] = ",";
@@ -3177,12 +2921,21 @@ int8_t swimsetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
-    (void)(bhy_system_param_set_physical_sensor_info(BHY_PHYS_SENSOR_ID_ACCELEROMETER, &orient_matrix, &cli_ref->bhy));
-    (void)(bhy_system_param_set_physical_sensor_info(BHY_PHYS_SENSOR_ID_GYROSCOPE, &orient_matrix, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_set_physical_sensor_info,
+                                 "bhy_system_param_set_physical_sensor_info",
+                                 BHY_PHYS_SENSOR_ID_ACCELEROMETER,
+                                 &orient_matrix,
+                                 &cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_set_physical_sensor_info,
+                                 "bhy_system_param_set_physical_sensor_info",
+                                 BHY_PHYS_SENSOR_ID_GYROSCOPE,
+                                 &orient_matrix,
+                                 &cli_ref->bhy);
 
     PRINT("Set the orientation matrix for the Physical Sensors successfully");
 
     return CLI_OK;
+
 }
 
 /**
@@ -3195,14 +2948,19 @@ int8_t swimsetlogging_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     uint8_t state;
 
     INFO("Executing %s\r\n", argv[0]);
 
     state = (uint8_t) atoi((const char *)argv[1]);
 
-    assert_rslt = bhy_swim_param_set_logging(state, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_swim_param_set_logging,
+                                "bhy_swim_param_set_logging",
+                                assert_rslt,
+                                state,
+                                &cli_ref->bhy);
 
     if (assert_rslt)
     {
@@ -3214,6 +2972,7 @@ int8_t swimsetlogging_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     return CLI_OK;
+
 }
 
 /**
@@ -3226,8 +2985,10 @@ int8_t swim_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_swim_param_config_t config;
+    bhy_event_data_swim_output_t *swim_data;
 
     INFO("Executing %s %s %s %s\r\n", argv[0], argv[1], argv[2], argv[3]);
 
@@ -3237,7 +2998,7 @@ int8_t swim_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     config.pool_length_integral = (uint8_t) (atoi((char *)argv[3]));
     config.pool_length_floating = 0;
 
-    (void)(bhy_swim_param_set_config(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_swim_param_set_config, "bhy_swim_param_set_config", &config, &cli_ref->bhy);
 
     PRINT("Setting swim config: %s, %s, %u\r\n\r\n",
           (argv[1][0] == 'e') ? "Enable" : "Disable",
@@ -3247,763 +3008,27 @@ int8_t swim_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     /*! Writing the final swim output after disabling swim sensor*/
     if (config.update_swim_config == BHY_SWIM_DISABLE_CONFIG)
     {
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_swim_data, "bhy_get_swim_data", swim_data);
         PRINT("Summary D: %u; C: %u; FRS: %u; BRS: %u; BTS: %u; BKS: %u; STC: %u\r\n",
-              swim_data.total_distance,
-              swim_data.length_count,
-              swim_data.lengths_freestyle,
-              swim_data.lengths_breaststroke,
-              swim_data.lengths_butterfly,
-              swim_data.lengths_backstroke,
-              swim_data.stroke_count);
+              swim_data->total_distance,
+              swim_data->length_count,
+              swim_data->lengths_freestyle,
+              swim_data->lengths_breaststroke,
+              swim_data->lengths_butterfly,
+              swim_data->lengths_backstroke,
+              swim_data->stroke_count);
     }
 
     return CLI_OK;
-}
-#endif
 
-/**
-* @brief Function to convert time in tick to seconds and nanoseconds
-* @param[in] time_ticks : Time in ticks
-* @param[out] s         : Second part of time
-* @param[out] ns        : Nanosecond part of time
-* @param[out] tns       : Total time in nanoseconds
-*/
-static void time_to_s_ns(uint64_t time_ticks, uint32_t *s, uint32_t *ns, uint64_t *tns)
-{
-    *tns = time_ticks * 15625; /* timestamp is now in nanoseconds */
-    *s = (uint32_t)(*tns / UINT64_C(1000000000));
-    *ns = (uint32_t)(*tns - ((*s) * UINT64_C(1000000000)));
-}
-
-#if 0
-
-/**
-* @brief Function to parse cyclic Klio
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_klio(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    bhy_event_data_klio_t data;
-    uint8_t parse_flag;
-    uint32_t klio_driver_status;
-    uint8_t tmp_buf[252];
-    uint16_t bufsize = sizeof(tmp_buf);
-    bhy_klio_param_sensor_state_t klio_sensor_state;
-    struct bhy_dev *bhy;
-    struct parse_sensor_details *sensor_details;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\r\n");
-
-        return;
-    }
-
-    bhy = parse_table->bhy;
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        ERROR("Parse slot not defined\r\n");
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    memcpy(&data, callback_info->data_ptr, sizeof(data));
-
-    if (data.learn.index != -1)
-    {
-        /* Read out learnt pattern */
-        (void)(bhy_klio_param_read_pattern(0, tmp_buf, &bufsize, bhy));
-        (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
-
-        DATA("SID: %u; T: %lu.%09lu; Pattern learnt: ", callback_info->sensor_id, s, ns);
-        for (uint16_t i = 0; i < bufsize; i++)
-        {
-            PRINT_D("%02x", tmp_buf[i]);
-        }
-
-        PRINT_D("\r\n");
-
-        /* write back learnt pattern for recognition */
-        if (klio_vars.auto_load_pattern && klio_vars.auto_load_pattern_write_index < klio_vars.max_cyclic_patterns)
-        {
-            (void)(bhy_klio_param_write_pattern(klio_vars.auto_load_pattern_write_index, tmp_buf, bufsize, bhy));
-            (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
-
-            (void)(bhy_klio_param_set_pattern_states(KLIO_PATTERN_STATE_ENABLE,
-                                                     &klio_vars.auto_load_pattern_write_index, 1, bhy));
-            (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
-
-            klio_vars.auto_load_pattern_write_index++;
-
-            /* write klio state (enable recognition, and also make sure learning is not disabled) */
-            klio_sensor_state.learning_enabled = 1;
-            klio_sensor_state.learning_reset = 0;
-            klio_sensor_state.recognition_enabled = 1;
-            klio_sensor_state.recognition_reset = 0;
-            (void)(bhy_klio_param_set_state(&klio_sensor_state, bhy));
-            (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
-        }
-    }
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; Learning [Id:%d Progress:%u Change:%u]; Recognition[Id:%d Count:%f]\r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             data.learn.index,
-             data.learn.progress,
-             data.learn.change_reason,
-             data.recognize.index,
-             data.recognize.count);
-    }
-    else
-    {
-        if (parse_flag & PARSE_FLAG_HEXSTREAM)
-        {
-            stream_hex_data(callback_info->sensor_id, s, ns, callback_info->data_size - 1, callback_info->data_ptr);
-        }
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
 }
 
 /**
-* @brief Function to parse generic Klio
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_klio_generic(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    bhy_klio_param_generic_sensor_frame_t data;
-    uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        ERROR("Parse slot not defined\r\n");
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    memcpy(&data, callback_info->data_ptr, sizeof(data));
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA(
-            "SID: %u; T: %lu.%09lu; SubgestId: %d; SubgestCount: %d; SubgestScore: %f; FullGestCount: %d; FullGestScore: %f\r\n",
-            callback_info->sensor_id,
-            s,
-            ns,
-            data.subgest_id,
-            data.subgest_count,
-            data.subgest_score,
-            data.full_gest_count,
-            data.full_gest_score);
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-/**
-* @brief Function to parse log Klio
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_klio_log(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    bhy_klio_param_log_frame_t data;
-    uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        ERROR("Parse slot not defined\r\n");
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    memcpy(&data, callback_info->data_ptr, sizeof(data));
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; ax: %.9g, ay: %.9g, az: %.9g, gx: %.9g, gy: %.9g, gz: %.9g\r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             data.accel[0],
-             data.accel[1],
-             data.accel[2],
-             data.gyro[0],
-             data.gyro[1],
-             data.gyro[2]);
-    }
-    else
-    {
-        if (parse_flag & PARSE_FLAG_HEXSTREAM)
-        {
-            stream_hex_data(callback_info->sensor_id, s, ns, callback_info->data_size - 1, callback_info->data_ptr);
-        }
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-#endif
-
-/**
-* @brief Function to parse for Accelerometer and Gyroscope sensors
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_acc_gyro(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    uint8_t parse_flag;
-    uint32_t s = 0, ns = 0;
-    uint64_t tns = 0;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    float *sensor_data = (float *)callback_info->data_ptr;
-    struct parse_sensor_details *sensor_details;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        ERROR("Parse slot not defined\r\n");
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; X: %f; Y: %f; Z: %f;\r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             sensor_data[0],
-             sensor_data[1],
-             sensor_data[2]);
-    }
-    else
-    {
-        if (parse_flag & PARSE_FLAG_HEXSTREAM)
-        {
-            stream_hex_data(callback_info->sensor_id, s, ns, callback_info->data_size - 1, callback_info->data_ptr);
-        }
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-/**
-* @brief Function to parse for Air quality
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_air_quality(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    uint8_t parse_flag;
-    uint32_t s = 0, ns = 0;
-    uint64_t tns = 0;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    struct parse_sensor_details *sensor_details;
-    bhy_event_data_iaq_output_t air_quality = { 0 };
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        ERROR("Parse slot not defined\r\n");
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    bhy_event_data_parse_air_quality(callback_info->data_ptr, &air_quality);
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; I: %u, S: %u, V: %u, C: %u,  A: %u, T: %d, H: %u, G: %u\r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             air_quality.iaq,
-             air_quality.siaq,
-             air_quality.voc,
-             air_quality.co2,
-             air_quality.iaq_accuracy,
-             air_quality.comp_temperature,
-             air_quality.comp_humidity,
-             air_quality.raw_gas);
-    }
-    else
-    {
-        if (parse_flag & PARSE_FLAG_HEXSTREAM)
-        {
-            stream_hex_data(callback_info->sensor_id, s, ns, callback_info->data_size - 1, callback_info->data_ptr);
-        }
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-#if 0
-
-/**
-* @brief Function to parse for swim
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_swim(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        ERROR("Parse slot not defined\r\n");
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    (void)bhy_event_data_swim_parsing(callback_info->data_ptr, &swim_data);
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; D: %u; C: %u; FRS: %u; BRS: %u; BTF: %u; BKS: %u; STC: %u\r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             swim_data.total_distance,
-             swim_data.length_count,
-             swim_data.lengths_freestyle,
-             swim_data.lengths_breaststroke,
-             swim_data.lengths_butterfly,
-             swim_data.lengths_backstroke,
-             swim_data.stroke_count);
-    }
-    else
-    {
-        if (parse_flag & PARSE_FLAG_HEXSTREAM)
-        {
-            stream_hex_data(callback_info->sensor_id, s, ns, callback_info->data_size - 1, callback_info->data_ptr);
-        }
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-#endif
-
-/**
-* @brief Function to parse for Multi-tap
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_multitap(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
-
-    bhy_event_data_multi_tap multitap_data;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        ERROR("Parse slot not defined\r\n");
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    (void)bhy_event_data_multi_tap_parsing(callback_info->data_ptr, (uint8_t *)&multitap_data);
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; %s; \r\n", callback_info->sensor_id, s, ns,
-             bhy_event_data_multi_tap_string_out[multitap_data]);
-    }
-    else
-    {
-        if (parse_flag & PARSE_FLAG_HEXSTREAM)
-        {
-            stream_hex_data(callback_info->sensor_id, s, ns, callback_info->data_size - 1, callback_info->data_ptr);
-        }
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-/**
-* @brief Function to parse for Wrist Gesture Detector
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_wrist_gesture_detect(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
-
-    struct bhy_event_data_wrist_gesture_detect wrist_gesture_detect_data;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        ERROR("Parse slot not defined\r\n");
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    (void)bhy_event_data_wrist_gesture_detect_parsing(callback_info->data_ptr, &wrist_gesture_detect_data);
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; wrist_gesture: %s; \r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             bhy_event_data_wrist_gesture_detect_output[wrist_gesture_detect_data.wrist_gesture]);
-    }
-    else
-    {
-        if (parse_flag & PARSE_FLAG_HEXSTREAM)
-        {
-            stream_hex_data(callback_info->sensor_id, s, ns, callback_info->data_size - 1, callback_info->data_ptr);
-        }
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-/**
-* @brief Function to parse for Head Misalignment Calibration
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_hmc(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    bhy_event_data_head_orientation_quat data;
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        INFO("Parse slot not defined for %u\r\n", callback_info->sensor_id);
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-
-    bhy_event_data_head_orientation_quat_parsing(callback_info->data_ptr, &data);
-
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; x: %f, y: %f, z: %f, w: %f\r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             data.x / 16384.0f,
-             data.y / 16384.0f,
-             data.z / 16384.0f,
-             data.w / 16384.0f);
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-/**
-* @brief Function to parse for Head Orientation Quaternion
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_oc(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    bhy_event_data_head_orientation_quat data;
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        INFO("Parse slot not defined for %u\r\n", callback_info->sensor_id);
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-
-    bhy_event_data_head_orientation_quat_parsing(callback_info->data_ptr, &data);
-
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; x: %f, y: %f, z: %f, w: %f\r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             data.x / 16384.0f,
-             data.y / 16384.0f,
-             data.z / 16384.0f,
-             data.w / 16384.0f);
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-/**
-* @brief Function to parse for Head Orientation Euler
-* @param[in] callback_info : Pointer to callback information
-* @param[in] callback_ref  : Pointer to callback reference
-*/
-void parse_ec(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref)
-{
-    bhy_event_data_head_orientation_eul data;
-    uint32_t s, ns;
-    uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
-
-    if (!parse_table || !callback_info)
-    {
-        ERROR("Null reference\r\n");
-
-        return;
-    }
-
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
-    if (!sensor_details)
-    {
-        INFO("Parse slot not defined for %u\r\n", callback_info->sensor_id);
-
-        return;
-    }
-
-    parse_flag = sensor_details->parse_flag;
-
-    bhy_event_data_head_orientation_eul_parsing(callback_info->data_ptr, &data);
-
-    time_to_s_ns(*callback_info->time_stamp, &s, &ns, &tns);
-
-    if (parse_flag & PARSE_FLAG_STREAM)
-    {
-        DATA("SID: %u; T: %lu.%09lu; h: %f, p: %f, r: %f\r\n",
-             callback_info->sensor_id,
-             s,
-             ns,
-             (data.heading * 360.0f) / 32768.0f,
-             (data.pitch * 360.0f) / 32768.0f,
-             (data.roll * 360.0f) / 32768.0f);
-    }
-
-    if (parse_flag & PARSE_FLAG_LOG)
-    {
-
-        log_data(callback_info->sensor_id,
-                 tns,
-                 callback_info->data_size - 1,
-                 callback_info->data_ptr,
-                 &parse_table->logdev);
-    }
-}
-
-/**
-* @brief Function to install virtual sensor callbacks
+* @brief Function to initialize fifo parser callback table
 * @param[in] bhy         : Device instance
 * @param[in] parse_table : Pointer to parse table
 */
-void bhy_install_callbacks(struct bhy_dev *bhy, struct parse_ref *parse_table)
+void bhy2cli_initial_fifo_parser_table(struct bhy_dev *bhy, struct bhy_parse_ref *parse_table)
 {
     for (uint8_t i = 0; i < BHY_MAX_SIMUL_SENSORS; i++)
     {
@@ -4011,9 +3036,24 @@ void bhy_install_callbacks(struct bhy_dev *bhy, struct parse_ref *parse_table)
         parse_table->sensor[i].id = 0;
     }
 
-    (void)(bhy_register_fifo_parse_callback(BHY_SYS_ID_META_EVENT, parse_meta_event, parse_table, bhy));
-    (void)(bhy_register_fifo_parse_callback(BHY_SYS_ID_META_EVENT_WU, parse_meta_event, parse_table, bhy));
-    (void)(bhy_register_fifo_parse_callback(BHY_SYS_ID_DEBUG_MSG, parse_debug_message, parse_table, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_register_fifo_parse_callback,
+                                 "bhy_register_fifo_parse_callback",
+                                 BHY_SYS_ID_META_EVENT,
+                                 bhy_parse_meta_event,
+                                 parse_table,
+                                 bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_register_fifo_parse_callback,
+                                 "bhy_register_fifo_parse_callback",
+                                 BHY_SYS_ID_META_EVENT_WU,
+                                 bhy_parse_meta_event,
+                                 parse_table,
+                                 bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_register_fifo_parse_callback,
+                                 "bhy_register_fifo_parse_callback",
+                                 BHY_SYS_ID_DEBUG_MSG,
+                                 bhy_parse_debug_message,
+                                 parse_table,
+                                 bhy);
 }
 
 /**
@@ -4024,25 +3064,28 @@ static void reset_hub(struct bhy_dev *bhy)
 {
     uint8_t data = 0, data_exp;
 
-    (void)(bhy_soft_reset(bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_soft_reset, "bhy_soft_reset", bhy);
 
-    (void)(bhy_get_host_interrupt_ctrl(&data, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_host_interrupt_ctrl, "bhy_get_host_interrupt_ctrl", &data, bhy);
     data &= ~BHY_ICTL_DISABLE_STATUS_FIFO; /* Enable status interrupts */
     data &= ~BHY_ICTL_DISABLE_DEBUG; /* Enable debug interrupts */
     data &= ~BHY_ICTL_EDGE; /* Level */
     data &= ~BHY_ICTL_ACTIVE_LOW; /* Active high */
     data &= ~BHY_ICTL_OPEN_DRAIN; /* Push-pull */
     data_exp = data;
-    (void)(bhy_set_host_interrupt_ctrl(data, bhy));
-    (void)(bhy_get_host_interrupt_ctrl(&data, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_host_interrupt_ctrl, "bhy_set_host_interrupt_ctrl", data, bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_host_interrupt_ctrl, "bhy_get_host_interrupt_ctrl", &data, bhy);
     if (data != data_exp)
     {
         WARNING("Expected Host Interrupt Control (0x07) to have value 0x%x but instead read 0x%x\r\n", data_exp, data);
     }
 
     /* Config status channel */
-    (void)(bhy_set_host_intf_ctrl(BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL, bhy));
-    (void)(bhy_get_host_intf_ctrl(&data, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_host_intf_ctrl,
+                                 "bhy_set_host_intf_ctrl",
+                                 BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL,
+                                 bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_host_intf_ctrl, "bhy_get_host_intf_ctrl", &data, bhy);
     if (!(data & BHY_HIF_CTRL_ASYNC_STATUS_CHANNEL))
     {
         WARNING("Expected Host Interface Control (0x06) to have bit 0x%x to be set\r\n",
@@ -4062,7 +3105,7 @@ static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy)
 {
     FILE *fw_file;
     struct stat st;
-    uint8_t firmware_chunk[BHY2_RD_WR_LEN];
+    uint8_t firmware_chunk[BHY_RD_WR_LEN];
     uint32_t len;
     int8_t rslt = BHY_OK;
     uint8_t boot_status;
@@ -4071,13 +3114,9 @@ static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy)
 #ifdef PC
     uint8_t progress = 0, new_progress = 0;
 #endif
-    (void)(bhy_get_boot_status(&boot_status, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_boot_status, "bhy_get_boot_status", &boot_status, bhy);
     if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
-        #if 0
-        if ((boot_status & BHY_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY_BST_FLASH_VERIFY_DONE))
-        {
-        #endif
         if (boot_status & BHY_BST_HOST_FW_VERIFY_DONE)
         {
             ERROR("Seems like a firmware is running. Please reset the sensor before uploading firmware\r\n");
@@ -4113,7 +3152,7 @@ static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy)
         start_time_ms = coines_get_millis();
 
         /*lint -e774*/
-        uint32_t incr = BHY2_RD_WR_LEN;
+        uint32_t incr = BHY_RD_WR_LEN;
         if ((incr % 4) != 0)
         {
             incr = BHY_ROUND_WORD_LOWER(incr);
@@ -4131,7 +3170,14 @@ static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy)
             }
 
             (void)fread(firmware_chunk, 1, incr, fw_file);
-            rslt = bhy_upload_firmware_to_ram_partly(firmware_chunk, len, i, incr, bhy);
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_upload_firmware_to_ram_partly,
+                                        "bhy_upload_firmware_to_ram_partly",
+                                        rslt,
+                                        firmware_chunk,
+                                        len,
+                                        i,
+                                        incr,
+                                        bhy);
 #ifdef PC
             progress = (float)(i + incr) / (float)len * 100.0f;
             if (progress != new_progress)
@@ -4172,27 +3218,7 @@ static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy)
 static void print_boot_status(uint8_t boot_status)
 {
     PRINT("Boot Status : 0x%02x: ", boot_status);
-#if 0
-    if (boot_status & BHY_BST_FLASH_DETECTED)
-    {
-        PRINT("Flash detected. ");
-    }
 
-    if (boot_status & BHY_BST_FLASH_VERIFY_DONE)
-    {
-        PRINT("Flash verify done. ");
-    }
-
-    if (boot_status & BHY_BST_FLASH_VERIFY_ERROR)
-    {
-        PRINT("Flash verification failed. ");
-    }
-
-    if (boot_status & BHY_BST_NO_FLASH)
-    {
-        PRINT("No flash installed. ");
-    }
-#endif
     if (boot_status & BHY_BST_HOST_INTERFACE_READY)
     {
         PRINT("Host interface ready. ");
@@ -4231,7 +3257,7 @@ static void boot_ram(struct bhy_dev *bhy)
     do
     {
         bhy->hif.delay_us(10000, NULL);
-        (void)(bhy_get_boot_status(&boot_status, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_boot_status, "bhy_get_boot_status", &boot_status, bhy);
         if (boot_status & BHY_BST_HOST_FW_VERIFY_DONE)
         {
             break;
@@ -4244,11 +3270,11 @@ static void boot_ram(struct bhy_dev *bhy)
         if (boot_status & BHY_BST_HOST_FW_VERIFY_DONE)
         {
             INFO("Booting from RAM\r\n");
-            rslt = bhy_boot_from_ram(bhy);
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_boot_from_ram, "bhy_boot_from_ram", rslt, bhy);
             if (rslt != BHY_OK)
             {
                 ERROR("Booting from RAM failed. API error code %d.\r\n%s\r\n", rslt, get_api_error(rslt));
-                (void)(bhy_get_error_value(&error_val, bhy));
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_error_value, "bhy_get_error_value", &error_val, bhy);
                 if (error_val)
                 {
                     ERROR("Sensor reports error 0x%X.\r\n%s", error_val, get_sensor_error_text(error_val));
@@ -4257,15 +3283,19 @@ static void boot_ram(struct bhy_dev *bhy)
                 return;
             }
 
-            (void)(bhy_get_feature_status(&feat_status, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_feature_status, "bhy_get_feature_status", &feat_status, bhy);
             if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
             {
-                (void)(bhy_update_virtual_sensor_list(bhy));
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_update_virtual_sensor_list, "bhy_update_virtual_sensor_list", bhy);
 
                 for (uint16_t i = 0; i < 10; i++)
                 {
                     /* Process meta events over a period of 100ms*/
-                    (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), bhy));
+                    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_and_process_fifo,
+                                                 "bhy_get_and_process_fifo",
+                                                 fifo_buffer,
+                                                 sizeof(fifo_buffer),
+                                                 bhy);
                     bhy->hif.delay_us(10000, NULL);
                 }
             }
@@ -4306,22 +3336,23 @@ static void show_info(struct bhy_dev *bhy)
     uint8_t val = 0;
     uint8_t sensor_error;
     struct bhy_virtual_sensor_info_param_info info;
+    uint8_t rstl = 0;
 
     /* Get product_id */
-    (void)(bhy_get_product_id(&product_id, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_product_id, "bhy_get_product_id", &product_id, bhy);
 
     /* Get Kernel version */
-    (void)(bhy_get_kernel_version(&kernel_version, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_kernel_version, "bhy_get_kernel_version", &kernel_version, bhy);
 
     /* Get User version */
-    (void)(bhy_get_user_version(&user_version, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_user_version, "bhy_get_user_version", &user_version, bhy);
 
     /* Get ROM version */
-    (void)(bhy_get_rom_version(&rom_version, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_rom_version, "bhy_get_rom_version", &rom_version, bhy);
 
-    (void)(bhy_get_host_status(&host_status, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_host_status, "bhy_get_host_status", &host_status, bhy);
 
-    (void)(bhy_get_feature_status(&feat_status, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_feature_status, "bhy_get_feature_status", &feat_status, bhy);
 
     PRINT("Product ID     : %02x\r\n", product_id);
     PRINT("Kernel version : %04u\r\n", kernel_version);
@@ -4332,11 +3363,11 @@ static void show_info(struct bhy_dev *bhy)
     PRINT("Feature status : 0x%02x\r\n", feat_status);
 
     /* Read boot status */
-    (void)(bhy_get_boot_status(&val, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_boot_status, "bhy_get_boot_status", &val, bhy);
     print_boot_status(val);
 
     /* Read error value */
-    (void)(bhy_get_error_value(&sensor_error, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_error_value, "bhy_get_error_value", &sensor_error, bhy);
     if (sensor_error)
     {
         ERROR("%s\r\n", get_sensor_error_text(sensor_error));
@@ -4344,17 +3375,20 @@ static void show_info(struct bhy_dev *bhy)
 
     if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
     {
-        (void)bhy_update_virtual_sensor_list(bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_update_virtual_sensor_list, "bhy_update_virtual_sensor_list", bhy);
 
         /* Get present virtual sensor */
-        (void)bhy_system_param_get_virtual_sensor_present(bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_virtual_sensor_present,
+                                     "bhy_system_param_get_virtual_sensor_present",
+                                     bhy);
 
         PRINT("Virtual sensor list.\r\n");
         PRINT("Sensor ID |                          Sensor Name |  ID | Ver |  Min rate |  Max rate |\r\n");
         PRINT("----------+--------------------------------------+-----+-----+-----------+-----------|\r\n");
         for (uint8_t i = 0; i < BHY_SENSOR_ID_MAX; i++)
         {
-            if (bhy_is_sensor_available(i, bhy))
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available, "bhy_is_sensor_available", rstl, i, bhy);
+            if (rstl)
             {
                 if (i < BHY_SENSOR_ID_CUSTOM_START)
                 {
@@ -4365,7 +3399,7 @@ static void show_info(struct bhy_dev *bhy)
                     PRINT(" %8u | %36s ", i, custom_driver_information[i - BHY_SENSOR_ID_CUSTOM_START].sensor_name);
                 }
 
-                (void)(bhy_get_sensor_info(i, &info, bhy));
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_sensor_info, "bhy_get_sensor_info", i, &info, bhy);
                 PRINT("| %3u | %3u | %9.4f | %9.4f |\r\n",
                       info.driver_id,
                       info.driver_version,
@@ -4375,208 +3409,6 @@ static void show_info(struct bhy_dev *bhy)
         }
     }
 }
-
-#if 0
-
-/**
-* @brief Function to boot from Flash
-* @param[in] bhy : Device instance
-*/
-static void boot_flash(struct bhy_dev *bhy)
-{
-    int8_t rslt;
-    uint8_t boot_status, feat_status;
-    uint8_t error_val = 0;
-    uint16_t tries = 300; /* Wait for up to little over 3s */
-
-    PRINT("Waiting for firmware verification to complete\r\n");
-    do
-    {
-        bhy->hif.delay_us(10000, NULL);
-        (void)(bhy_get_boot_status(&boot_status, bhy));
-        if (boot_status & BHY_BST_FLASH_VERIFY_DONE)
-        {
-            break;
-        }
-    } while (tries--);
-
-    (void)(bhy_get_boot_status(&boot_status, bhy));
-    print_boot_status(boot_status);
-    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
-    {
-        if (boot_status & BHY_BST_FLASH_DETECTED)
-        {
-
-            /* If no firmware is running, boot from Flash */
-            PRINT("Booting from flash\r\n");
-            rslt = bhy_boot_from_flash(bhy);
-            if (rslt != BHY_OK)
-            {
-                ERROR("%s. Booting from flash failed.\r\n", get_api_error(rslt));
-                (void)(bhy_get_regs(BHY_REG_ERROR_VALUE, &error_val, 1, bhy));
-                if (error_val)
-                {
-                    ERROR("%s\r\n", get_sensor_error_text(error_val));
-                }
-
-                return;
-            }
-
-            (void)(bhy_get_boot_status(&boot_status, bhy));
-            print_boot_status(boot_status);
-
-            if (!(boot_status & BHY_BST_HOST_INTERFACE_READY))
-            {
-                /* hub is not ready, need reset hub */
-                PRINT("Host interface is not ready, triggering a reset\r\n");
-
-                (void)(bhy_soft_reset(bhy));
-            }
-
-            (void)(bhy_get_feature_status(&feat_status, bhy));
-            if (feat_status & BHY_FEAT_STATUS_OPEN_RTOS_MSK)
-            {
-                (void)(bhy_update_virtual_sensor_list(bhy));
-                for (uint16_t i = 0; i < 10; i++) /* Process meta events */
-                {
-                    (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), bhy));
-                    bhy->hif.delay_us(10000, NULL);
-                }
-            }
-            else
-            {
-                ERROR("Reading Feature status failed, booting from flash failed\r\n");
-
-                return;
-            }
-        }
-        else
-        {
-            ERROR("Can't detect external flash\r\n");
-
-            return;
-        }
-    }
-    else
-    {
-        ERROR("Host interface is not ready\r\n");
-
-        return;
-    }
-
-    PRINT("Booting from flash successful\r\n");
-}
-
-/**
-* @brief Function to upload firmware to Flash
-* @param[in] filepath : Path to firmware file
-* @param[in] bhy      : Device instance
-* @return Status for uploading
-*/
-static bool upload_to_flash(const char *filepath, struct bhy_dev *bhy)
-{
-    FILE *fw_file;
-    struct stat st;
-    uint8_t firmware_chunk[BHY2_RD_WR_LEN];
-    uint32_t len;
-    int8_t rslt = BHY_OK;
-    uint8_t boot_status;
-    uint32_t start_time_ms;
-
-#ifdef PC
-    uint8_t progress = 0, new_progress = 0;
-#endif
-    (void)(bhy_get_boot_status(&boot_status, bhy));
-    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
-    {
-        if ((boot_status & BHY_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY_BST_FLASH_VERIFY_DONE))
-        {
-            ERROR("Reset the sensor before uploading firmware to external flash\r\n");
-
-            return false;
-        }
-
-#ifdef PC
-        fw_file = fopen(filepath, "rb"); /* Without the b, the file is read incorrectly */
-#else
-        fw_file = fopen(filepath, "r");
-#endif
-        if (!fw_file)
-        {
-            ERROR("Cannot open file: %s\r\n", filepath);
-
-            return false;
-        }
-
-        (void)stat(filepath, &st);
-        len = (uint32_t) st.st_size;
-
-        /* 8 MB */
-        if (len > 8388608)
-        {
-            ERROR("Invalid firmware size of %lu bytes\r\n", len);
-
-            return false;
-        }
-
-        PRINT("Erasing first %lu bytes of flash\r\n", len);
-        rslt = bhy_erase_flash(BHY_FLASH_SECTOR_START_ADDR, BHY_FLASH_SECTOR_START_ADDR + len, bhy);
-        if (rslt != BHY_OK)
-        {
-            ERROR("Erasing flash failed with error code %d. %s\r\n", rslt, get_api_error(rslt));
-        }
-
-        PRINT("Uploading %lu bytes of firmware to flash\r\n", len);
-        start_time_ms = coines_get_millis();
-        uint32_t incr = BHY_RD_WR_LEN;
-        if ((incr % 4) != 0) /* Round of to lower 4 bytes */
-        {
-            incr = BHY_ROUND_WORD_LOWER(incr);
-        }
-
-        for (uint32_t i = 0; (i < len) && (rslt == BHY_OK); i += incr)
-        {
-            if (incr > (len - i)) /* Last payload */
-            {
-                incr = len - i;
-                if ((incr % 4) != 0) /* Round of to higher 4bytes */
-                {
-                    incr = BHY_ROUND_WORD_HIGHER(incr);
-                }
-            }
-
-            (void)fread(firmware_chunk, 1, incr, fw_file);
-            rslt = bhy_upload_firmware_to_flash_partly(firmware_chunk, i, incr, bhy);
-#ifdef PC
-            progress = (float)(i + incr) / (float)len * 100.0f;
-            if (progress != new_progress)
-            {
-                INFO("Completed %u %%\r", progress);
-                new_progress = progress;
-            }
-
-#endif
-        }
-
-        INFO("Firmware upload took %.2f seconds\r\n", (float)(coines_get_millis() - start_time_ms) / 1000.0f);
-        fclose(fw_file);
-        if (rslt != BHY_OK)
-        {
-            ERROR("%s. Firmware upload failed\r\n", get_api_error(rslt));
-
-            return false;
-        }
-    }
-    else
-    {
-        ERROR("Host interface is not ready\r\n");
-    }
-
-    PRINT("Uploading firmware to flash successful\r\n");
-
-    return true;
-}
-#endif
 
 /**
 * @brief Function to write value to register
@@ -4620,7 +3452,7 @@ static void wr_regs(const char *payload, struct bhy_dev *bhy)
     }
 
     /* Execution of bus write function */
-    (void)(bhy_set_regs(reg, val, len, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_regs, "bhy_set_regs", reg, val, len, bhy);
 
     PRINT("Writing address successful\r\n");
 }
@@ -4664,7 +3496,7 @@ static void rd_regs(const char *payload, struct bhy_dev *bhy)
     }
 
     /* Execution of bus read function */
-    (void)(bhy_get_regs(reg, val, len, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_regs, "bhy_get_regs", reg, val, len, bhy);
 
     /* Print register data to console */
 
@@ -4729,7 +3561,13 @@ static void rd_param(const char *payload, struct bhy_dev *bhy)
     str_param_id[strlen(payload)] = '\0';
     param_id = (uint16_t)strtol(str_param_id, NULL, 0);
 
-    (void)(bhy_get_parameter(param_id, tmp_buf, sizeof(tmp_buf), &ret_len, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_parameter,
+                                 "bhy_get_parameter",
+                                 param_id,
+                                 tmp_buf,
+                                 sizeof(tmp_buf),
+                                 &ret_len,
+                                 bhy);
 
     PRINT("Byte hex      dec | Data\r\n");
     PRINT("-------------------------------------------\r\n");
@@ -4810,7 +3648,7 @@ static void wr_param(const char *payload, struct bhy_dev *bhy)
         buf_size = (uint16_t)((buf_size / 4 + 1) * 4);
     }
 
-    (void)(bhy_set_parameter(param_id, data_buf, buf_size, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_parameter, "bhy_set_parameter", param_id, data_buf, buf_size, bhy);
     PRINT("Writing parameter successful\r\n");
 
 }
@@ -4831,7 +3669,11 @@ static void rd_phy_sensor_info(const char *payload, struct bhy_dev *bhy)
 
     if (param_id >= 0x0121 && param_id <= 0x0160)
     {
-        (void)(bhy_system_param_get_physical_sensor_info(sens_id, &psi, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_physical_sensor_info,
+                                     "bhy_system_param_get_physical_sensor_info",
+                                     sens_id,
+                                     &psi,
+                                     bhy);
 
         PRINT("Field Name            hex                    | Value (dec)\r\n");
         PRINT("----------------------------------------------------------\r\n");
@@ -4851,8 +3693,16 @@ static void rd_phy_sensor_info(const char *payload, struct bhy_dev *bhy)
 
         PRINT("Flags                 %02X                     | IRQ status       : %s\r\n", psi.flags,
               irq_status[psi.flags & 0x01]);
-        PRINT("                                             | Master interface : %s\r\n",
-              master_intf[(psi.flags >> 1) & 0x0F]);
+        if (((psi.flags >> 1) & 0x0F) < 5)
+        {
+            PRINT("                                             | Master interface : %s\r\n",
+                  master_intf[(psi.flags >> 1) & 0x0F]);
+        }
+        else
+        {
+            PRINT("                                             | Master interface : Unknown\r\n");
+        }
+
         PRINT("                                             | Power mode       : %s\r\n",
               power_mode[(psi.flags >> 5) & 0x07]);
         PRINT("Slave Address         %02X                     | %d\r\n", psi.slave_address, psi.slave_address);
@@ -4895,53 +3745,15 @@ static void rd_phy_sensor_info(const char *payload, struct bhy_dev *bhy)
     }
 }
 
-#if 0
-
-/**
-* @brief Function to erase flash
-* @param[in] end_addr : End address
-* @param[in] bhy      : Device instance
-*/
-static void erase_flash(uint32_t end_addr, struct bhy_dev *bhy)
-{
-    int8_t rslt;
-    uint8_t boot_status;
-
-    (void)(bhy_get_boot_status(&boot_status, bhy));
-    if (boot_status & BHY_BST_HOST_INTERFACE_READY)
-    {
-        if ((boot_status & BHY_BST_HOST_FW_VERIFY_DONE) || (boot_status & BHY_BST_FLASH_VERIFY_DONE))
-        {
-            ERROR("Seems like a firmware is running. Reset the sensor before erasing external flash\r\n");
-
-            return;
-        }
-    }
-
-    PRINT("Erasing flash. May take a while\r\n");
-    rslt = bhy_erase_flash(BHY_FLASH_SECTOR_START_ADDR, BHY_FLASH_SECTOR_START_ADDR + end_addr, bhy);
-    if (rslt != BHY_OK)
-    {
-        ERROR("Erasing flash failed, status: %02d\r\n", rslt);
-
-        return;
-    }
-
-    PRINT("Erasing flash successful\r\n");
-}
-
-#endif
-
 #define MAXIMUM_VIRTUAL_SENSOR_LIST  UINT16_C(256)
 static uint16_t sensor_list[MAXIMUM_VIRTUAL_SENSOR_LIST] = { 0 };
 static struct bhy_virtual_sensor_conf_param_conf sen_cfg_list[MAXIMUM_VIRTUAL_SENSOR_LIST] = { { 0 } };
-static bhy_float ds_list[MAXIMUM_VIRTUAL_SENSOR_LIST] = { 0.0f };
+static bhy_float ds_list[MAXIMUM_VIRTUAL_SENSOR_LIST] = { -1.0f };
 static uint16_t num_sensor = 0;
 static bool lognstream_inprogress = false;
 static char file_name[50] = { '\0' };
 
-bool enable_ds[256] = { false };
-uint16_t odr_ds[256] = { 0 };
+bool enable_muted[MAXIMUM_VIRTUAL_SENSOR_LIST] = { false };
 
 /**
 * @brief Function to activate sensor
@@ -4949,7 +3761,7 @@ uint16_t odr_ds[256] = { 0 };
 * @param[in] parse_flag        : Parse flag
 * @param[in] ref               : Reference to device and command line
 */
-static void activate_sensor(const char *sensor_parameters, uint8_t parse_flag, struct bhy_cli_ref *ref)
+static void activate_sensor(const char *sensor_parameters, uint8_t parse_flag, struct bhy2cli_ref *ref)
 {
     char sen_id_str[8], sample_rate_str[8], sen_latency_str[8], downstream_str[8];
     uint8_t sen_id;
@@ -5006,10 +3818,9 @@ static void activate_sensor(const char *sensor_parameters, uint8_t parse_flag, s
     }
 
     /* Parse downstream rate*/
-    ds_list[sen_id] = 0.0f;
-    enable_ds[sen_id] = false;
-    odr_ds[sen_id] = 0;
-
+    ds_list[sen_id] = -1.0f;
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_flag, "bhy_set_downsampling_flag", sen_id, false);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_odr, "bhy_set_downsampling_odr", sen_id, -1);
     if (strlen(end))
     {
         start = end + 1;
@@ -5024,14 +3835,88 @@ static void activate_sensor(const char *sensor_parameters, uint8_t parse_flag, s
         downstream_str[end - start] = '\0';
         ds_list[sen_id] = (float)atof(downstream_str);
 
-        if (ds_list[sen_id] > 0.0f && sensor_conf.sample_rate > ds_list[sen_id])
+        if (ds_list[sen_id] == 0.0f)
         {
-            enable_ds[sen_id] = true;
-            odr_ds[sen_id] = round(sensor_conf.sample_rate / ds_list[sen_id]);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_flag, "bhy_set_downsampling_flag", sen_id, false);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_odr, "bhy_set_downsampling_odr", sen_id, 0);
+        }
+        else if (ds_list[sen_id] > 0.0f && sensor_conf.sample_rate > ds_list[sen_id])
+        {
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_flag, "bhy_set_downsampling_flag", sen_id, true);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_odr, "bhy_set_downsampling_odr", sen_id,
+                                         (int16_t)round(sensor_conf.sample_rate / ds_list[sen_id]));
         }
     }
 
     configure_sensor(sensor_conf, sen_id, parse_flag, ref);
+}
+
+/**
+* @brief Function to convert time in tick to seconds and nanoseconds
+* @param[in] time_ticks : Time in ticks
+* @param[out] s         : Second part of time
+* @param[out] ns        : Nanosecond part of time
+* @param[out] tns       : Total time in nanoseconds
+*/
+static void time_to_s_ns(uint64_t time_ticks, uint32_t *s, uint32_t *ns, uint64_t *tns)
+{
+    *tns = time_ticks * 15625; /* timestamp is now in nanoseconds */
+    *s = (uint32_t)(*tns / UINT64_C(1000000000));
+    *ns = (uint32_t)(*tns - ((*s) * UINT64_C(1000000000)));
+}
+
+/**
+* @brief Function to stream HEX data
+* @param[in] sid           : Sensor ID
+* @param[in] ts            : Timestamp in seconds
+* @param[in] tns           : Timestamp in nanoseconds
+* @param[in] event_size    : Event size
+* @param[in] event_payload : Event payload
+*/
+static void stream_hex_data(uint8_t sid, uint32_t ts, uint32_t tns, uint8_t event_size, const uint8_t *event_payload)
+{
+    /* Print sensor ID */
+    HEX("%02x%08x%08x", sid, ts, tns);
+
+    for (uint16_t i = 0; i < event_size; i++)
+    {
+        /* Output raw data in hex */
+        PRINT_H("%02x", event_payload[i]);
+    }
+
+    PRINT_D("\r\n");
+}
+
+/**
+* @brief Function to log sensor data
+* @param[in] sid           : Sensor ID
+* @param[in] tns           : Timestamp in nanoseconds
+* @param[in] event_size    : Event size
+* @param[in] event_payload : Event payload
+* @param[in] logdev        : Device instance for log
+*/
+static void log_data(uint8_t sid,
+                     uint64_t tns,
+                     uint8_t event_size,
+                     const uint8_t *event_payload,
+                     struct bhy_logbin_dev *logdev)
+{
+    if (logdev && logdev->logfile)
+    {
+#ifndef PC
+        (void)coines_set_led(COINES_LED_GREEN, COINES_LED_STATE_ON);
+#endif
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_logbin_add_data,
+                                     "bhy_logbin_add_data",
+                                     sid,
+                                     tns,
+                                     event_size,
+                                     event_payload,
+                                     logdev);
+#ifndef PC
+        (void)coines_set_led(COINES_LED_GREEN, COINES_LED_STATE_OFF);
+#endif
+    }
 }
 
 /**
@@ -5046,8 +3931,8 @@ static void parse_custom_sensor_default(const struct bhy_fifo_parse_data_info *c
     uint8_t parse_flag;
     uint32_t s, ns;
     uint64_t tns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
-    struct parse_sensor_details *sensor_details;
+    struct bhy_parse_ref *parse_table = (struct bhy_parse_ref *)callback_ref;
+    struct bhy_parse_sensor_details *sensor_details;
 
     if (!parse_table || !callback_info)
     {
@@ -5056,7 +3941,11 @@ static void parse_custom_sensor_default(const struct bhy_fifo_parse_data_info *c
         return;
     }
 
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_parse_get_sensor_details,
+                                "bhy_parse_get_sensor_details",
+                                sensor_details,
+                                callback_info->sensor_id,
+                                parse_table);
     if (!sensor_details)
     {
         ERROR("Parse slot not defined\r\n");
@@ -5120,12 +4009,12 @@ static void parse_custom_sensor(const struct bhy_fifo_parse_data_info *callback_
     uint8_t idx;
     char *strtok_ptr;
     char *parameter_delimiter = ":";
-    char tmp_output_formats[BHYCLI_MAX_STRING_LENGTH];
+    char tmp_output_formats[BHY2CLI_MAX_STRING_LENGTH];
     uint8_t rel_sensor_id; /* Relative sensor ID  */
     uint32_t s, ns;
-    struct parse_ref *parse_table = (struct parse_ref *)callback_ref;
+    struct bhy_parse_ref *parse_table = (struct bhy_parse_ref *)callback_ref;
     uint8_t parse_flag;
-    struct parse_sensor_details *sensor_details;
+    struct bhy_parse_sensor_details *sensor_details;
     union bhy_float_conv offset;
 
     uint8_t tmp_u8 = 0;
@@ -5143,7 +4032,11 @@ static void parse_custom_sensor(const struct bhy_fifo_parse_data_info *callback_
         return;
     }
 
-    sensor_details = parse_get_sensor_details(callback_info->sensor_id, parse_table);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_parse_get_sensor_details,
+                                "bhy_parse_get_sensor_details",
+                                sensor_details,
+                                callback_info->sensor_id,
+                                parse_table);
     if (!sensor_details)
     {
         ERROR("Parse slot not defined\r\n");
@@ -5271,16 +4164,16 @@ static void parse_custom_sensor(const struct bhy_fifo_parse_data_info *callback_
 * @param[in] payload : Data contains sensor information
 * @param[in] ref     : Reference to device and command line
 */
-static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
+static void add_sensor(const char *payload, struct bhy2cli_ref *cli_ref)
 {
     struct bhy_dev *bhy = &cli_ref->bhy;
-    struct parse_ref *parse_table = &cli_ref->parse_table;
+    struct bhy_parse_ref *parse_table = &cli_ref->parse_table;
     char *start;
     char *end;
-    char str_sensor_id[BHYCLI_MAX_STRING_LENGTH];
-    char str_sensor_payload[BHYCLI_MAX_STRING_LENGTH];
-    char output_formats[BHYCLI_MAX_STRING_LENGTH];
-    char sensor_name[BHYCLI_MAX_STRING_LENGTH];
+    char str_sensor_id[BHY2CLI_MAX_STRING_LENGTH];
+    char str_sensor_payload[BHY2CLI_MAX_STRING_LENGTH];
+    char output_formats[BHY2CLI_MAX_STRING_LENGTH];
+    char sensor_name[BHY2CLI_MAX_STRING_LENGTH];
     uint8_t sensor_id;
     uint8_t sensor_payload;
     uint8_t len_of_output_formats;
@@ -5299,7 +4192,7 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
     /* Parse sensor ID */
 
     /* Check length of string */
-    if (((uint32_t)(end - start)) > BHYCLI_MAX_STRING_LENGTH)
+    if (((uint32_t)(end - start)) > BHY2CLI_MAX_STRING_LENGTH)
     {
         ERROR("Too many characters for sensor ID!\r\n");
 
@@ -5324,9 +4217,9 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
     }
 
     /* Check length of string */
-    if (((uint32_t)(end - start)) > BHYCLI_MAX_STRING_LENGTH)
+    if (((uint32_t)(end - start)) > BHY2CLI_MAX_STRING_LENGTH)
     {
-        ERROR("Too many characters for sensor name. Only %u characters allowed\r\n", BHYCLI_MAX_STRING_LENGTH);
+        ERROR("Too many characters for sensor name. Only %u characters allowed\r\n", BHY2CLI_MAX_STRING_LENGTH);
 
         return;
     }
@@ -5359,7 +4252,7 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
     output_formats[end - start] = '\0';
 
     /* Get the sensor information */
-    (void)(bhy_get_sensor_info(sensor_id, &sensor_info, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_sensor_info, "bhy_get_sensor_info", sensor_id, &sensor_info, bhy);
 
     /* Check if supplied payload matches the event size. Note event size includes sensor id in the payload */
     if (sensor_info.event_size != (sensor_payload + 1))
@@ -5374,19 +4267,22 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
     custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].sensor_payload = sensor_payload;
     strncpy(custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].output_formats,
             output_formats,
-            BHYCLI_MAX_STRING_LENGTH);
+            BHY2CLI_MAX_STRING_LENGTH);
     custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].is_registered = 1;
     strncpy(custom_driver_information[sensor_id - BHY_SENSOR_ID_CUSTOM_START].sensor_name,
             sensor_name,
-            BHYCLI_MAX_STRING_LENGTH);
+            BHY2CLI_MAX_STRING_LENGTH);
 
     /* Register the custom sensor callback function*/
-    (void)(bhy_register_fifo_parse_callback(sensor_id, parse_custom_sensor, parse_table, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_register_fifo_parse_callback,
+                                 "bhy_register_fifo_parse_callback",
+                                 sensor_id,
+                                 parse_custom_sensor,
+                                 parse_table,
+                                 bhy);
 
     PRINT("Adding custom driver payload successful\r\n");
 }
-
-#if 0
 
 /**
 * @brief Function to enable Klio
@@ -5394,6 +4290,9 @@ static void add_sensor(const char *payload, struct bhy_cli_ref *cli_ref)
 */
 static void klio_enable(struct bhy_dev *bhy)
 {
+    bhy_klio_info klio_vars;
+    bhy_klio_info *ret;
+
     if (!klio_enabled)
     {
         uint8_t buf[255];
@@ -5405,8 +4304,16 @@ static void klio_enable(struct bhy_dev *bhy)
         int version = -1;
         int count = 0;
 
-        (void)(bhy_klio_param_get_parameter(KLIO_PARAM_ALGORITHM_VERSION, buf, &size, bhy));
-        (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
+                                     "bhy_klio_param_get_parameter",
+                                     BHY_KLIO_PARAM_ALGORITHM_VERSION,
+                                     buf,
+                                     &size,
+                                     bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_read_reset_driver_status,
+                                     "bhy_klio_param_read_reset_driver_status",
+                                     &klio_driver_status,
+                                     bhy);
 
         if (size > 0)
         {
@@ -5425,15 +4332,33 @@ static void klio_enable(struct bhy_dev *bhy)
             (void)(BHY_E_MAGIC); /* Invalid firmware error */
         }
 
-        (void)(bhy_klio_param_get_parameter(KLIO_PARAM_RECOGNITION_MAX_PATTERNS, buf, &size, bhy));
-        (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
+                                     "bhy_klio_param_get_parameter",
+                                     BHY_KLIO_PARAM_RECOGNITION_MAX_PATTERNS,
+                                     buf,
+                                     &size,
+                                     bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_read_reset_driver_status,
+                                     "bhy_klio_param_read_reset_driver_status",
+                                     &klio_driver_status,
+                                     bhy);
 
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
+        klio_vars = *ret;
         memcpy(&klio_vars.max_cyclic_patterns, buf, 1);
 
         size = sizeof(buf);
 
-        (void)(bhy_klio_param_get_parameter(KLIO_PARAM_PATTERN_BLOB_SIZE, buf, &size, bhy));
-        (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
+                                     "bhy_klio_param_get_parameter",
+                                     BHY_KLIO_PARAM_PATTERN_BLOB_SIZE,
+                                     buf,
+                                     &size,
+                                     bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_read_reset_driver_status,
+                                     "bhy_klio_param_read_reset_driver_status",
+                                     &klio_driver_status,
+                                     bhy);
 
         memcpy(&klio_vars.max_cyclic_pattern_blob_size, buf, 1);
 
@@ -5442,16 +4367,34 @@ static void klio_enable(struct bhy_dev *bhy)
         if (minor >= 1)
         {
             /* Support for generic gestures was added in version 3.1.0 of Klio. */
-            (void)(bhy_klio_param_get_parameter(KLIO_PARAM_MAX_NUM_PATTERNS_GENERIC, buf, &size, bhy));
-            (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
+                                         "bhy_klio_param_get_parameter",
+                                         BHY_KLIO_PARAM_MAX_NUM_PATTERNS_GENERIC,
+                                         buf,
+                                         &size,
+                                         bhy);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_read_reset_driver_status,
+                                         "bhy_klio_param_read_reset_driver_status",
+                                         &klio_driver_status,
+                                         bhy);
 
             memcpy(&klio_vars.max_generic_patterns, buf, 1);
 
-            (void)(bhy_klio_param_get_parameter(KLIO_PARAM_MAX_BLOB_SIZE_GENERIC, buf, &size, bhy));
-            (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
+                                         "bhy_klio_param_get_parameter",
+                                         BHY_KLIO_PARAM_MAX_BLOB_SIZE_GENERIC,
+                                         buf,
+                                         &size,
+                                         bhy);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_read_reset_driver_status,
+                                         "bhy_klio_param_read_reset_driver_status",
+                                         &klio_driver_status,
+                                         bhy);
 
             memcpy(&klio_vars.max_generic_pattern_blob_size, buf, 2);
         }
+
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_klio_info, "bhy_set_klio_info", &klio_vars);
 
         klio_enabled = true;
     }
@@ -5465,7 +4408,10 @@ static void klio_status(struct bhy_dev *bhy)
 {
     uint32_t klio_driver_status;
 
-    (void)(bhy_klio_param_read_reset_driver_status(&klio_driver_status, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_read_reset_driver_status,
+                                 "bhy_klio_param_read_reset_driver_status",
+                                 &klio_driver_status,
+                                 bhy);
     INFO("[kstatus] ");
     PRINT("Status: %lu\r\n", klio_driver_status);
 }
@@ -5495,7 +4441,7 @@ static void klio_set_state(const char *arg1, const char *arg2, const char *arg3,
     PRINT("Recognition enabled : %u\r\n", state.recognition_enabled);
     INFO("[ksetstate] ");
     PRINT("Recognition reset   : %u\r\n", state.recognition_reset);
-    (void)(bhy_klio_param_set_state(&state, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_set_state, "bhy_klio_param_set_state", &state, bhy);
 }
 
 /**
@@ -5506,7 +4452,7 @@ static void klio_get_state(struct bhy_dev *bhy)
 {
     bhy_klio_param_sensor_state_t state;
 
-    (void)(bhy_klio_param_get_state(&state, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_state, "bhy_klio_param_get_state", &state, bhy);
     INFO("[kgetstate] ");
     PRINT("Learning enabled    : %u\r\n", state.learning_enabled);
     INFO("[kgetstate] ");
@@ -5530,7 +4476,10 @@ static void klio_set_generic_recognition_state(const char *arg, struct bhy_dev *
 
     INFO("[ksetgstate] ");
     PRINT("Generic recognition enabled : %u\r\n", state.gestures_enabled);
-    (void)(bhy_klio_param_set_generic_recognition_state(&state, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_set_generic_recognition_state,
+                                 "bhy_klio_param_set_generic_recognition_state",
+                                 &state,
+                                 bhy);
 }
 
 /**
@@ -5541,7 +4490,10 @@ static void klio_get_generic_recognition_state(struct bhy_dev *bhy)
 {
     bhy_klio_param_generic_sensor_state_t state;
 
-    (void)(bhy_klio_param_get_generic_recognition_state(&state, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_generic_recognition_state,
+                                 "bhy_klio_param_get_generic_recognition_state",
+                                 &state,
+                                 bhy);
     INFO("[kgetgstate] ");
     PRINT("Gesture detection enabled : %u\r\n", state.gestures_enabled);
     INFO("[kgetgstate] ");
@@ -5600,12 +4552,21 @@ static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct 
     uint8_t pattern_data[244];
     uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg2, (uint8_t *)pattern_data);
     uint8_t loop = (uint8_t)atoi(arg1);
+    bhy_klio_info klio_vars;
+    bhy_klio_info *ret;
 
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
+    klio_vars = *ret;
     if (size <= klio_vars.max_cyclic_pattern_blob_size)
     {
         if (loop < klio_vars.max_cyclic_patterns)
         {
-            (void)(bhy_klio_param_write_pattern(loop, pattern_data, size, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_write_pattern,
+                                         "bhy_klio_param_write_pattern",
+                                         loop,
+                                         pattern_data,
+                                         size,
+                                         bhy);
 
             if (loop >= klio_vars.auto_load_pattern_write_index)
             {
@@ -5642,12 +4603,21 @@ static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct
     static uint8_t pattern_data[10240];
     uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg2, (uint8_t *)pattern_data);
     uint8_t loop = (uint8_t)atoi(arg1);
+    bhy_klio_info klio_vars;
+    bhy_klio_info *ret;
 
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
+    klio_vars = *ret;
     if (size <= klio_vars.max_generic_pattern_blob_size)
     {
         if (loop < klio_vars.max_generic_patterns)
         {
-            (void)(bhy_klio_param_write_generic_pattern(loop, pattern_data, size, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_write_generic_pattern,
+                                         "bhy_klio_param_write_generic_pattern",
+                                         loop,
+                                         pattern_data,
+                                         size,
+                                         bhy);
         }
         else
         {
@@ -5680,7 +4650,12 @@ static void klio_set_gesture_config(const char *arg1, const char *arg2, struct b
     uint8_t loop = (uint8_t)atoi(arg1);
     uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg2, config_data);
 
-    (void)(bhy_klio_param_write_gesture_config(loop, config_data, size, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_write_gesture_config,
+                                 "bhy_klio_param_write_gesture_config",
+                                 loop,
+                                 config_data,
+                                 size,
+                                 bhy);
 
     return;
 }
@@ -5695,7 +4670,11 @@ static void klio_set_timing_config(const char *arg, struct bhy_dev *bhy)
     uint8_t config_data[128] = { 0 };
     uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg, config_data);
 
-    (void)(bhy_klio_param_write_timing_config(config_data, size, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_write_timing_config,
+                                 "bhy_klio_param_write_timing_config",
+                                 config_data,
+                                 size,
+                                 bhy);
 
     return;
 }
@@ -5713,31 +4692,36 @@ static void klio_get_parameter(const uint16_t *arg, struct bhy_dev *bhy)
     float similarity = 0.0f;
     uint16_t max_cyclic_patterns = 0;
 
-    (void)(bhy_klio_param_get_parameter((bhy_klio_param_t)param_id, buf, &size, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
+                                 "bhy_klio_param_get_parameter",
+                                 (bhy_klio_param_t)param_id,
+                                 buf,
+                                 &size,
+                                 bhy);
 
     switch (param_id)
     {
-        case KLIO_PARAM_ALGORITHM_VERSION:
+        case BHY_KLIO_PARAM_ALGORITHM_VERSION:
             INFO("[kgetparam] ");
             buf[sizeof(buf) - 1] = '\0';
             PRINT("Parameter %d: %s\r\n", param_id, buf);
             break;
-        case KLIO_PARAM_RECOGNITION_RESPONSIVNESS:
-        case KLIO_PARAM_LEARNING_SIMILARITY_THRESHOLD:
-        case KLIO_PARAM_RECOGNITION_THRESHOLD_GENERIC:
+        case BHY_KLIO_PARAM_RECOGNITION_RESPONSIVNESS:
+        case BHY_KLIO_PARAM_LEARNING_SIMILARITY_THRESHOLD:
+        case BHY_KLIO_PARAM_RECOGNITION_THRESHOLD_GENERIC:
             INFO("[kgetparam] ");
             memcpy(&similarity, buf, 4);
             PRINT("Parameter %d: %f\r\n", param_id, similarity);
             break;
-        case KLIO_PARAM_PATTERN_BLOB_SIZE:
-        case KLIO_PARAM_MAX_BLOB_SIZE_GENERIC:
-        case KLIO_PARAM_RECOGNITION_MAX_PATTERNS:
-        case KLIO_PARAM_MAX_NUM_PATTERNS_GENERIC:
+        case BHY_KLIO_PARAM_PATTERN_BLOB_SIZE:
+        case BHY_KLIO_PARAM_MAX_BLOB_SIZE_GENERIC:
+        case BHY_KLIO_PARAM_RECOGNITION_MAX_PATTERNS:
+        case BHY_KLIO_PARAM_MAX_NUM_PATTERNS_GENERIC:
             INFO("[kgetparam] ");
             memcpy(&max_cyclic_patterns, buf, 2);
             PRINT("Parameter %d: %u\r\n", param_id, max_cyclic_patterns);
             break;
-        case KLIO_PARAM_LEARNING_IGNORE_INSIG_MOVEMENT:
+        case BHY_KLIO_PARAM_LEARNING_IGNORE_INSIG_MOVEMENT:
             INFO("[kgetparam] ");
             PRINT("Parameter %d: %u\r\n", param_id, buf[0]);
             break;
@@ -5776,15 +4760,24 @@ static void klio_set_parameter(const char *arg1, char *arg2, struct bhy_dev *bhy
 
     switch (param_id)
     {
-        case KLIO_PARAM_RECOGNITION_RESPONSIVNESS:
-        case KLIO_PARAM_RECOGNITION_THRESHOLD_GENERIC:
+        case BHY_KLIO_PARAM_RECOGNITION_RESPONSIVNESS:
+        case BHY_KLIO_PARAM_RECOGNITION_THRESHOLD_GENERIC:
             cycle_count = (float)atof(param_value);
-            (void)(bhy_klio_param_set_parameter((bhy_klio_param_t)param_id, &cycle_count, sizeof(cycle_count), bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_set_parameter,
+                                         "bhy_klio_param_set_parameter",
+                                         (bhy_klio_param_t)param_id,
+                                         &cycle_count,
+                                         sizeof(cycle_count),
+                                         bhy);
             break;
-        case KLIO_PARAM_LEARNING_IGNORE_INSIG_MOVEMENT:
+        case BHY_KLIO_PARAM_LEARNING_IGNORE_INSIG_MOVEMENT:
             ignore_insig_movement = (uint8_t)atoi(param_value);
-            (void)(bhy_klio_param_set_parameter((bhy_klio_param_t)param_id, &ignore_insig_movement,
-                                                sizeof(ignore_insig_movement), bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_set_parameter,
+                                         "bhy_klio_param_set_parameter",
+                                         (bhy_klio_param_t)param_id,
+                                         &ignore_insig_movement,
+                                         sizeof(ignore_insig_movement),
+                                         bhy);
             break;
         default:
             break;
@@ -5811,8 +4804,13 @@ static void klio_similarity_score(const uint8_t *arg1, const uint8_t *arg2, stru
     else
     {
         float similarity;
-        (void)(bhy_klio_param_similarity_score(first_pattern_data, second_pattern_data, pattern1_size, &similarity,
-                                               bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_similarity_score,
+                                     "bhy_klio_param_similarity_score",
+                                     first_pattern_data,
+                                     second_pattern_data,
+                                     pattern1_size,
+                                     &similarity,
+                                     bhy);
         INFO("[ksimscore] ");
         PRINT("Similarity: %f\r\n", similarity);
     }
@@ -5828,6 +4826,10 @@ static void klio_similarity_score(const uint8_t *arg1, const uint8_t *arg2, stru
 /*lint -e772 -e830*/
 static void klio_similarity_score_multiple(const char *arg1, const char *arg2, struct bhy_dev *bhy)
 {
+    bhy_klio_info *ret;
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
+    bhy_klio_info klio_vars = *ret;
     uint8_t loop = (uint8_t)atoi(arg1);
     char *indexes_str = (char *)strdup((const char *)arg2);
     char *strtok_ptr;
@@ -5843,7 +4845,13 @@ static void klio_similarity_score_multiple(const char *arg1, const char *arg2, s
         strtok_ptr = strtok(NULL, ",");
     }
 
-    (void)(bhy_klio_param_similarity_score_multiple(loop, indexes, count, similarity, bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_similarity_score_multiple,
+                                 "bhy_klio_param_similarity_score_multiple",
+                                 loop,
+                                 indexes,
+                                 count,
+                                 similarity,
+                                 bhy);
 
     INFO("[kmsimscore] ");
     PRINT("Using pattern id %d as reference: ", loop);
@@ -5866,6 +4874,10 @@ static void klio_similarity_score_multiple(const char *arg1, const char *arg2, s
 static void klio_pattern_state_operation(const uint8_t operation, const char *arg1, struct bhy_dev *bhy)
 {
     uint8_t count = 0;
+    bhy_klio_info *ret;
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
+    bhy_klio_info klio_vars = *ret;
     uint8_t pattern_states[klio_vars.max_cyclic_patterns];
 
     char *sep = ",";
@@ -5903,34 +4915,8 @@ static void klio_pattern_state_operation(const uint8_t operation, const char *ar
 
     free(str);
 
-    (void)(bhy_klio_param_set_pattern_states((bhy_klio_param_pattern_state_t) operation, pattern_states, count, bhy));
-}
-#endif
-
-/**
-* @brief Function to log sensor data
-* @param[in] sid           : Sensor ID
-* @param[in] tns           : Timestamp in nanoseconds
-* @param[in] event_size    : Event size
-* @param[in] event_payload : Event payload
-* @param[in] logdev        : Device instance for log
-*/
-static void log_data(uint8_t sid,
-                     uint64_t tns,
-                     uint8_t event_size,
-                     const uint8_t *event_payload,
-                     struct logbin_dev *logdev)
-{
-    if (logdev && logdev->logfile)
-    {
-#ifndef PC
-        (void)coines_set_led(COINES_LED_GREEN, COINES_LED_STATE_ON);
-#endif
-        logbin_add_data(sid, tns, event_size, event_payload, logdev);
-#ifndef PC
-        (void)coines_set_led(COINES_LED_GREEN, COINES_LED_STATE_OFF);
-#endif
-    }
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_set_pattern_states, "bhy_klio_param_set_pattern_states",
+                                 (bhy_klio_param_pattern_state_t)operation, pattern_states, count, bhy);
 }
 
 /**
@@ -5953,14 +4939,14 @@ static void trigger_foc(const char *payload, struct bhy_dev *bhy)
     {
         case BHY_ACCEL_FOC:
             PRINT("Keep the sensor stable for accel foc\r\n");
-            (void)bhy_perform_foc((uint8_t)sensor_id, &foc_resp, bhy);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_perform_foc, "bhy_perform_foc", (uint8_t)sensor_id, &foc_resp, bhy);
             break;
 
         case BHY_GYRO_FOC:
             PRINT("Keep the sensor stable for accel foc\r\n");
-            (void)bhy_perform_foc(BHY_ACCEL_FOC, &foc_resp, bhy);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_perform_foc, "bhy_perform_foc", BHY_ACCEL_FOC, &foc_resp, bhy);
             PRINT("Gyro foc getting enabled\r\n");
-            (void)bhy_perform_foc((uint8_t)sensor_id, &foc_resp, bhy);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_perform_foc, "bhy_perform_foc", (uint8_t)sensor_id, &foc_resp, bhy);
             break;
 
         default:
@@ -5986,37 +4972,15 @@ static void trigger_foc(const char *payload, struct bhy_dev *bhy)
 }
 
 /**
-* @brief Function to stream HEX data
-* @param[in] sid           : Sensor ID
-* @param[in] ts            : Timestamp in seconds
-* @param[in] tns           : Timestamp in nanoseconds
-* @param[in] event_size    : Event size
-* @param[in] event_payload : Event payload
-*/
-static void stream_hex_data(uint8_t sid, uint32_t ts, uint32_t tns, uint8_t event_size, const uint8_t *event_payload)
-{
-    /* Print sensor ID */
-    HEX("%02x%08x%08x", sid, ts, tns);
-
-    for (uint16_t i = 0; i < event_size; i++)
-    {
-        /* Output raw data in hex */
-        PRINT_H("%02x", event_payload[i]);
-    }
-
-    PRINT_D("\r\n");
-}
-
-/**
 * @brief Function to write meta information
 * @param[in] log : Device instance for log
 * @param[in] bhy : Device instance
 */
-static void write_meta_info(struct logbin_dev *logbin, struct bhy_dev *bhy)
+static void log_write_meta_info(struct bhy_logbin_dev *logbin, struct bhy_dev *bhy)
 {
-    logbin_start_meta(logbin);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_logbin_start_meta, "bhy_logbin_start_meta", logbin);
 
-    (void)bhy_update_virtual_sensor_list(bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_update_virtual_sensor_list, "bhy_update_virtual_sensor_list", bhy);
 
 #if !defined(PC) && defined(MCU_APP30)
     coines_set_pin_config(COINES_APP30_LED_G, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_LOW);
@@ -6028,19 +4992,23 @@ static void write_meta_info(struct logbin_dev *logbin, struct bhy_dev *bhy)
 
     for (uint8_t i = 1; i < BHY_SENSOR_ID_MAX; i++)
     {
-        if (bhy_is_sensor_available(i, bhy))
+        int8_t rstl = 0;
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available, "bhy_is_sensor_available", rstl, i, bhy);
+        if (rstl)
         {
-            logbin_add_meta(i,
-                            get_sensor_name(i),
-                            bhy->event_size[i] - 1,
-                            get_sensor_parse_format(i),
-                            get_sensor_axis_names(i),
-                            get_sensor_default_scaling(i, bhy),
-                            logbin);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_logbin_add_meta,
+                                         "bhy_logbin_add_meta",
+                                         i,
+                                         get_sensor_name(i),
+                                         bhy->event_size[i] - 1,
+                                         get_sensor_parse_format(i),
+                                         get_sensor_axis_names(i),
+                                         get_sensor_default_scaling(i, bhy),
+                                         logbin);
         }
     }
 
-    logbin_end_meta(logbin);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_logbin_end_meta, "bhy_logbin_end_meta", logbin);
 
 #if !defined(PC) && defined(MCU_APP30)
     coines_set_pin_config(COINES_APP30_LED_G, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_HIGH);
@@ -6059,17 +5027,21 @@ static void write_meta_info(struct logbin_dev *logbin, struct bhy_dev *bhy)
 static void schema_info(struct bhy_dev *bhy)
 {
     /* Update virtual sensor */
-    (void)bhy_update_virtual_sensor_list(bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_update_virtual_sensor_list, "bhy_update_virtual_sensor_list", bhy);
 
     /* Get present virtual sensor */
-    (void)bhy_system_param_get_virtual_sensor_present(bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_virtual_sensor_present,
+                                 "bhy_system_param_get_virtual_sensor_present",
+                                 bhy);
 
     PRINT("Schema List.\r\n");
     PRINT("ID: Name: Event size: Parse format: Axis names: Scaling\r\n");
 
     for (uint8_t i = 1; i < BHY_SENSOR_ID_MAX; i++)
     {
-        if (bhy_is_sensor_available(i, bhy))
+        int8_t rstl = 0;
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available, "bhy_is_sensor_available", rstl, i, bhy);
+        if (rstl)
         {
             if (i < BHY_SENSOR_ID_CUSTOM_START)
             {
@@ -6103,19 +5075,31 @@ static float get_sensor_default_scaling_value(uint8_t sensor_id, struct bhy_dev 
         ((sensor_id >= BHY_SENSOR_ID_GRA) && (sensor_id == BHY_SENSOR_ID_LACC_WU)) ||
         (sensor_id == BHY_SENSOR_ID_ACC_BIAS_WU))
     {
-        (void)(bhy_system_param_get_physical_sensor_info(BHY_PHYS_SENSOR_ID_ACCELEROMETER, &psi, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_physical_sensor_info,
+                                     "bhy_system_param_get_physical_sensor_info",
+                                     BHY_PHYS_SENSOR_ID_ACCELEROMETER,
+                                     &psi,
+                                     bhy);
         scaling = (float)psi.curr_range.u16_val / 32768.0f;
     }
     else if (((sensor_id >= BHY_SENSOR_ID_GYRO_PASS) && (sensor_id <= BHY_SENSOR_ID_GYRO_RAW_WU)) ||
              (sensor_id == BHY_SENSOR_ID_GYRO_BIAS_WU))
     {
-        (void)(bhy_system_param_get_physical_sensor_info(BHY_PHYS_SENSOR_ID_GYROSCOPE, &psi, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_physical_sensor_info,
+                                     "bhy_system_param_get_physical_sensor_info",
+                                     BHY_PHYS_SENSOR_ID_GYROSCOPE,
+                                     &psi,
+                                     bhy);
         scaling = (float)psi.curr_range.u16_val / 32768.0f;
     }
     else if (((sensor_id >= BHY_SENSOR_ID_MAG_PASS) && (sensor_id <= BHY_SENSOR_ID_MAG_RAW_WU)) ||
              (sensor_id == BHY_SENSOR_ID_MAG_BIAS_WU))
     {
-        (void)(bhy_system_param_get_physical_sensor_info(BHY_PHYS_SENSOR_ID_MAGNETOMETER, &psi, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_physical_sensor_info,
+                                     "bhy_system_param_get_physical_sensor_info",
+                                     BHY_PHYS_SENSOR_ID_MAGNETOMETER,
+                                     &psi,
+                                     bhy);
         scaling = (float)psi.curr_range.u16_val / 32768.0f;
     }
     else if ((sensor_id >= BHY_SENSOR_ID_RV) && (sensor_id <= BHY_SENSOR_ID_GEORV_WU))
@@ -6159,18 +5143,6 @@ static float get_sensor_default_scaling(uint8_t sensor_id, struct bhy_dev *bhy)
         else if ((sensor_id == BHY_SENSOR_ID_GAS) || (sensor_id == BHY_SENSOR_ID_GAS_WU))
         {
             scaling = 1.0f;
-        }
-        else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU))
-        {
-            scaling = 10000.0f / 216.0f;
-        }
-        else if ((sensor_id == BHY_SENSOR_ID_PROX) || (sensor_id == BHY_SENSOR_ID_PROX_WU))
-        {
-            scaling = 1.0f;
-        }
-        else if ((sensor_id == BHY_SENSOR_ID_SI_ACCEL) || (sensor_id == BHY_SENSOR_ID_SI_GYROS))
-        {
-            /* Scaling factor already applied in firmware */
         }
         else if ((sensor_id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) || (sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_Q) ||
                  (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
@@ -6244,8 +5216,8 @@ int8_t dmode_help(void *ref)
     (void)ref;
 
     PRINT("  dmode <mode> \r\n");
-    PRINT("    \t -Set the Injection <mode>, Real-Time(r)/Step-by-Step(s)/Normal(n)\r\n");
-    PRINT("Eg:  dmode s \r\n");
+    PRINT("    \t =Set the Injection <mode>, Real-Time(r)/Step-by-Step(s)/Normal(n)\r\n");
+    PRINT("        Eg:  dmode s \r\n");
 
     return CLI_OK;
 }
@@ -6262,7 +5234,7 @@ int8_t dmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     int8_t rslt = BHY_OK;
     char injection_mode[20];
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     uint16_t code = 0x00;
     uint32_t actual_length = 0;
@@ -6273,15 +5245,27 @@ int8_t dmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     {
         case 'n':
             sprintf(injection_mode, "Normal"); /*Normal Mode */
-            rslt = bhy_set_data_injection_mode(BHY_NORMAL_MODE, &cli_ref->bhy);
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_set_data_injection_mode,
+                                        "bhy_set_data_injection_mode",
+                                        rslt,
+                                        BHY_NORMAL_MODE,
+                                        &cli_ref->bhy);
             break;
         case 'r':
             sprintf(injection_mode, "Real-Time"); /*Real-Time Mode */
-            rslt = bhy_set_data_injection_mode(BHY_REAL_TIME_INJECTION, &cli_ref->bhy);
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_set_data_injection_mode,
+                                        "bhy_set_data_injection_mode",
+                                        rslt,
+                                        BHY_REAL_TIME_INJECTION,
+                                        &cli_ref->bhy);
             break;
         case 's':
             sprintf(injection_mode, "Step-by-Step"); /*Step-by-Step Mode */
-            rslt = bhy_set_data_injection_mode(BHY_STEP_BY_STEP_INJECTION, &cli_ref->bhy);
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_set_data_injection_mode,
+                                        "bhy_set_data_injection_mode",
+                                        rslt,
+                                        BHY_STEP_BY_STEP_INJECTION,
+                                        &cli_ref->bhy);
             break;
         default:
             break;
@@ -6295,8 +5279,15 @@ int8_t dmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     /*! Check if the status register is updated and read the status*/
-    rslt = bhy_read_status(&code, status, 8, &actual_length, &cli_ref->bhy); /*Fix for mode switching not occurring
-                                                                                * cleanly */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_read_status,
+                                "bhy_read_status",
+                                rslt,
+                                &code,
+                                status,
+                                8,
+                                &actual_length,
+                                &cli_ref->bhy);                                                                             /*Fix for mode switching not occurring
+                                                                                                                         * cleanly */
     if (rslt != BHY_OK)
     {
         ERROR("Status check failed \r\n");
@@ -6322,14 +5313,15 @@ int8_t dinject_help(void *ref)
     (void)ref;
 
     PRINT("  dinject <input_file.txt>\r\n");
-    PRINT("    \t -Pass the name of the input file <input_filename.txt>\r\n");
-    PRINT("   Eg:  dinject field_log.txt\r\n\r\n");
-    PRINT("   For Logging Mode -\r\n");
-    PRINT("  Command Flow: attlog outx logse 114:100 dmode s dinject field_log.txt dmode n logse 114:0 detlog outx\r\n");
-    PRINT("  For Streaming Mode -\r\n");
-    PRINT("  Command Flow: actse 114:100 dmode s dinject field_log.txt dmode n actse 114:0 \r\n\r\n");
+    PRINT("    \t =Pass the name of the input file <input_filename.txt>\r\n");
+    PRINT("        Eg: dinject field_log.txt\r\n\r\n");
+    PRINT("        For Logging Mode -\r\n");
     PRINT(
-        "  Note:Ensure that the requisite application specific Data Injection firmware is loaded and the sensor is configured prior to executing Data Injection\r\n\r\n");
+        "        Command Flow: attlog outx logse 114:100 dmode s dinject field_log.txt dmode n logse 114:0 detlog outx\r\n");
+    PRINT("        For Streaming Mode -\r\n");
+    PRINT("        Command Flow: actse 114:100 dmode s dinject field_log.txt dmode n actse 114:0 \r\n\r\n");
+    PRINT(
+        "        Note:Ensure that the requisite application specific Data Injection firmware is loaded and the sensor is configured prior to executing Data Injection\r\n\r\n");
 
     return CLI_OK;
 }
@@ -6344,7 +5336,7 @@ int8_t dinject_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     int8_t injection_state = DINJECT_IN_PROGRESS;
     uint8_t hex_data;
 
@@ -6361,7 +5353,8 @@ int8_t dinject_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         if (get_interrupt_status())
         {
             /*! Data from the FIFO is read and the relevant callback if registered are called */
-            (void)(bhy_get_and_process_fifo(fifo_buffer, sizeof(fifo_buffer), &cli_ref->bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_and_process_fifo, "bhy_get_and_process_fifo", fifo_buffer,
+                                         sizeof(fifo_buffer), &cli_ref->bhy);
 
             /*            coines_delay_msec(5); / *Added for stability. Maintained for future reference * / */
         }
@@ -6380,11 +5373,14 @@ int8_t dinject_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     /*! Clear the FIFO */
     memset(fifo_buffer, 0, sizeof(fifo_buffer)); /*Local Buffer */
-    (void)(bhy_clear_fifo(0xFF, &cli_ref->bhy)); /*Read and Flush Wakeup and Non-Wakeup FIFO */
-    (void)(bhy_clear_fifo(0xFE, &cli_ref->bhy)); /*Flush all the FIFOs */
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_clear_fifo, "bhy_clear_fifo", 0xFF, &cli_ref->bhy); /*Read and Flush Wakeup and
+                                                                                          * Non-Wakeup FIFO */
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_clear_fifo, "bhy_clear_fifo", 0xFE, &cli_ref->bhy); /*Flush all the FIFOs */
 
     return CLI_OK;
 }
+
+#ifndef PC
 
 /**
 * @brief Function to print help for pm command
@@ -6411,13 +5407,14 @@ int8_t pm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     struct bhy_post_mortem post_mortem_data = { 0 };
     int8_t rslt;
     uint8_t error_value = 0, chip_ctrl_value = 0;
 
     /*! Check the Error Status */
-    rslt = bhy_get_regs(BHY_REG_ERROR_VALUE, &error_value, 1, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_regs, "bhy_get_regs", rslt, BHY_REG_ERROR_VALUE, &error_value, 1,
+                                &cli_ref->bhy);
 
     PRINT("Error Reg Value : %x\r\n", error_value);
 
@@ -6457,13 +5454,25 @@ int8_t pm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         memset((uint8_t*)&post_mortem_data, 0, sizeof(struct bhy_post_mortem));
 
         /*! Read the Chip Control Register */
-        rslt = bhy_get_regs(BHY_REG_CHIP_CTRL, &chip_ctrl_value, 1, &cli_ref->bhy);
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_regs,
+                                    "bhy_get_regs",
+                                    rslt,
+                                    BHY_REG_CHIP_CTRL,
+                                    &chip_ctrl_value,
+                                    1,
+                                    &cli_ref->bhy);
 
         if (rslt == BHY_OK)
         {
             /*! Configure Chip Register to Clear Error and Debug Registers */
             uint8_t clr_err = chip_ctrl_value | BHY_CHIP_CTRL_CLR_ERR_REG;
-            rslt = bhy_set_regs(BHY_REG_CHIP_CTRL, &clr_err, 1, &cli_ref->bhy);
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_set_regs,
+                                        "bhy_set_regs",
+                                        rslt,
+                                        BHY_REG_CHIP_CTRL,
+                                        &clr_err,
+                                        1,
+                                        &cli_ref->bhy);
         }
     }
     else
@@ -6478,6 +5487,7 @@ int8_t pm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     return CLI_OK;
 }
+#endif
 
 /**
 * @brief Function to print help for dactse command
@@ -6489,7 +5499,7 @@ int8_t dactse_help(void *ref)
     (void)ref;
 
     PRINT("  dactse\r\n");
-    PRINT("    \t -Deactivates all the active sensors\r\n");
+    PRINT("    \t =Deactivates all the active sensors\r\n");
 
     return CLI_OK;
 }
@@ -6505,15 +5515,16 @@ int8_t dactse_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     /*! Disable the Sensors */
-    bhy_exit(cli_ref);
+    bhy2cli_exit(cli_ref);
 
     /*! Clear the FIFO */
     memset(fifo_buffer, 0, sizeof(fifo_buffer)); /*Local Buffer */
-    (void)(bhy_clear_fifo(0xFF, &cli_ref->bhy)); /*Read and Flush Wakeup and Non-Wakeup FIFO */
-    (void)(bhy_clear_fifo(0xFE, &cli_ref->bhy)); /*Flush all the FIFOs */
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_clear_fifo, "bhy_clear_fifo", 0xFF, &cli_ref->bhy); /*Read and Flush Wakeup and
+                                                                                          * Non-Wakeup FIFO */
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_clear_fifo, "bhy_clear_fifo", 0xFE, &cli_ref->bhy); /*Flush all the FIFOs */
 
     PRINT("Deactivated all the Sensors\r\n\r\n\r\n");
 
@@ -6530,7 +5541,7 @@ int8_t lsactse_help(void *ref)
     (void)ref;
 
     PRINT("  lsactse\r\n");
-    PRINT("    \t -Lists all the active sensors\r\n");
+    PRINT("    \t =Lists all the active sensors\r\n");
 
     return CLI_OK;
 }
@@ -6548,9 +5559,9 @@ int8_t lsactse_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     uint8_t act_sensors = 0;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     struct bhy_virtual_sensor_conf_param_conf act_sensor_conf;
-    struct parse_sensor_details *sensor_details;
+    struct bhy_parse_sensor_details *sensor_details = NULL;
 
     /*! Check the Sensor status */
     for (uint16_t i = 0; i < 256; i++)
@@ -6563,14 +5574,23 @@ int8_t lsactse_callback(uint8_t argc, uint8_t * const argv[], void *ref)
                 PRINT("Active Sensors -\r\n");
             }
 
-            (void)(bhy_virtual_sensor_conf_param_get_cfg((uint8_t)i, &act_sensor_conf, &cli_ref->bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_get_cfg,
+                                         "bhy_virtual_sensor_conf_param_get_cfg",
+                                         (uint8_t)i,
+                                         &act_sensor_conf,
+                                         &cli_ref->bhy);
 
-            sensor_details = parse_get_sensor_details((uint8_t)i, &cli_ref->parse_table);
-            PRINT("SID : %3d \t ODR : %4.2f \t R : %4d \t Acquisition : %s\r\n",
-                  i,
-                  act_sensor_conf.sample_rate,
-                  act_sensor_conf.range,
-                  (sensor_details->parse_flag == PARSE_FLAG_STREAM) ? "Streaming" : "Logging");
+            CALL_OUT_DYNAMIC_SENSOR_API(bhy_parse_get_sensor_details, "bhy_parse_get_sensor_details", sensor_details,
+                                        (uint8_t)i, &cli_ref->parse_table);
+
+            if (sensor_details != NULL)
+            {
+                PRINT("SID : %3d \t ODR : %4.2f \t R : %4d \t Acquisition : %s\r\n",
+                      i,
+                      act_sensor_conf.sample_rate,
+                      act_sensor_conf.range,
+                      (sensor_details->parse_flag == PARSE_FLAG_STREAM) ? "Streaming" : "Logging");
+            }
         }
     }
 
@@ -6604,15 +5624,15 @@ int8_t mtapen_help(void *ref)
     (void)ref;
 
     PRINT("  mtapen <tap-setting>\r\n");
-    PRINT("    \t -Enable the Multi Tap Configuration \r\n");
-    PRINT("    \t -0 : No Tap \r\n");
-    PRINT("    \t -1 : Single Tap \r\n");
-    PRINT("    \t -2 : Double Tap \r\n");
-    PRINT("    \t -3 : Double Single Tap \r\n");
-    PRINT("    \t -4 : Triple Tap \r\n");
-    PRINT("    \t -5 : Triple Single Tap \r\n");
-    PRINT("    \t -6 : Triple Double Tap \r\n");
-    PRINT("    \t -7 : Triple Double Single Tap \r\n");
+    PRINT("    \t =Enable the Multi Tap Configuration \r\n");
+    PRINT("    \t  0 : No Tap \r\n");
+    PRINT("    \t  1 : Single Tap \r\n");
+    PRINT("    \t  2 : Double Tap \r\n");
+    PRINT("    \t  3 : Double Single Tap \r\n");
+    PRINT("    \t  4 : Triple Tap \r\n");
+    PRINT("    \t  5 : Triple Single Tap \r\n");
+    PRINT("    \t  6 : Triple Double Tap \r\n");
+    PRINT("    \t  7 : Triple Double Single Tap \r\n");
 
     return CLI_OK;
 }
@@ -6628,12 +5648,16 @@ int8_t mtapen_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     int8_t rslt;
 
     bhy_event_data_multi_tap multitap_setting = (bhy_event_data_multi_tap)atoi((char *)argv[1]);
 
-    rslt = bhy_multi_tap_param_set_config(&multitap_setting, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_multi_tap_param_set_config,
+                                "bhy_multi_tap_param_set_config",
+                                rslt,
+                                &multitap_setting,
+                                &cli_ref->bhy);
 
     if (rslt != BHY_OK)
     {
@@ -6657,7 +5681,7 @@ int8_t mtapinfo_help(void *ref)
     (void)ref;
 
     PRINT("  mtapinfo \r\n");
-    PRINT("    \t -Get the Multi Tap Info\r\n");
+    PRINT("    \t =Get the Multi Tap Info\r\n");
 
     return CLI_OK;
 }
@@ -6673,7 +5697,7 @@ int8_t mtapinfo_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     int8_t rslt;
 
     /*lint -e778*/
@@ -6682,7 +5706,11 @@ int8_t mtapinfo_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     memset(buffer, 0, len);
 
-    rslt = bhy_multi_tap_param_get_config(buffer, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_multi_tap_param_get_config,
+                                "bhy_multi_tap_param_get_config",
+                                rslt,
+                                buffer,
+                                &cli_ref->bhy);
 
     if (rslt != BHY_OK)
     {
@@ -6706,7 +5734,7 @@ int8_t mtapsetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  mtapsetcnfg <s_cnfg> <d_cnfg> <t_cnfg> \r\n");
-    PRINT("    \t -Set the Multi Tap Configurations (in Hex)\r\n");
+    PRINT("    \t =Set the Multi Tap Configurations (in Hex)\r\n");
     PRINT("    \t -<s_cnfg> : Single Tap Configuration\r\n");
     PRINT("    \t\t -<s_cnfg> : <0x00>|<mode|max_pks_for_tap|<wait_for_timeout|axis_sel> [MSB->LSB]\r\n");
     PRINT("    \t\t -<mode> : <Robust/Normal/Sensitive> -> <2/1/0>\r\n");
@@ -6738,7 +5766,7 @@ int8_t mtapsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     int8_t rslt;
 
     bhy_multi_tap_param_detector multitap_cnfg;
@@ -6747,7 +5775,11 @@ int8_t mtapsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     multitap_cnfg.dtap_setting.as_uint16 = (uint16_t)string_to_int((char *)argv[2]);
     multitap_cnfg.ttap_setting.as_uint16 = (uint16_t)string_to_int((char *)argv[3]);
 
-    rslt = bhy_multi_tap_param_detector_set_config(&multitap_cnfg, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_multi_tap_param_detector_set_config,
+                                "bhy_multi_tap_param_detector_set_config",
+                                rslt,
+                                &multitap_cnfg,
+                                &cli_ref->bhy);
 
     if (rslt != BHY_OK)
     {
@@ -6771,7 +5803,7 @@ int8_t mtapgetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  mtapgetcnfg \r\n");
-    PRINT("    \t -Get the Multi Tap Configurations\r\n");
+    PRINT("    \t =Get the Multi Tap Configurations\r\n");
 
     return CLI_OK;
 }
@@ -6787,12 +5819,16 @@ int8_t mtapgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     int8_t rslt;
 
     bhy_multi_tap_param_detector multitap_cnfg;
 
-    rslt = bhy_multi_tap_param_detector_get_config(&multitap_cnfg, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_multi_tap_param_detector_get_config,
+                                "bhy_multi_tap_param_detector_get_config",
+                                rslt,
+                                &multitap_cnfg,
+                                &cli_ref->bhy);
 
     if (rslt != BHY_OK)
     {
@@ -6828,7 +5864,7 @@ int8_t accsetfoc_help(void *ref)
     (void)ref;
 
     PRINT("  accsetfoc <x> <y> <z> \r\n");
-    PRINT("    \t -Set the Accelerometer Fast Offset Calibration (in Hex)\r\n");
+    PRINT("    \t =Set the Accelerometer Fast Offset Calibration (in Hex)\r\n");
     PRINT("    \t -Range of Accelerometer FOC value : -128 to 127 [8Bit Resolution]\r\n");
     PRINT("    \t -<x> : FOC calibration for X-axis \r\n");
     PRINT("    \t -<y> : FOC calibration for Y-axis \r\n");
@@ -6848,7 +5884,7 @@ int8_t accsetfoc_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_accel_fast_offset_calib accfoc = { 0 };
 
     accfoc.x_offset = (int16_t)string_to_int((char *)argv[1]);
@@ -6868,7 +5904,10 @@ int8_t accsetfoc_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -<y_offset> : %d\r\n", accfoc.y_offset);
     PRINT("    \t -<z_offset> : %d\r\n", accfoc.z_offset);
 
-    (void)(bhy_phy_sensor_ctrl_param_accel_set_foc_calibration(&accfoc, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_set_foc_calibration,
+                                 "bhy_phy_sensor_ctrl_param_accel_set_foc_calibration",
+                                 &accfoc,
+                                 &cli_ref->bhy);
 
     return CLI_OK;
 }
@@ -6883,7 +5922,7 @@ int8_t accgetfoc_help(void *ref)
     (void)ref;
 
     PRINT("  accgetfoc \r\n");
-    PRINT("    \t -Get the Accelerometer Fast Offset Calibration\r\n");
+    PRINT("    \t =Get the Accelerometer Fast Offset Calibration\r\n");
     PRINT("    \t -Range of Accelerometer FOC value : -128 to 127 [8Bit Resolution]\r\n");
 
     return CLI_OK;
@@ -6900,10 +5939,13 @@ int8_t accgetfoc_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_accel_fast_offset_calib accfoc = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_accel_get_foc_calibration(&accfoc, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_get_foc_calibration,
+                                 "bhy_phy_sensor_ctrl_param_accel_get_foc_calibration",
+                                 &accfoc,
+                                 &cli_ref->bhy);
 
     PRINT("Accelerometer Fast Offset Calibration : \r\n");
     PRINT("    \t -<x_offset> : %d\r\n", accfoc.x_offset);
@@ -6923,7 +5965,7 @@ int8_t accsetpwm_help(void *ref)
     (void)ref;
 
     PRINT("  accsetpwm <power_mode> \r\n");
-    PRINT("    \t -Set the Accelerometer Power Mode\r\n");
+    PRINT("    \t =Set the Accelerometer Power Mode\r\n");
     PRINT("    \t -<power_mode> : Power Mode\r\n");
     PRINT("    \t -'0' corresponds to Normal Mode\r\n");
     PRINT("    \t -'2' corresponds to Low Power Mode\r\n");
@@ -6942,12 +5984,15 @@ int8_t accsetpwm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t power_mode;
     static char* power_str[] = { "NORMAL", "UNDEFINED", "LOW POWER" };
 
     power_mode = (uint8_t)atoi((char *)argv[1]);
-    (void)(bhy_phy_sensor_ctrl_param_accel_set_power_mode(power_mode, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_set_power_mode,
+                                 "bhy_phy_sensor_ctrl_param_accel_set_power_mode",
+                                 power_mode,
+                                 &cli_ref->bhy);
 
     PRINT("Set the Accelerometer Power Mode to %s\r\n", power_str[power_mode]);
 
@@ -6964,7 +6009,7 @@ int8_t accgetpwm_help(void *ref)
     (void)ref;
 
     PRINT("  accgetpwm \r\n");
-    PRINT("    \t -Get the Accelerometer Power Mode\r\n");
+    PRINT("    \t =Get the Accelerometer Power Mode\r\n");
 
     return CLI_OK;
 }
@@ -6980,11 +6025,14 @@ int8_t accgetpwm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t power_mode = 0;
     static char* power_str[] = { "NORMAL", "UNDEFINED", "LOW POWER" };
 
-    (void)(bhy_phy_sensor_ctrl_param_accel_get_power_mode(&power_mode, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_get_power_mode,
+                                 "bhy_phy_sensor_ctrl_param_accel_get_power_mode",
+                                 &power_mode,
+                                 &cli_ref->bhy);
 
     PRINT("Accelerometer Power Mode : %s\r\n", power_str[power_mode]);
 
@@ -7001,7 +6049,7 @@ int8_t accsetar_help(void *ref)
     (void)ref;
 
     PRINT("  accsetar <x> <x_sign> <y> <y_sign> <z> <z_sign>\r\n");
-    PRINT("    \t -Set the Accelerometer axis remapping for internal imu features\r\n");
+    PRINT("    \t =Set the Accelerometer axis remapping for internal imu features\r\n");
     PRINT("    \t -Range of each axis : 0, 1\r\n");
     PRINT("    \t -Range of each axis sign : 0, 1, 2\r\n");
     PRINT("    \t -<x> : Re-map for X-axis \r\n");
@@ -7025,7 +6073,7 @@ int8_t accsetar_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_accel_axis_remap remap = { 0 };
 
     remap.map_x_axis = (uint8_t)string_to_int((char *)argv[1]);
@@ -7035,7 +6083,10 @@ int8_t accsetar_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     remap.map_z_axis = (uint8_t)string_to_int((char *)argv[5]);
     remap.map_z_axis_sign = (uint8_t)string_to_int((char *)argv[6]);
 
-    (void)(bhy_phy_sensor_ctrl_param_accel_set_axis_remapping(&remap, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_set_axis_remapping,
+                                 "bhy_phy_sensor_ctrl_param_accel_set_axis_remapping",
+                                 &remap,
+                                 &cli_ref->bhy);
 
     PRINT("Set the Accelerometer axis remapping\r\n");
     PRINT("    \t -<x> : %d\r\n", remap.map_x_axis);
@@ -7058,7 +6109,7 @@ int8_t accgetar_help(void *ref)
     (void)ref;
 
     PRINT("  accgetar \r\n");
-    PRINT("    \t -Get the Accelerometer axis remapping\r\n");
+    PRINT("    \t =Get the Accelerometer axis remapping\r\n");
 
     return CLI_OK;
 }
@@ -7074,10 +6125,13 @@ int8_t accgetar_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_accel_axis_remap remap = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_accel_get_axis_remapping(&remap, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_get_axis_remapping,
+                                 "bhy_phy_sensor_ctrl_param_accel_get_axis_remapping",
+                                 &remap,
+                                 &cli_ref->bhy);
 
     PRINT("Accelerometer axis remapping : \r\n");
     PRINT("    \t -<x> : %d\r\n", remap.map_x_axis);
@@ -7100,7 +6154,7 @@ int8_t acctrignvm_help(void *ref)
     (void)ref;
 
     PRINT("  acctrignvm\r\n");
-    PRINT("    \t -Trigger a NVM writing for accelerometer\r\n");
+    PRINT("    \t =Trigger a NVM writing for accelerometer\r\n");
     PRINT("    \t -Note: Trigger FOC first so that NVM writing can take effect \r\n");
 
     return CLI_OK;
@@ -7117,13 +6171,16 @@ int8_t acctrignvm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    (void)(bhy_phy_sensor_ctrl_param_accel_trigger_nvm_writing(&cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_trigger_nvm_writing,
+                                 "bhy_phy_sensor_ctrl_param_accel_trigger_nvm_writing",
+                                 &cli_ref->bhy);
 
     PRINT("Trigger a NVM writing for accelerometer\r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -7136,7 +6193,7 @@ int8_t accgetnvm_help(void *ref)
     (void)ref;
 
     PRINT("  accgetnvm \r\n");
-    PRINT("    \t -Get the NVM writing status for accelerometer\r\n");
+    PRINT("    \t =Get the NVM writing status for accelerometer\r\n");
 
     return CLI_OK;
 }
@@ -7153,14 +6210,18 @@ int8_t accgetnvm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     uint8_t status;
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    (void)(bhy_phy_sensor_ctrl_param_accel_get_nvm_status(&status, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_get_nvm_status,
+                                 "bhy_phy_sensor_ctrl_param_accel_get_nvm_status",
+                                 &status,
+                                 &cli_ref->bhy);
 
     PRINT("NVM writing status for accelerometer: %s\r\n",
           (status == BHY_PHY_PARAM_ACCEL_NVM_WRITE_STATUS_DONE) ? "Done" : "In progress");
 
     return CLI_OK;
+
 }
 
 /**
@@ -7173,7 +6234,7 @@ int8_t gyrosetfoc_help(void *ref)
     (void)ref;
 
     PRINT("  gyrosetfoc <x> <y> <z> \r\n");
-    PRINT("    \t -Set the Gyroscope Fast Offset Calibration (in Hex)\r\n");
+    PRINT("    \t =Set the Gyroscope Fast Offset Calibration (in Hex)\r\n");
     PRINT("    \t -Range of Gyroscope FOC value : -512 to 511 [10Bit Resolution]\r\n");
     PRINT("    \t -<x> : FOC calibration for X-axis \r\n");
     PRINT("    \t -<y> : FOC calibration for Y-axis \r\n");
@@ -7193,14 +6254,17 @@ int8_t gyrosetfoc_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_gyro_fast_offset_calib gyrofoc = { 0 };
 
     gyrofoc.x_offset = (int16_t)string_to_int((char *)argv[1]);
     gyrofoc.y_offset = (int16_t)string_to_int((char *)argv[2]);
     gyrofoc.z_offset = (int16_t)string_to_int((char *)argv[3]);
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_set_foc_calibration(&gyrofoc, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_foc_calibration,
+                                 "bhy_phy_sensor_ctrl_param_gyro_set_foc_calibration",
+                                 &gyrofoc,
+                                 &cli_ref->bhy);
 
     PRINT("Set the Gyroscope Fast Offset Calibration \r\n");
     PRINT("    \t -<x_offset> : %d\r\n", gyrofoc.x_offset);
@@ -7220,7 +6284,7 @@ int8_t gyrogetfoc_help(void *ref)
     (void)ref;
 
     PRINT("  gyrogetfoc \r\n");
-    PRINT("    \t -Get the Gyroscope Fast Offset Calibration\r\n");
+    PRINT("    \t =Get the Gyroscope Fast Offset Calibration\r\n");
     PRINT("    \t -Range of Gyroscope FOC value : -512 to 511 [10Bit Resolution]\r\n");
 
     return CLI_OK;
@@ -7237,10 +6301,13 @@ int8_t gyrogetfoc_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_gyro_fast_offset_calib gyrofoc = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_get_foc_calibration(&gyrofoc, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_foc_calibration,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_foc_calibration",
+                                 &gyrofoc,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope Fast Offset Calibration : \r\n");
     PRINT("    \t -<x_offset> : %d\r\n", gyrofoc.x_offset);
@@ -7260,7 +6327,7 @@ int8_t gyrosetois_help(void *ref)
     (void)ref;
 
     PRINT("  gyrosetois <config> \r\n");
-    PRINT("    \t -Set the Gyroscope OIS configuration\r\n");
+    PRINT("    \t =Set the Gyroscope OIS configuration\r\n");
     PRINT("    \t -<config> : OIS configuration (1: Enable, 0: Disable)\r\n");
     PRINT("    \t -e.g gyrosetois 1 will enable Gyroscope OIS\r\n");
 
@@ -7277,11 +6344,14 @@ int8_t gyrosetois_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t config;
 
     config = (uint8_t)atoi((char *)argv[1]);
-    (void)(bhy_phy_sensor_ctrl_param_gyro_set_ois_config(config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_ois_config,
+                                 "bhy_phy_sensor_ctrl_param_gyro_set_ois_config",
+                                 config,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope OIS %s\r\n", (config == BHY_PHY_PARAM_GYRO_OIS_ENABLE) ? "Enabled" : "Disabled");
 
@@ -7298,7 +6368,7 @@ int8_t gyrogetois_help(void *ref)
     (void)ref;
 
     PRINT("  gyrogetois \r\n");
-    PRINT("    \t -Get the Gyroscope OIS configuration \r\n");
+    PRINT("    \t =Get the Gyroscope OIS configuration \r\n");
 
     return CLI_OK;
 }
@@ -7314,10 +6384,13 @@ int8_t gyrogetois_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t config = 0;
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_get_ois_config(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_ois_config,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_ois_config",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope OIS Status : %s\r\n", (config == BHY_PHY_PARAM_GYRO_OIS_ENABLE) ? "Enabled" : "Disabled");
 
@@ -7334,7 +6407,7 @@ int8_t gyrosetfs_help(void *ref)
     (void)ref;
 
     PRINT("  gyrosetfs <config> \r\n");
-    PRINT("    \t -Set the Gyroscope Fast Startup\r\n");
+    PRINT("    \t =Set the Gyroscope Fast Startup\r\n");
     PRINT("    \t -<config> : Fast Startup configuration (1: Enable, 0: Disable)\r\n");
     PRINT("    \t -e.g gyrosetfs 1 will enable Gyroscope Fast Startup\r\n");
 
@@ -7351,11 +6424,14 @@ int8_t gyrosetfs_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t config;
 
     config = (uint8_t)atoi((char *)argv[1]);
-    (void)(bhy_phy_sensor_ctrl_param_gyro_set_fast_startup_cfg(config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_fast_startup_cfg,
+                                 "bhy_phy_sensor_ctrl_param_gyro_set_fast_startup_cfg",
+                                 config,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope Fast Startup %s\r\n", (config == BHY_PHY_PARAM_GYRO_FAST_STARTUP_ENABLE) ? "Enabled" : "Disabled");
 
@@ -7372,7 +6448,7 @@ int8_t gyrogetfs_help(void *ref)
     (void)ref;
 
     PRINT("  gyrogetfs \r\n");
-    PRINT("    \t -Get the Gyroscope Fast Startup status \r\n");
+    PRINT("    \t =Get the Gyroscope Fast Startup status \r\n");
 
     return CLI_OK;
 }
@@ -7388,10 +6464,13 @@ int8_t gyrogetfs_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t config = 0;
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_get_fast_startup_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_fast_startup_cfg,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_fast_startup_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope Fast Startup Status : %s\r\n",
           (config == BHY_PHY_PARAM_GYRO_FAST_STARTUP_ENABLE) ? "Enabled" : "Disabled");
@@ -7409,7 +6488,7 @@ int8_t gyrosetcrt_help(void *ref)
     (void)ref;
 
     PRINT("  gyrosetcrt \r\n");
-    PRINT("    \t -Start Gyroscope CRT\r\n");
+    PRINT("    \t =Start Gyroscope CRT\r\n");
 
     return CLI_OK;
 }
@@ -7425,10 +6504,12 @@ int8_t gyrosetcrt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     PRINT("Start Gyroscope Component ReTrim (CRT)\r\n");
-    (void)(bhy_phy_sensor_ctrl_param_gyro_start_comp_retrim(&cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_start_comp_retrim,
+                                 "bhy_phy_sensor_ctrl_param_gyro_start_comp_retrim",
+                                 &cli_ref->bhy);
 
     return CLI_OK;
 }
@@ -7443,7 +6524,7 @@ int8_t gyrogetcrt_help(void *ref)
     (void)ref;
 
     PRINT("  gyrogetcrt \r\n");
-    PRINT("    \t -Get the Gyroscope CRT status \r\n");
+    PRINT("    \t =Get the Gyroscope CRT status \r\n");
 
     return CLI_OK;
 }
@@ -7459,10 +6540,13 @@ int8_t gyrogetcrt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_gyro_crt_status status;
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_get_crt_status(&status, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_crt_status,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_crt_status",
+                                 &status,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope CRT Status : %s\r\n",
           (status.status == BHY_PHY_PARAM_GYRO_COMP_RETRIM_SUCCESS) ? "Successful" : "Failed");
@@ -7480,7 +6564,7 @@ int8_t gyrosetpwm_help(void *ref)
     (void)ref;
 
     PRINT("  gyrosetpwm <power_mode> \r\n");
-    PRINT("    \t -Set the Gyroscope Power Mode\r\n");
+    PRINT("    \t =Set the Gyroscope Power Mode\r\n");
     PRINT("    \t -<power_mode> : Power Mode\r\n");
     PRINT("    \t -'0' corresponds to Normal Mode\r\n");
     PRINT("    \t -'1' corresponds to Performance Mode\r\n");
@@ -7501,11 +6585,14 @@ int8_t gyrosetpwm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     uint8_t power_mode;
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     static char* power_str[] = { "NORMAL", "PERFORMANCE", "LOW POWER" };
 
     power_mode = (uint8_t)atoi((char *)argv[1]);
-    (void)(bhy_phy_sensor_ctrl_param_gyro_set_power_mode(power_mode, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_power_mode,
+                                 "bhy_phy_sensor_ctrl_param_gyro_set_power_mode",
+                                 power_mode,
+                                 &cli_ref->bhy);
 
     PRINT("Set the Gyroscope Power Mode to %s\r\n", power_str[power_mode]);
 
@@ -7522,7 +6609,7 @@ int8_t gyrogetpwm_help(void *ref)
     (void)ref;
 
     PRINT("  gyrogetpwm \r\n");
-    PRINT("    \t -Get the Gyroscope Power Mode\r\n");
+    PRINT("    \t =Get the Gyroscope Power Mode\r\n");
 
     return CLI_OK;
 }
@@ -7539,10 +6626,13 @@ int8_t gyrogetpwm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     uint8_t power_mode = 0;
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     static char* power_str[] = { "NORMAL", "PERFORMANCE", "LOW POWER" };
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_get_power_mode(&power_mode, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_power_mode,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_power_mode",
+                                 &power_mode,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope Power Mode : %s\r\n", power_str[power_mode]);
 
@@ -7559,7 +6649,7 @@ int8_t gyrosettat_help(void *ref)
     (void)ref;
 
     PRINT("  gyrosettat <config> \r\n");
-    PRINT("    \t -Set the Gyroscope Timer Auto Trim state\r\n");
+    PRINT("    \t =Set the Gyroscope Timer Auto Trim state\r\n");
     PRINT("    \t -<config> : Timer Auto Trim configuration (1: Start, 0: Disable)\r\n");
     PRINT("    \t -e.g gyrosettat 1 will start Gyroscope Timer Auto Trim\r\n");
 
@@ -7576,11 +6666,14 @@ int8_t gyrosettat_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t config;
 
     config = (uint8_t)atoi((char *)argv[1]);
-    (void)(bhy_phy_sensor_ctrl_param_gyro_set_auto_trim_cfg(config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_auto_trim_cfg,
+                                 "bhy_phy_sensor_ctrl_param_gyro_set_auto_trim_cfg",
+                                 config,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope Timer Auto Trim %s\r\n",
           (config == BHY_PHY_PARAM_GYRO_TIMER_AUTO_TRIM_START) ? "Started" : "Disabled");
@@ -7598,7 +6691,7 @@ int8_t gyrogettat_help(void *ref)
     (void)ref;
 
     PRINT("  gyrogettat \r\n");
-    PRINT("    \t -Get the Gyroscope Timer Auto Trim status \r\n");
+    PRINT("    \t =Get the Gyroscope Timer Auto Trim status \r\n");
 
     return CLI_OK;
 }
@@ -7614,10 +6707,13 @@ int8_t gyrogettat_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t config = 0;
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_get_auto_trim_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_auto_trim_cfg,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_auto_trim_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Gyroscope Timer Auto Trim Status : %s\r\n",
           (config == BHY_PHY_PARAM_GYRO_TIMER_AUTO_TRIM_START) ? "Started" : "Disabled");
@@ -7635,7 +6731,7 @@ int8_t gyrotrignvm_help(void *ref)
     (void)ref;
 
     PRINT("  gyrotrignvm\r\n");
-    PRINT("    \t -Trigger a NVM writing for gyroscope\r\n");
+    PRINT("    \t =Trigger a NVM writing for gyroscope\r\n");
     PRINT("    \t -Note: Trigger FOC first so that NVM writing can take effect \r\n");
 
     return CLI_OK;
@@ -7652,13 +6748,16 @@ int8_t gyrotrignvm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_trigger_nvm_writing(&cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_trigger_nvm_writing,
+                                 "bhy_phy_sensor_ctrl_param_gyro_trigger_nvm_writing",
+                                 &cli_ref->bhy);
 
     PRINT("Trigger a NVM writing for gyroscope\r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -7671,7 +6770,7 @@ int8_t gyrogetnvm_help(void *ref)
     (void)ref;
 
     PRINT("  gyrogetnvm \r\n");
-    PRINT("    \t -Get the NVM writing status for gyroscope\r\n");
+    PRINT("    \t =Get the NVM writing status for gyroscope\r\n");
 
     return CLI_OK;
 }
@@ -7688,12 +6787,15 @@ int8_t gyrogetnvm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     uint8_t status;
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_get_nvm_status(&status, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_nvm_status,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_nvm_status",
+                                 &status,
+                                 &cli_ref->bhy);
 
     PRINT("NVM writing status for gyroscope: %s\r\n",
-          (status == BHY_PHY_PARAM_ACCEL_NVM_WRITE_STATUS_DONE) ? "Done" : "In progress");
+          (status == BHY_PHY_PARAM_GYRO_NVM_WRITE_STATUS_DONE) ? "Done" : "In progress");
 
     return CLI_OK;
 }
@@ -7708,7 +6810,7 @@ int8_t magsetpwm_help(void *ref)
     (void)ref;
 
     PRINT("  magsetpwm <power_mode> \r\n");
-    PRINT("    \t -Set the Magnetometer Power Mode\r\n");
+    PRINT("    \t =Set the Magnetometer Power Mode\r\n");
     PRINT("    \t -<power_mode> : Power Mode\r\n");
     PRINT("    \t -'0' corresponds to Normal Mode\r\n");
     PRINT("    \t -'2' corresponds to Low Power Mode\r\n");
@@ -7728,11 +6830,14 @@ int8_t magsetpwm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     uint8_t power_mode;
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     static char* power_str[] = { "NORMAL", "UNDEFINED", "LOW POWER" };
 
     power_mode = (uint8_t)atoi((char *)argv[1]);
-    (void)(bhy_phy_sensor_ctrl_param_gyro_set_power_mode(power_mode, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_power_mode,
+                                 "bhy_phy_sensor_ctrl_param_gyro_set_power_mode",
+                                 power_mode,
+                                 &cli_ref->bhy);
 
     PRINT("Set the Magnetometer Power Mode to %s\r\n", power_str[power_mode]);
 
@@ -7749,7 +6854,7 @@ int8_t maggetpwm_help(void *ref)
     (void)ref;
 
     PRINT("  maggetpwm \r\n");
-    PRINT("    \t -Get the Magnetometer Power Mode\r\n");
+    PRINT("    \t =Get the Magnetometer Power Mode\r\n");
 
     return CLI_OK;
 }
@@ -7766,10 +6871,13 @@ int8_t maggetpwm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     uint8_t power_mode = 0;
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     static char* power_str[] = { "NORMAL", "UNDEFINED", "LOW POWER" };
 
-    (void)(bhy_phy_sensor_ctrl_param_gyro_get_power_mode(&power_mode, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_power_mode,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_power_mode",
+                                 &power_mode,
+                                 &cli_ref->bhy);
 
     PRINT("Magnetometer Power Mode : %s\r\n", power_str[power_mode]);
 
@@ -7786,7 +6894,7 @@ int8_t wwwsetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  wwwsetcnfg <maf> <manf> <alr> <all> <apd> <apu> <mdm> <mdq>\r\n");
-    PRINT("    \t -Set the Wrist Wear Wakeup Configuration\r\n");
+    PRINT("    \t =Set the Wrist Wear Wakeup Configuration\r\n");
     PRINT("    \t -<maf> : min_angle_focus (u16), range 1024 to 1774\r\n");
     PRINT("    \t -<manf> : min_angle_non_focus(u16), range 1448 to 1856\r\n");
     PRINT("    \t -<alr> : angle_landscape_right (u8), range 88 to 128\r\n");
@@ -7809,7 +6917,7 @@ int8_t wwwsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_wrist_wear_wakeup config = { 0 };
 
     config.min_angle_focus = (uint16_t)atoi((char *)argv[1]);
@@ -7831,7 +6939,10 @@ int8_t wwwsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -min_dur_moved : %d\r\n", config.min_dur_moved);
     PRINT("    \t -min_dur_quite : %d\r\n", config.min_dur_quite);
 
-    (void)(bhy_phy_sensor_ctrl_param_set_wrist_wear_wakeup_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_wrist_wear_wakeup_cfg,
+                                 "bhy_phy_sensor_ctrl_param_set_wrist_wear_wakeup_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     return CLI_OK;
 }
@@ -7846,7 +6957,7 @@ int8_t wwwgetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  wwwgetcnfg \r\n");
-    PRINT("    \t -Get the Wrist Wear Wakeup Configuration\r\n");
+    PRINT("    \t =Get the Wrist Wear Wakeup Configuration\r\n");
 
     return CLI_OK;
 }
@@ -7862,10 +6973,13 @@ int8_t wwwgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_wrist_wear_wakeup config = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_get_wrist_wear_wakeup_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_get_wrist_wear_wakeup_cfg,
+                                 "bhy_phy_sensor_ctrl_param_get_wrist_wear_wakeup_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Wrist Wear Wakeup Configuration:\r\n");
     PRINT("    \t -min_angle_focus : %d\r\n", config.min_angle_focus);
@@ -7890,7 +7004,7 @@ int8_t amsetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  amsetcnfg <dur> <axis> <thrs> \r\n");
-    PRINT("    \t -Set the Any Motion Configuration\r\n");
+    PRINT("    \t =Set the Any Motion Configuration\r\n");
     PRINT("    \t -<dur> : duration (u16), range 0 to 163s in steps of 20ms\r\n");
     PRINT("    \t -<axis> : axis select (u8), range 0 to 7, <az>:<ay>:<ax>\r\n");
     PRINT("    \t -<thrs> : threshold (u16), range 0 to 1g in steps of 0.5mg\r\n");
@@ -7908,7 +7022,7 @@ int8_t amsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_any_motion config = { 0 };
 
     config.duration = (uint16_t)string_to_int((char *)argv[1]);
@@ -7920,7 +7034,10 @@ int8_t amsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -axis_sel : %d\r\n", config.axis_sel);
     PRINT("    \t -threshold : %d\r\n", config.threshold);
 
-    (void)(bhy_phy_sensor_ctrl_param_set_any_motion_config(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_any_motion_config,
+                                 "bhy_phy_sensor_ctrl_param_set_any_motion_config",
+                                 &config,
+                                 &cli_ref->bhy);
 
     return CLI_OK;
 }
@@ -7935,7 +7052,7 @@ int8_t amgetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  amgetcnfg \r\n");
-    PRINT("    \t -Get the Any Motion Configuration\r\n");
+    PRINT("    \t =Get the Any Motion Configuration\r\n");
 
     return CLI_OK;
 }
@@ -7951,10 +7068,13 @@ int8_t amgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_any_motion config = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_get_any_motion_config(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_get_any_motion_config,
+                                 "bhy_phy_sensor_ctrl_param_get_any_motion_config",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Any Motion Configuration:\r\n");
     PRINT("    \t -duration : %d\r\n", config.duration);
@@ -7974,7 +7094,7 @@ int8_t nmsetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  nmsetcnfg <dur> <axis> <thrs> \r\n");
-    PRINT("    \t -Set the No Motion Configuration\r\n");
+    PRINT("    \t =Set the No Motion Configuration\r\n");
     PRINT("    \t -<dur> : duration (u16), range 0 to 163s in steps of 20ms\r\n");
     PRINT("    \t -<axis> : axis select (u8), range 0 to 7, <az>:<ay>:<ax>\r\n");
     PRINT("    \t -<thrs> : threshold (u16), range 0 to 1g in steps of 0.5mg\r\n");
@@ -7992,7 +7112,7 @@ int8_t nmsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_no_motion config = { 0 };
 
     config.duration = (uint16_t)string_to_int((char *)argv[1]);
@@ -8004,7 +7124,10 @@ int8_t nmsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -axis_sel : %d\r\n", config.axis_sel);
     PRINT("    \t -threshold : %d\r\n", config.threshold);
 
-    (void)(bhy_phy_sensor_ctrl_param_set_no_motion_config(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_no_motion_config,
+                                 "bhy_phy_sensor_ctrl_param_set_no_motion_config",
+                                 &config,
+                                 &cli_ref->bhy);
 
     return CLI_OK;
 }
@@ -8019,7 +7142,7 @@ int8_t nmgetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  nmgetcnfg \r\n");
-    PRINT("    \t -Get the No Motion Configuration\r\n");
+    PRINT("    \t =Get the No Motion Configuration\r\n");
 
     return CLI_OK;
 }
@@ -8035,10 +7158,13 @@ int8_t nmgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_no_motion config = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_get_no_motion_config(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_get_no_motion_config,
+                                 "bhy_phy_sensor_ctrl_param_get_no_motion_config",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("No Motion Configuration:\r\n");
     PRINT("    \t -duration : %d\r\n", config.duration);
@@ -8058,7 +7184,7 @@ int8_t wgdsetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  wgdsetcnfg <mfpy_th> <mfpz_th> <gx_pos> <gx_neg> <gy_neg> <gz_neg> <fpdc> <lmfc> <mdjp> <dp> \r\n");
-    PRINT("    \t -Set the Wrist Gesture Detector Configuration (in Hex)\r\n");
+    PRINT("    \t =Set the Wrist Gesture Detector Configuration (in Hex)\r\n");
     PRINT("    \t -<mfpy_th> : min_flick_peak_y_thres (u16), range 0x3E8 to 0x9C4\r\n");
     PRINT("    \t -<mfpz_th> : min_flick_peak_z_thres (u16), range 0x1F4 to 0x5DC\r\n");
     PRINT("    \t -<gx_pos> : gravity_bounds_x_pos (u16), range 0x0 to 0x800\r\n");
@@ -8083,7 +7209,7 @@ int8_t wgdsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_wrist_gesture_detector config = { 0 };
 
     config.min_flick_peak_y_thres = (uint16_t)string_to_int((char *)argv[1]);
@@ -8109,7 +7235,10 @@ int8_t wgdsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -max_duration_jiggle_peaks : 0x%04x\r\n", config.max_duration_jiggle_peaks);
     PRINT("    \t -device_pos : 0x%02x\r\n", config.device_pos);
 
-    (void)(bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg,
+                                 "bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     return CLI_OK;
 }
@@ -8124,7 +7253,7 @@ int8_t wgdgetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  wgdgetcnfg \r\n");
-    PRINT("    \t -Get the Wrist Wear Wakeup Configuration\r\n");
+    PRINT("    \t -Get the Wrist Gesture Detector Configuration (in Hex)\r\n");
 
     return CLI_OK;
 }
@@ -8140,10 +7269,13 @@ int8_t wgdgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_wrist_gesture_detector config = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg,
+                                 "bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Wrist Wear Wakeup Configuration:\r\n");
     PRINT("    \t -min_flick_peak_y_thres : 0x%04x\r\n", config.min_flick_peak_y_thres);
@@ -8170,7 +7302,7 @@ int8_t baro1setcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  baro1setcnfg <osr_p> <osr_t> <iir_filter> \r\n");
-    PRINT("    \t -Set the Barometer pressure type 1 Configuration\r\n");
+    PRINT("    \t =Set the Barometer pressure type 1 Configuration\r\n");
     PRINT("    \t -<osr_p> : Oversampling setting pressure measurement (u8), range 0 to 5\r\n");
     PRINT("    \t -<osr_t> : Oversampling setting temperature measurement (u8), range 0 to 5\r\n");
     PRINT("    \t -<iir_filter> : Filter coefficient for IIR filter (u8), range 0 to 7\r\n");
@@ -8188,7 +7320,8 @@ int8_t baro1setcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_phy_sensor_ctrl_param_baro_type_1 config = { 0 };
 
     config.osr_p = (uint8_t)string_to_int((char *)argv[1]);
@@ -8200,9 +7333,13 @@ int8_t baro1setcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -osr_t : %d\r\n", config.osr_t);
     PRINT("    \t -iir_filter : %d\r\n", config.iir_filter);
 
-    (void)(bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg,
+                                 "bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8215,7 +7352,7 @@ int8_t baro1getcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  baro1getcnfg \r\n");
-    PRINT("    \t -Get the Barometer pressure type 1 Configuration\r\n");
+    PRINT("    \t =Get the Barometer pressure type 1 Configuration\r\n");
 
     return CLI_OK;
 }
@@ -8231,10 +7368,14 @@ int8_t baro1getcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_phy_sensor_ctrl_param_baro_type_1 config = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_baro_get_press_type_1_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_baro_get_press_type_1_cfg,
+                                 "bhy_phy_sensor_ctrl_param_baro_get_press_type_1_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Barometer pressure type 1 Configuration:\r\n");
     PRINT("    \t -osr_p : %d\r\n", config.osr_p);
@@ -8242,6 +7383,7 @@ int8_t baro1getcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -iir_filter : %d\r\n", config.iir_filter);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8254,7 +7396,7 @@ int8_t baro2setcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  baro2setcnfg <osr_p> <osr_t> <iir_filter_p> <iir_filter_t> <dsp_config>\r\n");
-    PRINT("    \t -Set the Barometer pressure type 2 Configuration\r\n");
+    PRINT("    \t =Set the Barometer pressure type 2 Configuration\r\n");
     PRINT("    \t -<osr_p> : Oversampling setting pressure measurement (u8), range 0 to 5\r\n");
     PRINT("    \t -<osr_t> : Oversampling setting temperature measurement (u8), range 0 to 5\r\n");
     PRINT("    \t -<iir_filter_p> : Filter coefficient for pressure IIR (u8), range 0 to 7\r\n");
@@ -8274,7 +7416,8 @@ int8_t baro2setcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_phy_sensor_ctrl_param_baro_type_2 config = { 0 };
 
     config.osr_p = (uint8_t)string_to_int((char *)argv[1]);
@@ -8290,9 +7433,13 @@ int8_t baro2setcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -iir_filter_t : %d\r\n", config.iir_filter_t);
     PRINT("    \t -dsp_config : %d\r\n", config.dsp_config);
 
-    (void)(bhy_phy_sensor_ctrl_param_baro_set_press_type_2_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_baro_set_press_type_2_cfg,
+                                 "bhy_phy_sensor_ctrl_param_baro_set_press_type_2_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8305,7 +7452,7 @@ int8_t baro2getcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  baro2getcnfg \r\n");
-    PRINT("    \t -Get the Barometer pressure type 2 Configuration\r\n");
+    PRINT("    \t =Get the Barometer pressure type 2 Configuration\r\n");
 
     return CLI_OK;
 }
@@ -8321,10 +7468,14 @@ int8_t baro2getcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_phy_sensor_ctrl_param_baro_type_2 config = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_baro_get_press_type_2_cfg(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_baro_get_press_type_2_cfg,
+                                 "bhy_phy_sensor_ctrl_param_baro_get_press_type_2_cfg",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Barometer pressure type 2 Configuration:\r\n");
     PRINT("    \t -osr_p : %d\r\n", config.osr_p);
@@ -8334,6 +7485,7 @@ int8_t baro2getcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -dsp_config : %d\r\n", config.dsp_config);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8347,7 +7499,7 @@ int8_t scsetcnfg_help(void *ref)
 
     PRINT("  scsetcnfg <emdu> <ecu> <emdd> <ecd> <sbs> <mvd> <msd> <fcb2> <fcb1> <fcb0> <fca2> <fca1> <fce> <pdmw>\r\n");
     PRINT("  <pdmr> <sdm> <sdw> <hse> <adf> <adt> <sci> <sdpe> <sdt> <empp> <mt> <sc26> <sc27>\r\n");
-    PRINT("    \t -Set the Step Counter Configuration\r\n");
+    PRINT("    \t =Set the Step Counter Configuration\r\n");
     PRINT("    \t -<emdu> : env_min_dist_up (u16)\r\n");
     PRINT("    \t -<ecu> : env_coef_up (u16)\r\n");
     PRINT("    \t -<emdd> : env_min_dist_down (u16)\r\n");
@@ -8389,7 +7541,7 @@ int8_t scsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_step_counter config = { 0 };
 
     config.env_min_dist_up = (uint16_t)string_to_int((char *)argv[1]);
@@ -8449,7 +7601,10 @@ int8_t scsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t-sc_26: %u\r\n", config.sc_26);
     PRINT("    \t-sc_27: %u\r\n", config.sc_27);
 
-    (void)(bhy_phy_sensor_ctrl_param_set_step_counter_config(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_step_counter_config,
+                                 "bhy_phy_sensor_ctrl_param_set_step_counter_config",
+                                 &config,
+                                 &cli_ref->bhy);
 
     return CLI_OK;
 }
@@ -8464,7 +7619,7 @@ int8_t scgetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  scgetcnfg \r\n");
-    PRINT("    \t -Get the Step Counter Configuration\r\n");
+    PRINT("    \t =Get the Step Counter Configuration\r\n");
 
     return CLI_OK;
 }
@@ -8480,10 +7635,13 @@ int8_t scgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_phy_sensor_ctrl_param_step_counter config = { 0 };
 
-    (void)(bhy_phy_sensor_ctrl_param_get_step_counter_config(&config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_get_step_counter_config,
+                                 "bhy_phy_sensor_ctrl_param_get_step_counter_config",
+                                 &config,
+                                 &cli_ref->bhy);
 
     PRINT("Step Counter Configuration:\r\n");
     PRINT("    \t-env_min_dist_up: %u\r\n", config.env_min_dist_up);
@@ -8541,16 +7699,86 @@ int8_t hmctrig_help(void *ref)
 int8_t hmctrig_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
+    struct bhy_parse_sensor_details *sensor_details;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy_parse_ref *parse_table = &(cli_ref->parse_table);
+    uint8_t try_count = 0;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)(bhy_head_orientation_param_trigger_hmc_calibration(&cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_clear_fifo, "bhy_clear_fifo", 0xFF, &cli_ref->bhy);
 
-    PRINT("Triggered Head Misalignment Calibration\r\n");
+    sensor_conf.sample_rate = 25.0f;
+    sensor_conf.latency = 0;
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_set_cfg,
+                                 "bhy_virtual_sensor_conf_param_set_cfg",
+                                 BHY_SENSOR_ID_HEAD_ORI_MIS_ALG,
+                                 &sensor_conf,
+                                 &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_parse_add_sensor_details,
+                                "bhy_parse_add_sensor_details",
+                                sensor_details,
+                                BHY_SENSOR_ID_HEAD_ORI_MIS_ALG,
+                                parse_table);
+    if (!sensor_details)
+    {
+        ERROR("Parse slot not defined\r\n");
+
+        return CLI_E_NULL_PTR;
+    }
+
+    PRINT("Trigger HMC calibration\r\n");
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_trigger_hmc_calibration,
+                                 "bhy_head_orientation_param_trigger_hmc_calibration",
+                                 &cli_ref->bhy);
+
+    while (true)
+    {
+        if (get_interrupt_status())
+        {
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_and_process_fifo, "bhy_get_and_process_fifo", fifo_buffer,
+                                         sizeof(fifo_buffer), &cli_ref->bhy);
+            if (sensor_details->accuracy == 1)
+            {
+                PRINT("Please keep your head still \r\n");
+            }
+            else if (sensor_details->accuracy == 2)
+            {
+                PRINT("Please do nod movement \r\n");
+            }
+            else if (sensor_details->accuracy == 3)
+            {
+                PRINT("Calibration successfully \r\n");
+                break;
+            }
+            else if (sensor_details->accuracy == 0)
+            {
+                PRINT("Calibration failed! Restart calibration!!!\r\n");
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_trigger_hmc_calibration,
+                                             "bhy_head_orientation_param_trigger_hmc_calibration",
+                                             &cli_ref->bhy);
+                try_count++;
+                if (try_count == 5)
+                {
+                    PRINT("Calibration failed continuously 5 times, please try in next time\r\n");
+                    break;
+                }
+            }
+
+            cli_ref->bhy.hif.delay_us(1000, NULL);
+        }
+    }
+
+    PRINT("Finished Head Misalignment Calibration\r\n");
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_clear_fifo, "bhy_clear_fifo", 0xFF, &cli_ref->bhy); /* Read and Flush Wakeup
+                                                                                              * and Non-Wakeup FIFO */
 
     return CLI_OK;
+
 }
 
 /**
@@ -8563,7 +7791,7 @@ int8_t hmcsetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  hmcsetcnfg <sp_max_dur> <sp_min_dur> <sp_max_samples> <acc_diff_th> \r\n");
-    PRINT("    \t -Set the Head Misalignment Configuration (in Hex)\r\n");
+    PRINT("    \t =Set the Head Misalignment Configuration (in Hex)\r\n");
     PRINT(
         "    \t <sp_max_dur> : maximum still phase duration required for pitch and roll calibration (u8), resolution 1 sec/LSB\r\n");
     PRINT(
@@ -8588,7 +7816,8 @@ int8_t hmcsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_head_orientation_param_misalignment_config hmc_config = { 0 };
 
     hmc_config.still_phase_max_dur = (uint8_t)string_to_int((char *)argv[1]);
@@ -8596,11 +7825,15 @@ int8_t hmcsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     hmc_config.still_phase_max_samples = (uint8_t)string_to_int((char *)argv[3]);
     hmc_config.acc_diff_threshold = (int32_t)string_to_int((char *)argv[4]);
 
-    (void)(bhy_head_orientation_param_set_hmc_configuration(&hmc_config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_hmc_configuration,
+                                 "bhy_head_orientation_param_set_hmc_configuration",
+                                 &hmc_config,
+                                 &cli_ref->bhy);
 
     PRINT("Head Misalignment Configuration set successfully \r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -8613,7 +7846,7 @@ int8_t hmcgetcnfg_help(void *ref)
     (void)ref;
 
     PRINT("  hmcgetcnfg \r\n");
-    PRINT("    \t -Get the Head Misalignment Configuration\r\n");
+    PRINT("    \t =Get the Head Misalignment Configuration\r\n");
 
     return CLI_OK;
 }
@@ -8629,10 +7862,14 @@ int8_t hmcgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_head_orientation_param_misalignment_config hmc_config = { 0 };
 
-    (void)(bhy_head_orientation_param_get_hmc_configuration(&hmc_config, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_hmc_configuration,
+                                 "bhy_head_orientation_param_get_hmc_configuration",
+                                 &hmc_config,
+                                 &cli_ref->bhy);
 
     PRINT("still_phase_max_dur : 0x%02x\r\n", hmc_config.still_phase_max_dur);
     PRINT("still_phase_min_dur : 0x%02x\r\n", hmc_config.still_phase_min_dur);
@@ -8640,6 +7877,7 @@ int8_t hmcgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("acc_diff_threshold : 0x%08x\r\n", hmc_config.acc_diff_threshold);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8667,15 +7905,18 @@ int8_t hmcsetdefcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)(bhy_head_orientation_param_set_default_hmc_cfg(&cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_default_hmc_cfg,
+                                 "bhy_head_orientation_param_set_default_hmc_cfg",
+                                 &cli_ref->bhy);
 
     PRINT("Set Default Head Misalignment Calibration successfully\r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -8703,12 +7944,16 @@ int8_t hmcver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_head_orientation_param_ver hmc_version;
 
     INFO("Executing %\r\n", argv[0]);
 
-    (void)(bhy_head_orientation_param_get_hmc_version(&hmc_version, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_hmc_version,
+                                 "bhy_head_orientation_param_get_hmc_version",
+                                 &hmc_version,
+                                 &cli_ref->bhy);
 
     PRINT("Head Misalignment Calibrator version: %u.%u.%u\r\n\r\n",
           hmc_version.major,
@@ -8716,6 +7961,7 @@ int8_t hmcver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
           hmc_version.patch);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8752,21 +7998,26 @@ int8_t hmcsetcalcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_head_orientation_param_misalignment_quat_corr hmc_quat_corr = { 0 };
 
     INFO("Executing %s\r\n", argv[0]);
 
-    hmc_quat_corr.quaternion_x.f_val = (float)string_to_int((char *)argv[1]);
-    hmc_quat_corr.quaternion_y.f_val = (float)string_to_int((char *)argv[2]);
-    hmc_quat_corr.quaternion_z.f_val = (float)string_to_int((char *)argv[3]);
-    hmc_quat_corr.quaternion_w.f_val = (float)string_to_int((char *)argv[4]);
+    hmc_quat_corr.quaternion_x.f_val = string_to_float((char *)argv[1]);
+    hmc_quat_corr.quaternion_y.f_val = string_to_float((char *)argv[2]);
+    hmc_quat_corr.quaternion_z.f_val = string_to_float((char *)argv[3]);
+    hmc_quat_corr.quaternion_w.f_val = string_to_float((char *)argv[4]);
     hmc_quat_corr.accuracy.f_val = 0.0f;
-    (void)(bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg(&hmc_quat_corr, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg,
+                                 "bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg",
+                                 &hmc_quat_corr,
+                                 &cli_ref->bhy);
 
     PRINT("Head Misalignment Quaternion Calibration Correction set successfully\r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -8795,10 +8046,14 @@ int8_t hmcgetcalcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_head_orientation_param_misalignment_quat_corr hmc_quat_corr = { 0 };
 
-    (void)(bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg(&hmc_quat_corr, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg,
+                                 "bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg",
+                                 &hmc_quat_corr,
+                                 &cli_ref->bhy);
 
     PRINT("quaternion_x : %f\r\n", hmc_quat_corr.quaternion_x.f_val);
     PRINT("quaternion_y : %f\r\n", hmc_quat_corr.quaternion_y.f_val);
@@ -8806,6 +8061,7 @@ int8_t hmcgetcalcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("quaternion_w : %f\r\n", hmc_quat_corr.quaternion_w.f_val);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8838,17 +8094,21 @@ int8_t hmcsetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_head_misalignment_mode_vector_x hmc_mode_vect_x = { 0 };
 
     INFO("Executing %s\r\n", argv[0]);
 
     hmc_mode_vect_x.mode = (uint8_t)string_to_int((char *)argv[1]);
-    hmc_mode_vect_x.vector_x_0.f_val = (float)string_to_int((char *)argv[2]);
-    hmc_mode_vect_x.vector_x_1.f_val = (float)string_to_int((char *)argv[3]);
-    hmc_mode_vect_x.vector_x_2.f_val = (float)string_to_int((char *)argv[4]);
+    hmc_mode_vect_x.vector_x_0.f_val = string_to_float((char *)argv[2]);
+    hmc_mode_vect_x.vector_x_1.f_val = string_to_float((char *)argv[3]);
+    hmc_mode_vect_x.vector_x_2.f_val = string_to_float((char *)argv[4]);
 
-    (void)(bhy_head_orientation_param_set_hmc_mode_vector_x(&hmc_mode_vect_x, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_hmc_mode_vector_x,
+                                 "bhy_head_orientation_param_set_hmc_mode_vector_x",
+                                 &hmc_mode_vect_x,
+                                 &cli_ref->bhy);
 
     PRINT("Set Head Misalignment Mode and Vector X value:\r\n");
     PRINT("    \t -<mode> : %d\r\n", hmc_mode_vect_x.mode);
@@ -8857,6 +8117,7 @@ int8_t hmcsetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -<vector_x_2> : %f\r\n", hmc_mode_vect_x.vector_x_2.f_val);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8885,10 +8146,14 @@ int8_t hmcgetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_head_misalignment_mode_vector_x hmc_mode_vect_x = { 0 };
 
-    (void)(bhy_head_orientation_param_get_hmc_mode_vector_x(&hmc_mode_vect_x, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_hmc_mode_vector_x,
+                                 "bhy_head_orientation_param_get_hmc_mode_vector_x",
+                                 &hmc_mode_vect_x,
+                                 &cli_ref->bhy);
 
     PRINT("    \t- Head Misalignment Mode and Vector X value:\r\n");
     PRINT("    \t -<mode> : %d\r\n", hmc_mode_vect_x.mode);
@@ -8897,6 +8162,7 @@ int8_t hmcgetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -<vector_x_2> : %f\r\n", hmc_mode_vect_x.vector_x_2.f_val);
 
     return CLI_OK;
+
 }
 
 /**
@@ -8925,13 +8191,17 @@ int8_t hosetheadcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     uint8_t ho_quat_head_corr_state[4] = { 0 };
 
     INFO("Executing %s\r\n", argv[0]);
 
     ho_quat_head_corr_state[0] = (uint8_t)string_to_int((char *)argv[1]);
-    (void)(bhy_head_orientation_param_set_quat_init_head_corr(ho_quat_head_corr_state, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_quat_init_head_corr,
+                                 "bhy_head_orientation_param_set_quat_init_head_corr",
+                                 ho_quat_head_corr_state,
+                                 &cli_ref->bhy);
 
     PRINT("Quaternion Initial Heading Correction %s\r\n",
           (ho_quat_head_corr_state[0] ==
@@ -8966,16 +8236,21 @@ int8_t hogetheadcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     uint8_t ho_quat_head_corr_state[4] = { 0 };
 
-    (void)(bhy_head_orientation_param_get_quat_init_head_corr(ho_quat_head_corr_state, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_quat_init_head_corr,
+                                 "bhy_head_orientation_param_get_quat_init_head_corr",
+                                 ho_quat_head_corr_state,
+                                 &cli_ref->bhy);
 
     PRINT("Quaternion Initial Heading Correction Status : %s\r\n",
           (ho_quat_head_corr_state[0] ==
            BHY_HEAD_ORIENTATION_PARAM_QUAT_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
 
     return CLI_OK;
+
 }
 
 /**
@@ -9003,16 +8278,21 @@ int8_t hover_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_head_orientation_param_ver ho_version;
 
     INFO("Executing %\r\n", argv[0]);
 
-    (void)(bhy_head_orientation_param_get_ho_version(&ho_version, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_ho_version,
+                                 "bhy_head_orientation_param_get_ho_version",
+                                 &ho_version,
+                                 &cli_ref->bhy);
 
     PRINT("IMU/NDOF Head Orientation version: %u.%u.%u\r\n\r\n", ho_version.major, ho_version.minor, ho_version.patch);
 
     return CLI_OK;
+
 }
 
 /**
@@ -9041,19 +8321,24 @@ int8_t hosetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     uint8_t ho_eul_head_corr_state[4] = { 0 };
 
     INFO("Executing %s\r\n", argv[0]);
 
     ho_eul_head_corr_state[0] = (uint8_t)string_to_int((char *)argv[1]);
-    (void)(bhy_head_orientation_param_set_eul_init_head_corr(ho_eul_head_corr_state, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_eul_init_head_corr,
+                                 "bhy_head_orientation_param_set_eul_init_head_corr",
+                                 ho_eul_head_corr_state,
+                                 &cli_ref->bhy);
 
     PRINT("Euler Initial Heading Correction %s\r\n",
           (ho_eul_head_corr_state[0] ==
            BHY_HEAD_ORIENTATION_PARAM_EUL_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
 
     return CLI_OK;
+
 }
 
 /**
@@ -9082,16 +8367,21 @@ int8_t hogetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     uint8_t ho_eul_head_corr_state[4] = { 0 };
 
-    (void)(bhy_head_orientation_param_get_eul_init_head_corr(ho_eul_head_corr_state, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_eul_init_head_corr,
+                                 "bhy_head_orientation_param_get_eul_init_head_corr",
+                                 ho_eul_head_corr_state,
+                                 &cli_ref->bhy);
 
     PRINT("Euler Initial Heading Correction Status : %s\r\n",
           (ho_eul_head_corr_state[0] ==
            BHY_HEAD_ORIENTATION_PARAM_EUL_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
 
     return CLI_OK;
+
 }
 
 /**
@@ -9120,7 +8410,7 @@ int8_t foc_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
     trigger_foc((char *)argv[1], &cli_ref->bhy);
@@ -9154,13 +8444,13 @@ int8_t getchipid_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     uint8_t chip_id = 0;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)(bhy_get_chip_id(&chip_id, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_chip_id, "bhy_get_chip_id", &chip_id, &cli_ref->bhy);
 
     PRINT("CHIP ID : 0x%02x\r\n", chip_id);
 
@@ -9177,7 +8467,7 @@ int8_t syssetphyseninfo_callback(uint8_t argc, uint8_t * const argv[], void *ref
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     struct bhy_system_param_orient_matrix orient_matrix = { { 0 } };
     uint8_t loop = 0;
     char delimiter[] = ",";
@@ -9194,7 +8484,11 @@ int8_t syssetphyseninfo_callback(uint8_t argc, uint8_t * const argv[], void *ref
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
-    (void)(bhy_system_param_set_physical_sensor_info(sensor_id, &orient_matrix, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_set_physical_sensor_info,
+                                 "bhy_system_param_set_physical_sensor_info",
+                                 sensor_id,
+                                 &orient_matrix,
+                                 &cli_ref->bhy);
 
     PRINT("Set the orientation matrix for the Physical Sensors successfully\r\n");
 
@@ -9211,7 +8505,7 @@ int8_t bsecsetalstate_help(void *ref)
     (void)ref;
 
     PRINT("  bsecsetalstate <algo_state[0:162]>\r\n");
-    PRINT("    \t Sets the BSEC algorithm state \r\n");
+    PRINT("    \t =Sets the BSEC algorithm state \r\n");
     PRINT("    \t <algo_state[0:162]> : BSEC algorithm state \r\n");
     PRINT("    \t -e.g. bsecsetalstate 1 2 ... 163\r\n");
 
@@ -9229,7 +8523,8 @@ int8_t bsecsetalstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     uint8_t i;
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_bsec_param_algo_state state;
 
     INFO("Executing %s\r\n", argv[0]);
@@ -9246,9 +8541,10 @@ int8_t bsecsetalstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         state.algo_state[i] = (uint8_t)string_to_int((char*)argv[i + 1]);
     }
 
-    (void)(bhy_bsec_param_set_algo_state(&state, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsec_param_set_algo_state, "bhy_bsec_param_set_algo_state", &state, &cli_ref->bhy);
 
     return CLI_OK;
+
 }
 
 /**
@@ -9261,7 +8557,7 @@ int8_t bsecgetalstate_help(void *ref)
     (void)ref;
 
     PRINT("  bsecgetalstate\r\n");
-    PRINT("    \t Gets the BSEC algorithm state \r\n");
+    PRINT("    \t =Gets the BSEC algorithm state \r\n");
 
     return CLI_OK;
 }
@@ -9277,12 +8573,13 @@ int8_t bsecgetalstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
 
     uint8_t i;
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_bsec_param_algo_state state;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)(bhy_bsec_param_get_algo_state(&state, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsec_param_get_algo_state, "bhy_bsec_param_get_algo_state", &state, &cli_ref->bhy);
 
     PRINT("BSEC algorithm state: \r\n");
     for (i = 0U; i < BHY_BSEC_PARAM_BSEC_ALGO_STATE_LENGTH; i++)
@@ -9293,6 +8590,7 @@ int8_t bsecgetalstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("\r\n");
 
     return CLI_OK;
+
 }
 
 /**
@@ -9305,7 +8603,7 @@ int8_t bsecsettempoff_help(void *ref)
     (void)ref;
 
     PRINT("  bsecsettempoff <offset>\r\n");
-    PRINT("    \t Sets the BSEC temperature offset \r\n");
+    PRINT("    \t =Sets the BSEC temperature offset \r\n");
     PRINT("    \t <offset> : BSEC temperature offset \r\n");
     PRINT("    \t -e.g. bsecsettempoff 1.0\r\n");
 
@@ -9322,15 +8620,22 @@ int8_t bsecsettempoff_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     union bhy_float_conv offset;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
-    offset.f_val = (float)string_to_int((char*)argv[1]);
-    (void)(bhy_bsec_param_set_temp_offset(&offset, &cli_ref->bhy));
+    offset.f_val = string_to_float((char*)argv[1]);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsec_param_set_temp_offset,
+                                 "bhy_bsec_param_set_temp_offset",
+                                 &offset,
+                                 &cli_ref->bhy);
+
+    PRINT("Setting successfully BSEC temperature offset value %f\r\n", offset.f_val);
 
     return CLI_OK;
+
 }
 
 /**
@@ -9359,7 +8664,7 @@ int8_t bsecgettempoff_help(void *ref)
     (void)ref;
 
     PRINT("  bsecgettempoff\r\n");
-    PRINT("    \t Gets the BSEC temperature offset \r\n");
+    PRINT("    \t =Gets the BSEC temperature offset \r\n");
 
     return CLI_OK;
 }
@@ -9375,9 +8680,11 @@ int8_t sysgetphysenlist_callback(uint8_t argc, uint8_t * const argv[], void *ref
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    (void)bhy_system_param_get_physical_sensor_present(&cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_physical_sensor_present,
+                                 "bhy_system_param_get_physical_sensor_present",
+                                 &cli_ref->bhy);
 
     PRINT("\r\n");
     PRINT("Physical sensor list.\r\n");
@@ -9385,7 +8692,13 @@ int8_t sysgetphysenlist_callback(uint8_t argc, uint8_t * const argv[], void *ref
     PRINT("----------+--------------------------------------|\r\n");
     for (uint8_t i = 0; i < BHY_PHYSICAL_SENSOR_ID_MAX; i++)
     {
-        if (bhy_is_physical_sensor_available(i, &cli_ref->bhy))
+        uint8_t rstl = 0;
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_physical_sensor_available,
+                                    "bhy_is_physical_sensor_available",
+                                    rstl,
+                                    i,
+                                    &cli_ref->bhy);
+        if (rstl)
         {
             PRINT(" %8u | %36s \r\n", i, get_physical_sensor_name(i));
         }
@@ -9421,21 +8734,25 @@ int8_t sysgetvirtsenlist_callback(uint8_t argc, uint8_t * const argv[], void *re
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)bhy_update_virtual_sensor_list(&cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_update_virtual_sensor_list, "bhy_update_virtual_sensor_list", &cli_ref->bhy);
 
     /* Get present virtual sensor */
-    (void)bhy_system_param_get_virtual_sensor_present(&cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_virtual_sensor_present,
+                                 "bhy_system_param_get_virtual_sensor_present",
+                                 &cli_ref->bhy);
 
     PRINT("Virtual sensor list.\r\n");
     PRINT("Sensor ID |                          Sensor Name |\r\n");
     PRINT("----------+--------------------------------------|\r\n");
     for (uint8_t i = 0; i < BHY_SENSOR_ID_MAX; i++)
     {
-        if (bhy_is_sensor_available(i, &cli_ref->bhy))
+        uint8_t rstl = 0;
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available, "bhy_is_sensor_available", rstl, i, &cli_ref->bhy);
+        if (rstl)
         {
             if (i < BHY_SENSOR_ID_CUSTOM_START)
             {
@@ -9478,16 +8795,21 @@ int8_t bsecgettempoff_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     union bhy_float_conv offset;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)(bhy_bsec_param_get_temp_offset(&offset, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsec_param_get_temp_offset,
+                                 "bhy_bsec_param_get_temp_offset",
+                                 &offset,
+                                 &cli_ref->bhy);
 
     PRINT("BSEC temperature offset: %f\r\n", offset.f_val);
 
     return CLI_OK;
+
 }
 
 /**
@@ -9500,9 +8822,9 @@ int8_t bsecsetsamrate_help(void *ref)
     (void)ref;
 
     PRINT("  bsecsetsamrate <sample_rate>\r\n");
-    PRINT("    \t Sets the BSEC sample rate \r\n");
-    PRINT("    \t <sample_rate> : BSEC sample rate. Valid value: 1.0, 0.33333, 0.0033333 \r\n");
-    PRINT("    \t -e.g. bsecsetsamrate 0.3333\r\n");
+    PRINT("    \t =Sets the BSEC sample rate \r\n");
+    PRINT("    \t <sample_rate> : BSEC sample rate. Valid value: 0, 1, 2 \r\n");
+    PRINT("    \t -e.g. bsecsetsamrate 0\r\n");
 
     return CLI_OK;
 }
@@ -9517,15 +8839,21 @@ int8_t bsecsetsamrate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_bsec_param_sample_rate sample_rate;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
     sample_rate.sample_rate_index = (bhy_bsec_param_sample_rate_index)string_to_int((char*)argv[1]);
-    (void)(bhy_bsec_param_set_sample_rate(&sample_rate, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsec_param_set_sample_rate,
+                                 "bhy_bsec_param_set_sample_rate",
+                                 &sample_rate,
+                                 &cli_ref->bhy);
+    PRINT("BSEC sample rate is set successfully with value %u\r\n", sample_rate.sample_rate_index);
 
     return CLI_OK;
+
 }
 
 /**
@@ -9538,7 +8866,7 @@ int8_t bsecgetsamrate_help(void *ref)
     (void)ref;
 
     PRINT("  bsecgetsamrate\r\n");
-    PRINT("    \t Gets the BSEC sample rate \r\n");
+    PRINT("    \t =Gets the BSEC sample rate \r\n");
 
     return CLI_OK;
 }
@@ -9553,19 +8881,24 @@ int8_t bsecgetsamrate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
     bhy_bsec_param_sample_rate sample_rate;
     char* sample_rate_act[] =
     { "BSEC_PARAM_SAMPLE_RATE_CONT", "BSEC_PARAM_SAMPLE_RATE_LP", "BSEC_PARAM_SAMPLE_RATE_ULP" };
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)(bhy_bsec_param_get_sample_rate(&sample_rate, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsec_param_get_sample_rate,
+                                 "bhy_bsec_param_get_sample_rate",
+                                 &sample_rate,
+                                 &cli_ref->bhy);
 
     PRINT("BSEC sample rate: %u (%s)\r\n", sample_rate.sample_rate_index,
           sample_rate_act[sample_rate.sample_rate_index]);
 
     return CLI_OK;
+
 }
 
 /**
@@ -9599,7 +8932,7 @@ int8_t sethearactvcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_activity_param_hearable hearable = { 0 };
 
     hearable.seg_size = (uint16_t)atoi((char *)argv[1]);
@@ -9619,7 +8952,10 @@ int8_t sethearactvcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         PRINT("    - max_gdi_thre: %u\r\n", hearable.max_gdi_thre);
         PRINT("    - out_buff_size: %u\r\n", hearable.out_buff_size);
         PRINT("    - min_seg_moder_confg: %u\r\n", hearable.min_seg_moder_conf);
-        (void)(bhy_activity_param_set_hearable_config(&hearable, &cli_ref->bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_activity_param_set_hearable_config,
+                                     "bhy_activity_param_set_hearable_config",
+                                     &hearable,
+                                     &cli_ref->bhy);
     }
     else
     {
@@ -9655,10 +8991,13 @@ int8_t gethearactvcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_activity_param_hearable hearable = { 0 };
 
-    (void)(bhy_activity_param_get_hearable_config(&hearable, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_activity_param_get_hearable_config,
+                                 "bhy_activity_param_get_hearable_config",
+                                 &hearable,
+                                 &cli_ref->bhy);
 
     PRINT("Hearable activity configuration:\r\n");
     PRINT("    - seg_size: %u\r\n", hearable.seg_size);
@@ -9701,7 +9040,7 @@ int8_t setwearactvcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_activity_param_wearable wearable = { 0 };
 
     wearable.post_process_en = (uint16_t)atoi((char *)argv[1]);
@@ -9719,7 +9058,10 @@ int8_t setwearactvcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         PRINT("    - max_gdi_thre: %u\r\n", wearable.max_gdi_thre);
         PRINT("    - out_buff_size: %u\r\n", wearable.out_buff_size);
         PRINT("    - min_seg_moder_confg: %u\r\n", wearable.min_seg_moder_conf);
-        (void)(bhy_activity_param_set_wearable_config(&wearable, &cli_ref->bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_activity_param_set_wearable_config,
+                                     "bhy_activity_param_set_wearable_config",
+                                     &wearable,
+                                     &cli_ref->bhy);
     }
     else
     {
@@ -9755,10 +9097,13 @@ int8_t getwearactvcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_activity_param_wearable wearable = { 0 };
 
-    (void)(bhy_activity_param_get_wearable_config(&wearable, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_activity_param_get_wearable_config,
+                                 "bhy_activity_param_get_wearable_config",
+                                 &wearable,
+                                 &cli_ref->bhy);
     PRINT("Wearable activity configuration:\r\n");
     PRINT("    - post_process_en: %u\r\n", wearable.post_process_en);
     PRINT("    - min_gdi_thre: %u\r\n", wearable.min_gdi_thre);
@@ -9779,11 +9124,12 @@ int8_t sysgettimestamps_callback(uint8_t argc, uint8_t * const argv[], void *ref
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     struct bhy_system_param_timestamp ts;
 
     INFO("Executing %s\r\n", argv[0]);
-    (void)bhy_system_param_get_timestamps(&ts, &cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_timestamps, "bhy_system_param_get_timestamps", &ts,
+                                 &cli_ref->bhy);
 
     uint32_t s, ns;
     ts.host_int_ts *= 15625; /* Timestamp is now in nanoseconds */
@@ -9832,11 +9178,14 @@ int8_t sysgetfwversion_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     struct bhy_system_param_firmware_version fw_ver;
 
     INFO("Executing %s\r\n", argv[0]);
-    (void)bhy_system_param_get_firmware_version(&fw_ver, &cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_firmware_version,
+                                 "bhy_system_param_get_firmware_version",
+                                 &fw_ver,
+                                 &cli_ref->bhy);
 
     PRINT("\r\n");
     PRINT("Custom version number: %u\r\n", fw_ver.custom_ver_num);
@@ -9904,12 +9253,15 @@ int8_t sysgetfifoctrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     struct bhy_system_param_fifo_control fifo_ctrl;
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)bhy_system_param_get_fifo_control(&fifo_ctrl, &cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_fifo_control,
+                                 "bhy_system_param_get_fifo_control",
+                                 &fifo_ctrl,
+                                 &cli_ref->bhy);
 
     PRINT("\r\n");
     PRINT("Wakeup FIFO Watermark = %lu\r\n", fifo_ctrl.wakeup_fifo_watermark);
@@ -9947,7 +9299,7 @@ int8_t syssetwkffctrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint32_t water_mark;
 
     INFO("Executing %s\r\n", argv[0]);
@@ -9957,7 +9309,11 @@ int8_t syssetwkffctrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     fifo_ctrl.wakeup_fifo_watermark = water_mark;
 
-    assert_rslt = bhy_system_param_set_wakeup_fifo_control(&fifo_ctrl, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_system_param_set_wakeup_fifo_control,
+                                "bhy_system_param_set_wakeup_fifo_control",
+                                assert_rslt,
+                                &fifo_ctrl,
+                                &cli_ref->bhy);
 
     if (assert_rslt)
     {
@@ -9999,7 +9355,7 @@ int8_t syssetnwkffctrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint32_t water_mark;
 
     INFO("Executing %s\r\n", argv[0]);
@@ -10009,7 +9365,11 @@ int8_t syssetnwkffctrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     fifo_ctrl.non_wakeup_fifo_watermark = water_mark;
 
-    assert_rslt = bhy_system_param_set_wakeup_fifo_control(&fifo_ctrl, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_system_param_set_wakeup_fifo_control,
+                                "bhy_system_param_set_wakeup_fifo_control",
+                                assert_rslt,
+                                &fifo_ctrl,
+                                &cli_ref->bhy);
 
     if (assert_rslt)
     {
@@ -10051,7 +9411,7 @@ int8_t sysgetmectrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint16_t addr;
 
     INFO("Executing %s\r\n", argv[0]);
@@ -10059,7 +9419,11 @@ int8_t sysgetmectrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     addr = (uint16_t)string_to_int((char *)argv[1]);
     bhy_system_param_multi_meta_event_ctrl_t meta_event;
 
-    (void)bhy_system_param_get_meta_event_control(addr, &meta_event, &cli_ref->bhy);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_meta_event_control,
+                                 "bhy_system_param_get_meta_event_control",
+                                 addr,
+                                 &meta_event,
+                                 &cli_ref->bhy);
 
     PRINT("\r\n");
     PRINT("Meta event infomation:\r\n");
@@ -10108,7 +9472,7 @@ int8_t syssetmectrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint16_t addr;
     uint8_t group_idx;
     uint8_t value;
@@ -10123,7 +9487,12 @@ int8_t syssetmectrl_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     meta_event.group[group_idx].as_uint8 = value;
 
-    assert_rslt = bhy_system_param_set_meta_event_control(addr, &meta_event, &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_system_param_set_meta_event_control,
+                                "bhy_system_param_set_meta_event_control",
+                                assert_rslt,
+                                addr,
+                                &meta_event,
+                                &cli_ref->bhy);
 
     if (assert_rslt)
     {
@@ -10166,7 +9535,7 @@ int8_t setbsxparam_help(void *ref)
     (void)ref;
 
     PRINT("  setbsxparam <parameter_id> or <parameter_id> <file_name>\r\n");
-    PRINT("    \t -Set the BSX calibration states for a specific physical sensor parameter id\r\n");
+    PRINT("    \t =Set the BSX calibration states for a specific physical sensor parameter id\r\n");
     PRINT(
         "    \t -<parameter_id> : ID of the parameter (e.g., '0x201' for accelerometer, '0x203' for gyroscope, '0x205' for magnetometer)\r\n");
     PRINT(
@@ -10192,11 +9561,12 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     char str_param_id[10] = { 0 };
     char file_name[MAX_FILENAME_LENGTH] = { 0 };
     char file_ext[6] = { 0 };
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_bsx_algo_param_state_exg bsx_state_exg[20] = { { 0 } };
     char buffer[512] = { 0 };
     int8_t ret_val = 0;
     uint32_t bytes_read = 0;
+    memset(bsx_state_exg, 0, sizeof(bsx_state_exg));
 
     strncpy(str_param_id, (char *)argv[1], strlen((char *)argv[1]));
     str_param_id[strlen((char *)argv[1])] = '\0';
@@ -10252,10 +9622,11 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
             }
 
             fseek(fp, 0, SEEK_SET);
+            uint8_t block = 0;
 
             for (;;)
             {
-                bytes_read = fread(buffer, 1, (BHY_BSX_STATE_STRUCT_LEN + 2), fp);
+                bytes_read = fread(buffer, 1, (BHY_BSX_STATE_STRUCT_LEN), fp);
                 if (file_idx == 0 && bytes_read == 0)
                 {
                     PRINT("Error in reading the file content\r\n");
@@ -10267,11 +9638,18 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
                     break;
                 }
 
-                (void)(bhy_set_parameter(param_id, (uint8_t *)buffer, bytes_read - 2, &cli_ref->bhy));
+                memcpy(&bsx_state_exg[block], &buffer[0], BHY_BSX_STATE_STRUCT_LEN);
                 memset(buffer, 0, sizeof(buffer));
                 file_idx++;
+                block++;
 
             }
+
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsx_algo_param_set_bsx_states,
+                                         "bhy_bsx_algo_param_set_bsx_states",
+                                         param_id,
+                                         bsx_state_exg,
+                                         &cli_ref->bhy);
 
             PRINT("Calibration profile for BSX parameter id 0x%04X is read from the file %s and calibrated\r\n",
                   param_id,
@@ -10288,11 +9666,20 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     else
     {
         /* Get bsx states for physical sensors*/
-        (void)(bhy_bsx_algo_param_get_bsx_states(param_id, bsx_state_exg, sizeof(bsx_state_exg), &actual_len,
-                                                 &cli_ref->bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsx_algo_param_get_bsx_states,
+                                     "bhy_bsx_algo_param_get_bsx_states",
+                                     param_id,
+                                     bsx_state_exg,
+                                     sizeof(bsx_state_exg),
+                                     &actual_len,
+                                     &cli_ref->bhy);
 
         /* Set bsx states for physical sensors*/
-        (void)(bhy_bsx_algo_param_set_bsx_states(param_id, bsx_state_exg, &cli_ref->bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsx_algo_param_set_bsx_states,
+                                     "bhy_bsx_algo_param_set_bsx_states",
+                                     param_id,
+                                     bsx_state_exg,
+                                     &cli_ref->bhy);
 
         PRINT("\r\n");
         PRINT("Setting Calibration profile of BSX parameter id 0x%04X is completed \r\n", param_id);
@@ -10315,7 +9702,7 @@ int8_t getbsxparam_help(void *ref)
     (void)ref;
 
     PRINT("  getbsxparam <parameter_id> or <parameter_id> <file_name>\r\n");
-    PRINT("    \t -Get the BSX calibration states for a specific physical sensor parameter id\r\n");
+    PRINT("    \t =Get the BSX calibration states for a specific physical sensor parameter id\r\n");
     PRINT(
         "    \t -<parameter_id> : ID of the parameter (e.g., '0x201' for accelerometer, '0x203' for gyroscope, '0x205' for magnetometer)\r\n");
     PRINT(
@@ -10343,7 +9730,7 @@ int8_t getbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     char file_ext[6] = { 0 };
     int8_t ret_val;
     bhy_bsx_algo_param_state_exg bsx_state_exg[BHY_BSX_STATE_MAX_BLOCKS];
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     strncpy(str_param_id, (char *)argv[1], strlen((char *)argv[1]));
     str_param_id[strlen((char *)argv[1])] = '\0';
@@ -10364,8 +9751,13 @@ int8_t getbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("Get Calibration profile of BSX parameter id: 0x%04X\r\n", param_id);
 
     /* Get bsx states for physical sensors*/
-    (void)(bhy_bsx_algo_param_get_bsx_states(param_id, bsx_state_exg, sizeof(bsx_state_exg), &actual_len,
-                                             &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsx_algo_param_get_bsx_states,
+                                 "bhy_bsx_algo_param_get_bsx_states",
+                                 param_id,
+                                 bsx_state_exg,
+                                 sizeof(bsx_state_exg),
+                                 &actual_len,
+                                 &cli_ref->bhy);
 #ifdef PC
     if (argc >= 3)
 #else
@@ -10391,15 +9783,15 @@ int8_t getbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
         if (ret_val == 0)
         {
-            #ifndef PC
+#ifndef PC
             if (file_exists(file_name))
             {
                 (void)remove(file_name);
             }
 
-            #endif
+#endif
 
-            FILE *fp = fopen(file_name, "w");
+            FILE *fp = fopen(file_name, "wb");
             uint32_t bytes_written = 0;
 
             if (fp == NULL)
@@ -10421,8 +9813,6 @@ int8_t getbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
                     return CLI_E_FILE_CMD;
                 }
-
-                fprintf(fp, "\r\n");
 
                 if ((current_block->block_len == 0) ||
                     (current_block->block_info & BHY_BSX_STATE_TRANSFER_COMPLETE) != 0)
@@ -10464,7 +9854,7 @@ int8_t getbsxver_help(void *ref)
     (void)ref;
 
     PRINT("  getbsxver \r\n");
-    PRINT("    \t -Get the BSX version\r\n");
+    PRINT("    \t =Get the BSX version\r\n");
 
     return CLI_OK;
 }
@@ -10479,12 +9869,15 @@ int8_t getbsxver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     struct bhy_bsx_algo_param_version bsx_version = { 0 };
 
     INFO("Executing %s\r\n", argv[0]);
 
-    (void)(bhy_bsx_algo_param_get_bsx_version(&bsx_version, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsx_algo_param_get_bsx_version,
+                                 "bhy_bsx_algo_param_get_bsx_version",
+                                 &bsx_version,
+                                 &cli_ref->bhy);
 
     PRINT("BSX version: %u.%u.%u.%u\r\n\r\n",
           bsx_version.major_version,
@@ -10523,7 +9916,7 @@ int8_t virtseinfo_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     struct bhy_virtual_sensor_info_param_info info;
     uint8_t sensor_id;
 
@@ -10531,7 +9924,11 @@ int8_t virtseinfo_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
-    (void)(bhy_virtual_sensor_info_param_get_info(sensor_id, &info, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_virtual_sensor_info_param_get_info,
+                                 "bhy_virtual_sensor_info_param_get_info",
+                                 sensor_id,
+                                 &info,
+                                 &cli_ref->bhy);
 
     PRINT("Virtual Sensor Information:\r\n");
     PRINT("    Sensor ID: %u\r\n", info.sensor_type);
@@ -10583,7 +9980,7 @@ int8_t phyrangeconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s %s\r\n", argv[0], argv[1], argv[2]);
 
@@ -10596,7 +9993,7 @@ int8_t phyrangeconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     str_value_id[strlen((char *)argv[2])] = '\0';
     value = (uint16_t)strtol(str_value_id, NULL, 0);
 
-    (void)(bhy_set_virt_sensor_range(sen_id, value, &cli_ref->bhy));
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_virt_sensor_range, "bhy_set_virt_sensor_range", sen_id, value, &cli_ref->bhy);
     PRINT("Setting the range of sensor successfully\r\n");
 
     return CLI_OK;
@@ -10612,34 +10009,43 @@ int8_t phyrangeconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
                              uint8_t sen_id,
                              uint8_t parse_flag,
-                             struct bhy_cli_ref *ref)
+                             struct bhy2cli_ref *ref)
 {
     uint8_t phy_sen_id;
     struct bhy_dev *bhy = &(ref->bhy);
-    struct parse_ref *parse_table = &(ref->parse_table);
+    struct bhy_parse_ref *parse_table = &(ref->parse_table);
     bhy_fifo_parse_callback_t callback;
-    struct parse_sensor_details *sensor_details;
+    struct bhy_parse_sensor_details *sensor_details;
     struct bhy_system_param_phys_sensor_info psi = { 0 };
 
     if (first_run)
     {
         first_run = false;
-        (void)bhy_update_virtual_sensor_list(bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_update_virtual_sensor_list, "bhy_update_virtual_sensor_list", bhy);
 
         /* Get present virtual sensor */
-        (void)bhy_system_param_get_virtual_sensor_present(bhy);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_virtual_sensor_present,
+                                     "bhy_system_param_get_virtual_sensor_present",
+                                     bhy);
     }
 
     /* If the payload of this sensor is not yet registered and within the custom virtual sensor id range, register the
      * default parsing function */
-    if (bhy_is_sensor_available(sen_id, bhy))
+    uint8_t rstl;
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available, "bhy_is_sensor_available", rstl, sen_id, bhy);
+    if (rstl)
     {
         if ((sen_id >= BHY_SENSOR_ID_CUSTOM_START) && (sen_id <= BHY_SENSOR_ID_CUSTOM_END) &&
             (custom_driver_information[sen_id - BHY_SENSOR_ID_CUSTOM_START].is_registered != 1))
         {
             custom_driver_information[sen_id - BHY_SENSOR_ID_CUSTOM_START].sensor_payload = bhy->event_size[sen_id];
 
-            (void)(bhy_register_fifo_parse_callback(sen_id, parse_custom_sensor_default, parse_table, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_register_fifo_parse_callback,
+                                         "bhy_register_fifo_parse_callback",
+                                         sen_id,
+                                         parse_custom_sensor_default,
+                                         parse_table,
+                                         bhy);
             PRINT("No output interpretation has been provided for this sensor. ");
             PRINT("FIFO data will be printed as hex values. ");
             PRINT("For registering the payload interpretation, use the addse option\r\n");
@@ -10654,7 +10060,11 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
 
     PRINT("Sensor ID: %u, sample rate: %f Hz, latency: %lu ms\r\n", sen_id, sen_cfg.sample_rate, sen_cfg.latency);
 
-    sensor_details = parse_add_sensor_details(sen_id, parse_table);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_parse_add_sensor_details,
+                                "bhy_parse_add_sensor_details",
+                                sensor_details,
+                                sen_id,
+                                parse_table);
     if (!sensor_details)
     {
         ERROR("Insufficient parsing slots\r\n");
@@ -10668,8 +10078,13 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
         /* Register if not already requested earlier */
         if (sensor_details->parse_flag == PARSE_FLAG_NONE)
         {
-            callback = bhy_get_callback(sen_id);
-            (void)(bhy_register_fifo_parse_callback(sen_id, callback, parse_table, bhy));
+            callback = bhy2cli_get_callback(sen_id);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_register_fifo_parse_callback,
+                                         "bhy_register_fifo_parse_callback",
+                                         sen_id,
+                                         callback,
+                                         parse_table,
+                                         bhy);
         }
 
         sensor_details->parse_flag = PARSE_SET_FLAG(sensor_details->parse_flag, parse_flag);
@@ -10683,34 +10098,49 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
         else
         {
             /* FW supports this physical sensor. Use dynamic scaling factor from sensor */
-            (void)(bhy_system_param_get_physical_sensor_info(phy_sen_id, &psi, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_physical_sensor_info,
+                                         "bhy_system_param_get_physical_sensor_info",
+                                         phy_sen_id,
+                                         &psi,
+                                         bhy);
             sensor_details->scaling_factor = get_sensor_dynamic_range_scaling(sen_id, (float)psi.curr_range.u16_val);
         }
 
         sensors_active[sen_id] = true;
 
         /* Flush sensor data from the FIFO */
-        (void)(bhy_flush_fifo(sen_id, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_flush_fifo, "bhy_flush_fifo", sen_id, bhy);
 
         /* Enable sensor and set sample rate if there is a source requesting it */
         if (sensor_details->parse_flag != PARSE_FLAG_NONE)
         {
-            (void)(bhy_virtual_sensor_conf_param_set_cfg(sen_id, &sen_cfg, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_set_cfg,
+                                         "bhy_virtual_sensor_conf_param_set_cfg",
+                                         sen_id,
+                                         &sen_cfg,
+                                         bhy);
         }
     }
     else
     {
         /* Flush sensor data from the FIFO */
-        (void)(bhy_flush_fifo(sen_id, bhy));
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_flush_fifo, "bhy_flush_fifo", sen_id, bhy);
 
         sensor_details->parse_flag = PARSE_CLEAR_FLAG(sensor_details->parse_flag, parse_flag);
 
         /* Disable if there is no source requesting it */
         if (sensor_details->parse_flag == PARSE_FLAG_NONE)
         {
-            (void)(bhy_virtual_sensor_conf_param_set_cfg(sen_id, &sensor_conf, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_set_cfg,
+                                         "bhy_virtual_sensor_conf_param_set_cfg",
+                                         sen_id,
+                                         &sensor_conf,
+                                         bhy);
             sensors_active[sen_id] = false;
-            (void)(bhy_deregister_fifo_parse_callback(sen_id, bhy));
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_deregister_fifo_parse_callback,
+                                         "bhy_deregister_fifo_parse_callback",
+                                         sen_id,
+                                         bhy);
             sensor_details->id = 0;
         }
     }
@@ -10722,20 +10152,38 @@ static void configure_sensor(struct bhy_virtual_sensor_conf_param_conf sen_cfg,
 * @brief Function to configure for sensors in logandstream command
 * @param[in] cli_ref  : Reference to device and command line
 */
-static void log_configure_sensor(struct bhy_cli_ref *cli_ref)
+static void log_configure_sensor(struct bhy2cli_ref *cli_ref)
 {
     for (uint16_t idx = 1; idx <= num_sensor; idx++)
     {
-        if (enable_ds[sensor_list[idx]] == false)
+        bool rstl = false;
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_downsampling_flag, "bhy_get_downsampling_flag", rstl, sensor_list[idx]);
+        if (rstl == false)
         {
             if (sen_cfg_list[idx].sample_rate > 50.0f)
             {
-                enable_ds[sensor_list[idx]] = true;
-                odr_ds[sensor_list[idx]] = (uint16_t)((round)((double)sen_cfg_list[idx].sample_rate / 50));
-                configure_sensor(sen_cfg_list[idx],
-                                 (uint8_t)sensor_list[idx],
-                                 PARSE_FLAG_STREAM | PARSE_FLAG_LOG,
-                                 cli_ref);
+                if (enable_muted[sensor_list[idx]] == true)
+                {
+                    configure_sensor(sen_cfg_list[idx],
+                                     (uint8_t)sensor_list[idx],
+                                     PARSE_FLAG_STREAM | PARSE_FLAG_LOG,
+                                     cli_ref);
+                }
+                else
+                {
+                    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_flag,
+                                                 "bhy_set_downsampling_flag",
+                                                 sensor_list[idx],
+                                                 true);
+                    CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_odr,
+                                                 "bhy_set_downsampling_odr",
+                                                 sensor_list[idx],
+                                                 (int16_t)round((double)sen_cfg_list[idx].sample_rate / 50));
+                    configure_sensor(sen_cfg_list[idx],
+                                     (uint8_t)sensor_list[idx],
+                                     PARSE_FLAG_STREAM | PARSE_FLAG_LOG,
+                                     cli_ref);
+                }
             }
             else
             {
@@ -10749,7 +10197,10 @@ static void log_configure_sensor(struct bhy_cli_ref *cli_ref)
         {
             if (sen_cfg_list[idx].sample_rate <= ds_list[idx])
             {
-                enable_ds[sensor_list[idx]] = false;
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_flag,
+                                             "bhy_set_downsampling_flag",
+                                             sensor_list[idx],
+                                             false);
                 configure_sensor(sen_cfg_list[idx],
                                  (uint8_t)sensor_list[idx],
                                  PARSE_FLAG_STREAM | PARSE_FLAG_LOG,
@@ -10757,7 +10208,8 @@ static void log_configure_sensor(struct bhy_cli_ref *cli_ref)
             }
             else
             {
-                odr_ds[sensor_list[idx]] = (uint16_t)((round)((double)sen_cfg_list[idx].sample_rate / ds_list[idx]));
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_odr, "bhy_set_downsampling_odr", sensor_list[idx],
+                                             (int16_t)round((double)sen_cfg_list[idx].sample_rate / ds_list[idx]));
                 DATA("Streaming sensor ID %d with sample rate is %fHz\r\n", sensor_list[idx], ds_list[idx]);
                 configure_sensor(sen_cfg_list[idx],
                                  (uint8_t)sensor_list[idx],
@@ -10773,9 +10225,12 @@ static void log_configure_sensor(struct bhy_cli_ref *cli_ref)
 * @param[in] file_name_t : Reference to buffer to store file name
 * @param[in] argv        : Argument for file name
 * @param[in] cli_ref     : Reference to device and command line
+* @return API error codes
 */
-static void create_log(char *file_name_t, char *argv, struct bhy_cli_ref *cli_ref)
+static int8_t create_log(char *file_name_t, char *argv, struct bhy2cli_ref *cli_ref)
 {
+    int8_t ret = CLI_OK;
+
     if (cli_ref->parse_table.logdev.logfile == NULL)
     {
         PRINT("Creating %s\r\n", argv);
@@ -10786,18 +10241,254 @@ static void create_log(char *file_name_t, char *argv, struct bhy_cli_ref *cli_re
         if (cli_ref->parse_table.logdev.logfile)
         {
             PRINT("File %s was created\r\n", cli_ref->parse_table.logdev.logfilename);
-            write_meta_info(&cli_ref->parse_table.logdev, &cli_ref->bhy);
+            log_write_meta_info(&cli_ref->parse_table.logdev, &cli_ref->bhy);
+            ret = CLI_OK;
         }
         else
         {
             ERROR("File %s could not be found/created\r\n", cli_ref->parse_table.logdev.logfilename);
+            lognstream_inprogress = false;
+            ret = CLI_E_INVALID_PARAM;
         }
     }
     else
     {
         PRINT("File %s is open. Please use 'detlog' to detach the open file\r\n",
               cli_ref->parse_table.logdev.logfilename);
+        ret = CLI_OK;
     }
+
+    return ret;
+}
+
+/**
+* @brief Function to process for logandstream start
+* @param[in] argv    : Array of pointer to arguments
+* @param[in] cli_ref : Reference to command line
+*/
+static int8_t logandstream_start(uint8_t * const argv[], struct bhy2cli_ref *cli_ref)
+{
+    int8_t ret;
+    uint16_t idx = 0;
+    const char start_str[] = "start";
+
+    for (idx = 1; idx < MAXIMUM_VIRTUAL_SENSOR_LIST; idx++)
+    {
+        if (argv[idx] == NULL)
+        {
+            break;
+        }
+    }
+
+    if (idx < 3U)
+    {
+        return CLI_E_INVALID_PARAM;
+    }
+
+    num_sensor = idx - 3;
+
+    char sen_id_str[8], sample_rate_str[8], latency_str[8], downstream_str[8];
+    char *start, *end;
+
+    if (lognstream_inprogress)
+    {
+        PRINT(
+            "There is another logandstream command has already executed now, please stop it before executing new command\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+    else
+    {
+        lognstream_inprogress = true;
+    }
+
+    for (idx = 1; idx <= num_sensor; idx++)
+    {
+        /* Parse Sensor ID */
+        start = (char *)(argv[idx]);
+        end = strchr(start, ':');
+        if (end == NULL)
+        {
+            ERROR("Sensor ID / Sample rate format error\r\n");
+            lognstream_inprogress = false;
+
+            return CLI_E_NULL_PTR;
+        }
+
+        strncpy(sen_id_str, start, (size_t)(end - start));
+        sen_id_str[end - start] = '\0';
+        sensor_list[idx] = (uint8_t)atoi(sen_id_str);
+
+        /* Parse sample rate */
+        start = end + 1;
+        end = strchr(start, ':');
+
+        if (end == NULL)
+        {
+            end = start + strlen(start);
+        }
+
+        strncpy(sample_rate_str, start, (size_t)(end - start));
+        sample_rate_str[end - start] = '\0';
+        sen_cfg_list[idx].sample_rate = (float)atof(sample_rate_str);
+
+        if (sen_cfg_list[idx].sample_rate <= 0.0f)
+        {
+            PRINT("Incorrect value, please input positive value for sample rate to execute log and stream command\r\n");
+            lognstream_inprogress = false;
+
+            return CLI_E_INVALID_PARAM;
+        }
+
+        sen_cfg_list[idx].latency = 0;
+
+        /*  Parse Latency */
+        if (strlen(end))
+        {
+            start = end + 1;
+            end = strchr(start, ':');
+
+            if (end == NULL)
+            {
+                end = start + strlen(start);
+            }
+
+            strncpy(latency_str, start, (size_t)(end - start));
+            latency_str[end - start] = '\0';
+            sen_cfg_list[idx].latency = (uint32_t)atoi(latency_str);
+        }
+
+        /* Parse downstream rate*/
+        ds_list[sensor_list[idx]] = -1.0f;
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_odr, "bhy_set_downsampling_odr", sensor_list[idx], -1);
+        enable_muted[sensor_list[idx]] = false;
+        if (strlen(end))
+        {
+            start = end + 1;
+            end = strchr(start, ':');
+
+            if (end == NULL)
+            {
+                end = start + strlen(start);
+            }
+
+            strncpy(downstream_str, start, (size_t)(end - start));
+            downstream_str[end - start] = '\0';
+            ds_list[idx] = (float)atof(downstream_str);
+            if (ds_list[idx] != 0.0f)
+            {
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_flag,
+                                             "bhy_set_downsampling_flag",
+                                             sensor_list[idx],
+                                             true);
+            }
+            else if (ds_list[idx] == 0.0f)
+            {
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_flag,
+                                             "bhy_set_downsampling_flag",
+                                             sensor_list[idx],
+                                             false);
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_odr, "bhy_set_downsampling_odr", sensor_list[idx], 0);
+                enable_muted[sensor_list[idx]] = true;
+            }
+        }
+    }
+
+    if (strncmp((char *)argv[num_sensor + 2], start_str, strlen(start_str)) != 0)
+    {
+        PRINT("Incorrect argument, please input 'start' as a last argument in the command\r\n");
+        lognstream_inprogress = false;
+
+        return CLI_E_INVALID_PARAM;
+    }
+
+    ret = create_log(file_name, (char *)argv[num_sensor + 1], cli_ref);
+    if (ret != CLI_OK)
+    {
+        return ret;
+    }
+
+    log_configure_sensor(cli_ref);
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to process for logandstream stop
+* @param[in] argv    : Array of pointer to arguments
+* @param[in] cli_ref : Reference to command line
+*/
+static int8_t logandstream_stop(uint8_t * const argv[], struct bhy2cli_ref *cli_ref)
+{
+    uint16_t idx = 0;
+
+    if (!(lognstream_inprogress))
+    {
+        PRINT("There is no log and stream command in progressing now\r\n");
+
+        return CLI_OK;
+    }
+
+    PRINT("Stopping log and stream command ...\r\n");
+
+    struct bhy_dev *bhy = &(cli_ref->bhy);
+    struct bhy_parse_ref *parse_table = &(cli_ref->parse_table);
+    struct bhy_parse_sensor_details *sensor_details = NULL;
+
+    for (idx = 1; idx <= num_sensor; idx++)
+    {
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_parse_add_sensor_details, "bhy_parse_add_sensor_details", sensor_details,
+                                    (uint8_t)sensor_list[idx], parse_table);
+
+        /* Flush sensor data from the FIFO */
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_flush_fifo, "bhy_flush_fifo", (uint8_t)sensor_list[idx], bhy);
+
+        if (sensor_details != NULL)
+        {
+            /* Disable if there is no source requesting it */
+            sensor_details->parse_flag = PARSE_FLAG_NONE;
+            sensor_conf.sample_rate = 0;
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_set_cfg,
+                                         "bhy_virtual_sensor_conf_param_set_cfg",
+                                         (uint8_t)sensor_list[idx],
+                                         &sensor_conf,
+                                         bhy);
+            sensors_active[sensor_list[idx]] = false;
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_deregister_fifo_parse_callback, "bhy_deregister_fifo_parse_callback",
+                                         (uint8_t)sensor_list[idx], bhy);
+            sensor_details->id = 0;
+        }
+    }
+
+    /* Detach logging*/
+    if (cli_ref->parse_table.logdev.logfile != NULL)
+    {
+        fclose(cli_ref->parse_table.logdev.logfile);
+        cli_ref->parse_table.logdev.logfile = NULL;
+        PRINT("File %s was detached for logging\r\n", cli_ref->parse_table.logdev.logfilename);
+        memset(cli_ref->parse_table.logdev.logfilename, 0, sizeof(cli_ref->parse_table.logdev.logfilename));
+    }
+    else
+    {
+        PRINT("No file to detach\r\n");
+    }
+
+    /* Reset all necessary variable */
+    for (int loop = 0; loop < MAXIMUM_VIRTUAL_SENSOR_LIST; loop++)
+    {
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_flag, "bhy_set_downsampling_flag", sensor_list[loop], false);
+        CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_downsampling_odr, "bhy_set_downsampling_odr", sensor_list[loop], -1);
+        enable_muted[sensor_list[loop]] = false;
+    }
+
+    num_sensor = 0;
+    lognstream_inprogress = false;
+    memset(file_name, '\0', sizeof(file_name));
+    memset(sensor_list, 0, sizeof(sensor_list));
+    memset(ds_list, 0, sizeof(ds_list));
+    memset(sen_cfg_list, 0, sizeof(struct bhy_virtual_sensor_conf_param_conf));
+
+    return CLI_OK;
 }
 
 /**
@@ -10817,10 +10508,11 @@ int8_t logandstream_help(void *ref)
     PRINT("    \t -<sensor id> is required, virtual sensor id\r\n");
     PRINT("    \t -<frequency> is required\r\n");
     PRINT("    \t -<latency> is optional\r\n");
-    PRINT("    \t -<downsampling> is optional, default is 50Hz\r\n");
+    PRINT(
+        "    \t -<downsampling> is optional, default is 50Hz, in case downsampling is 0, it means there is no stream data is output\r\n");
     PRINT("    \t -<filename>: is required, name of file for logging\r\n");
     PRINT("    \t -<start>/<stop>: is required, trigger/stop condition\r\n");
-    PRINT("  Example usage:\r\n");
+    PRINT("       Example usage:\r\n");
     PRINT("    \t logandstream 3:50::10 4:100::20 log.bin start\r\n");
     PRINT("    \t logandstream stop\r\n");
 
@@ -10835,190 +10527,22 @@ int8_t logandstream_help(void *ref)
 */
 int8_t logandstream_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
+    const char stop_str[] = "stop";
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+    int8_t ret;
+
     (void)argc;
 
     PRINT("Executing log and stream together\r\n");
-    const char start_str[] = "start";
-    const char stop_str[] = "stop";
-    struct bhy_cli_ref *cli_ref = (struct bhy_cli_ref *)ref;
-    uint16_t idx = 0;
 
     if (strncmp((char *)(argv[1]), stop_str, strlen(stop_str)) != 0)
     {
-        for (idx = 1; idx < MAXIMUM_VIRTUAL_SENSOR_LIST; idx++)
-        {
-            if (argv[idx] == NULL)
-            {
-                break;
-            }
-        }
-
-        num_sensor = idx - 3;
-
-        char sen_id_str[8], sample_rate_str[8], latency_str[8], downstream_str[8];
-        char *start, *end;
-
-        if (lognstream_inprogress)
-        {
-            PRINT(
-                "There is another logandstream command has already executed now, please stop it before executing new command\r\n");
-
-            return CLI_E_INVALID_PARAM;
-        }
-        else
-        {
-            lognstream_inprogress = true;
-        }
-
-        for (idx = 1; idx <= num_sensor; idx++)
-        {
-            /* Parse Sensor ID */
-            start = (char *)(argv[idx]);
-            end = strchr(start, ':');
-            if (end == NULL)
-            {
-                ERROR("Sensor ID / Sample rate format error\r\n");
-                lognstream_inprogress = false;
-
-                return CLI_E_NULL_PTR;
-            }
-
-            strncpy(sen_id_str, start, (size_t)(end - start));
-            sen_id_str[end - start] = '\0';
-            sensor_list[idx] = (uint8_t)atoi(sen_id_str);
-
-            /* Parse sample rate */
-            start = end + 1;
-            end = strchr(start, ':');
-
-            if (end == NULL)
-            {
-                end = start + strlen(start);
-            }
-
-            strncpy(sample_rate_str, start, (size_t)(end - start));
-            sample_rate_str[end - start] = '\0';
-            sen_cfg_list[idx].sample_rate = (float)atof(sample_rate_str);
-
-            if (sen_cfg_list[idx].sample_rate <= 0.0f)
-            {
-                PRINT(
-                    "Incorrect value, please input positive value for sample rate to execute log and stream command\r\n");
-                lognstream_inprogress = false;
-
-                return CLI_E_INVALID_PARAM;
-            }
-
-            sen_cfg_list[idx].latency = 0;
-
-            /*  Parse Latency */
-            if (strlen(end))
-            {
-                start = end + 1;
-                end = strchr(start, ':');
-
-                if (end == NULL)
-                {
-                    end = start + strlen(start);
-                }
-
-                strncpy(latency_str, start, (size_t)(end - start));
-                latency_str[end - start] = '\0';
-                sen_cfg_list[idx].latency = (uint32_t)atoi(latency_str);
-            }
-
-            /* Parse downstream rate*/
-            ds_list[idx] = 0.0f;
-            if (strlen(end))
-            {
-                start = end + 1;
-                end = strchr(start, ':');
-
-                if (end == NULL)
-                {
-                    end = start + strlen(start);
-                }
-
-                strncpy(downstream_str, start, (size_t)(end - start));
-                downstream_str[end - start] = '\0';
-                ds_list[idx] = (float)atof(downstream_str);
-                if (ds_list[idx] != 0.0f)
-                {
-                    enable_ds[sensor_list[idx]] = true;
-                }
-            }
-        }
-
-        if (strncmp((char *)argv[num_sensor + 2], start_str, strlen(start_str)) != 0)
-        {
-            PRINT("Incorrect argument, please input 'start' as a last argument in the command\r\n");
-            lognstream_inprogress = false;
-
-            return CLI_E_INVALID_PARAM;
-        }
-
-        create_log(file_name, (char *)argv[num_sensor + 1], cli_ref);
-
-        log_configure_sensor(cli_ref);
+        ret = logandstream_start(argv, cli_ref);
     }
     else
     {
-        if (!(lognstream_inprogress))
-        {
-            PRINT("There is no log and stream command in progressing now\r\n");
-
-            return CLI_OK;
-        }
-
-        PRINT("Stopping log and stream command ...\r\n");
-
-        struct bhy_dev *bhy = &(cli_ref->bhy);
-        struct parse_ref *parse_table = &(cli_ref->parse_table);
-        struct parse_sensor_details *sensor_details;
-
-        for (idx = 1; idx <= num_sensor; idx++)
-        {
-            sensor_details = parse_add_sensor_details((uint8_t)sensor_list[idx], parse_table);
-
-            /* Flush sensor data from the FIFO */
-            (void)(bhy_flush_fifo((uint8_t)sensor_list[idx], bhy));
-
-            /* Disable if there is no source requesting it */
-            sensor_details->parse_flag = PARSE_FLAG_NONE;
-            sensor_conf.sample_rate = 0;
-            (void)(bhy_virtual_sensor_conf_param_set_cfg((uint8_t)sensor_list[idx], &sensor_conf, bhy));
-            sensors_active[sensor_list[idx]] = false;
-            (void)(bhy_deregister_fifo_parse_callback((uint8_t)sensor_list[idx], bhy));
-            sensor_details->id = 0;
-        }
-
-        /* Detach logging*/
-        if (cli_ref->parse_table.logdev.logfile != NULL)
-        {
-            fclose(cli_ref->parse_table.logdev.logfile);
-            cli_ref->parse_table.logdev.logfile = NULL;
-            PRINT("File %s was detached for logging\r\n", cli_ref->parse_table.logdev.logfilename);
-            memset(cli_ref->parse_table.logdev.logfilename, 0, sizeof(cli_ref->parse_table.logdev.logfilename));
-        }
-        else
-        {
-            PRINT("No file to detach\r\n");
-        }
-
-        /* Reset all necessary variable */
-        for (int loop = 0; loop < MAXIMUM_VIRTUAL_SENSOR_LIST; loop++)
-        {
-            enable_ds[sensor_list[loop]] = false;
-            odr_ds[sensor_list[loop]] = 0;
-        }
-
-        num_sensor = 0;
-        lognstream_inprogress = false;
-        memset(file_name, '\0', sizeof(file_name));
-        memset(sensor_list, 0, sizeof(sensor_list));
-        memset(ds_list, 0, sizeof(ds_list));
-        memset(sen_cfg_list, 0, sizeof(struct bhy_virtual_sensor_conf_param_conf));
+        ret = logandstream_stop(argv, cli_ref);
     }
 
-    return CLI_OK;
+    return ret;
 }

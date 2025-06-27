@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -56,6 +56,16 @@ extern "C" {
 #define GAS_INJECT_ID                     INT8_C(66)
 #define IAQ_INJECT_ID                     INT8_C(68)
 
+#define ACC_COR_INJECT_DRIVER_ID          INT8_C(76)
+#define ACC_RAW_INJECT_DRIVER_ID          INT8_C(75)
+#define ACC_PASSTH_INJECT_DRIVER_ID       INT8_C(74)
+#define GYRO_COR_INJECT_DRIVER_ID         INT8_C(79)
+#define GYRO_RAW_INJECT_DRIVER_ID         INT8_C(78)
+#define GYRO_PASSTH_INJECT_DRIVER_ID      INT8_C(77)
+#define GAME_ROTATION_INJECT_DRIVER_ID    INT8_C(80)
+#define ORIENTATION_INJECT_DRIVER_ID      INT8_C(81)
+#define LINEACC_INJECT_DRIVER_ID          INT8_C(82)
+
 #define TIMESTAMP_SMALL_DELTA_NWU_ID      INT8_C(245)
 #define TIMESTAMP_SMALL_DELTA_WU_ID       INT8_C(251)
 
@@ -81,6 +91,9 @@ extern "C" {
 #define FULL_TIMESTAMP_EVENT_SIZE         INT8_C(6)
 #define META_EVENT_SIZE                   INT8_C(4)
 #define DEBUG_EVENT_SIZE                  INT8_C(18)
+
+#define QUAT_INJECT_EVENT_SIZE            INT8_C(9)
+#define EULER_INJECT_EVENT_SIZE           INT8_C(7)
 
 /* End of CPP Guard */
 #ifdef __cplusplus

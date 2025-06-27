@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -37,7 +37,6 @@
 
 #include "post_mortem.h"
 #include "verbose.h"
-#include "bhy_hif.h"
 
 /**
 * @brief Function to get the Post Mortem data
@@ -50,7 +49,8 @@ int8_t get_post_mortem_data(struct bhy_post_mortem *pminfo, struct bhy_dev *bhy)
     uint32_t pmlen = 0;
     int8_t rslt;
 
-    rslt = bhy_get_post_mortem_data((uint8_t*)pminfo, sizeof(struct bhy_post_mortem), &pmlen, bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_post_mortem_data, "bhy_get_post_mortem_data", rslt, (uint8_t*)pminfo,
+                                sizeof(struct bhy_post_mortem), &pmlen, bhy);
 
     return rslt;
 }

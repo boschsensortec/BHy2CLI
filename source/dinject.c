@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -36,8 +36,6 @@
  */
 
 #include <stdio.h>
-#include "parse.h"
-#include "bhy_parse.h"
 #include "verbose.h"
 #include "coines.h"
 
@@ -118,7 +116,7 @@ int8_t inject_data(uint16_t size, struct bhy_dev *bhy)
 {
     int8_t rslt;
 
-    rslt = bhy_inject_data(inject_log, size, bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_inject_data, "bhy_inject_data", rslt, inject_log, size, bhy);
     if (rslt == 0)
     {
         memset(inject_log, 0, sizeof(inject_log));
@@ -313,6 +311,60 @@ int8_t dinject_init(char *input, struct data_inject *dinject, const struct bhy_d
 }
 
 /**
+* @brief Function to parse the injection data
+* @param[in] event_id    : Event ID
+* @param[in] dinject     : Data Injection structure
+* @return
+*/
+static void dinject_parse_inject_data(int event_id, const struct data_inject *dinject)
+{
+    switch (event_id)
+    {
+        case ACCEL_INJECT_ID:
+        case ACC_COR_INJECT_DRIVER_ID:
+        case ACC_RAW_INJECT_DRIVER_ID:
+        case ACC_PASSTH_INJECT_DRIVER_ID:
+        case LINEACC_INJECT_DRIVER_ID:
+            event_size = ACCEL_INJECT_EVENT_SIZE;
+            parse_file(event_id, dinject);
+            break;
+        case GYRO_INJECT_ID:
+        case GYRO_COR_INJECT_DRIVER_ID:
+        case GYRO_RAW_INJECT_DRIVER_ID:
+        case GYRO_PASSTH_INJECT_DRIVER_ID:
+            event_size = GYRO_INJECT_EVENT_SIZE;
+            parse_file(event_id, dinject);
+            break;
+        case MAG_INJECT_ID:
+            event_size = MAG_INJECT_EVENT_SIZE;
+            parse_file(event_id, dinject);
+            break;
+        case GAME_ROTATION_INJECT_DRIVER_ID:
+            event_size = QUAT_INJECT_EVENT_SIZE;
+            parse_file(event_id, dinject);
+            break;
+        case ORIENTATION_INJECT_DRIVER_ID:
+            event_size = EULER_INJECT_EVENT_SIZE;
+            parse_file(event_id, dinject);
+            break;
+        case PRESSURE_INJECT_ID:
+            event_size = PRESSURE_INJECT_EVENT_SIZE;
+            parse_file(event_id, dinject);
+            break;
+        case GAS_INJECT_ID:
+            event_size = GAS_INJECT_EVENT_SIZE;
+            parse_file(event_id, dinject);
+            break;
+        case IAQ_INJECT_ID:
+            event_size = IAQ_INJECT_EVENT_SIZE;
+            parse_file(event_id, dinject);
+            break;
+        default:
+            break;
+    }
+}
+
+/**
 * @brief Function to inject the data
 * @param[in] event_id    : Event ID
 * @param[in] dinject     : Data Injection structure
@@ -327,37 +379,7 @@ int8_t dinject_inject_data(int event_id, const struct data_inject *dinject, stru
     {
         if (event_id < 100)
         {
-            switch (event_id)
-            {
-                case ACCEL_INJECT_ID:
-                    event_size = ACCEL_INJECT_EVENT_SIZE;
-                    parse_file(event_id, dinject);
-                    break;
-
-                case GYRO_INJECT_ID:
-                    event_size = GYRO_INJECT_EVENT_SIZE;
-                    parse_file(event_id, dinject);
-                    break;
-                case MAG_INJECT_ID:
-                    event_size = MAG_INJECT_EVENT_SIZE;
-                    parse_file(event_id, dinject);
-                    break;
-
-                case PRESSURE_INJECT_ID:
-                    event_size = PRESSURE_INJECT_EVENT_SIZE;
-                    parse_file(event_id, dinject);
-                    break;
-                case GAS_INJECT_ID:
-                    event_size = GAS_INJECT_EVENT_SIZE;
-                    parse_file(event_id, dinject);
-                    break;
-                case IAQ_INJECT_ID:
-                    event_size = IAQ_INJECT_EVENT_SIZE;
-                    parse_file(event_id, dinject);
-                    break;
-                default:
-                    break;
-            }
+            dinject_parse_inject_data(event_id, dinject);
         }
         else
         {

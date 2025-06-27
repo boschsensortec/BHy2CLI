@@ -1,7 +1,38 @@
 /***********************************************************************************************************************/
 # Release Details
 
-- bhy2cli Version			: v0.5.0
+- bhy2cli Version			: v0.6.0
+
+- Firmware Versions	
+   bhi360				    : v1.1.18.0
+
+- BSX4 version 				: 
+					  bhi360[1.1.18.0]    -> vIR84.3
+- Supported Use Cases		
+   Generic Sensor Application		: 
+					  bhi3[bhi360/bhi380]
+
+- Supported Platforms			: Windows
+/***********************************************************************************************************************/
+# Release Details
+
+- bhy2cli Version			: v0.5.2
+
+- Firmware Versions	
+   bhi360				    : v1.1.18.0
+
+- BSX4 version 				: 
+					  bhi360[1.1.18.0]    -> vIR84.3
+- Supported Use Cases		
+   Generic Sensor Application		: 
+					  bhi3[bhi360/bhi380]
+
+- Supported Platforms			: Windows
+
+/***********************************************************************************************************************/
+# Release Details
+
+- bhy2cli Version			: v0.5.1
 
 - Firmware Versions	
    bhi260ap				: v1.1.10.0

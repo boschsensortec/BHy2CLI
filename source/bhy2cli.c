@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -30,7 +30,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @file    bhycli.c
+ * @file    bhy2cli.c
  * @brief   Command line utility for the BHI260/BHA260
  *
  */
@@ -46,14 +46,13 @@
 #include <stdbool.h>
 #include <signal.h>
 
-#include "bhy.h"
-#include "parse.h"
 #include "cli.h"
 #include "common.h"
 #include "coines.h"
-#include "bhycli_callbacks.h"
+#include "bhy2cli_callbacks.h"
 #include "common_callbacks.h"
 #include "verbose.h"
+#include "bhy_defs.h"
 
 #define LIFE_LED_PERIOD_MS  UINT32_C(2500)
 #define LIFE_LED_DUR_MS     UINT32_C(50)
@@ -72,9 +71,9 @@ static volatile bool end_streaming = false;
 static uint8_t *argv[50] = { 0 };
 static uint8_t argc = 0;
 uint8_t inp[10240] = { 0 };
-enum coines_comm_intf bhycli_intf = COINES_COMM_INTF_BLE;
+enum coines_comm_intf bhy2cli_intf = COINES_COMM_INTF_BLE;
 #endif
-static struct bhy_cli_ref cli_ref = { { { 0 } } };
+static struct bhy2cli_ref cli_ref = { { { 0 } } };
 
 bool cmd_in_process = false;
 
@@ -163,17 +162,17 @@ void perform_init_seq(enum bhy_intf intf, uint16_t *bytes_read_now)
 #ifndef PC
     if (coines_intf_connected(COINES_COMM_INTF_BLE))
     {
-        bhycli_intf = COINES_COMM_INTF_BLE;
+        bhy2cli_intf = COINES_COMM_INTF_BLE;
     }
     else
     {
-        bhycli_intf = COINES_COMM_INTF_USB;
+        bhy2cli_intf = COINES_COMM_INTF_USB;
     }
 
     /* Read and discard any data from the buffer */
-    if (coines_intf_available(bhycli_intf))
+    if (coines_intf_available(bhy2cli_intf))
     {
-        *bytes_read_now = coines_read_intf(bhycli_intf, inp, coines_intf_available(bhycli_intf));
+        *bytes_read_now = coines_read_intf(bhy2cli_intf, inp, coines_intf_available(bhy2cli_intf));
     }
 
     PRINT("\033c\033[2J"); /* Clear screen */
@@ -260,9 +259,8 @@ int main(void)
     bool led_state = false;
 #endif
 
-    cli_ref.cli_dev.n_cmds = bhy_get_n_cli_callbacks();
+    cli_ref.cli_dev.n_cmds = bhy2cli_get_n_cli_callbacks();
     cli_ref.cli_dev.ref = &cli_ref;
-    cli_ref.cli_dev.table = bhy_get_cli_callbacks();
     cli_ref.parse_table.bhy = &cli_ref.bhy;
     int8_t cli_ret;
     enum bhy_intf intf;
@@ -279,10 +277,12 @@ int main(void)
     perform_init_seq(intf, &bytes_read_now);
 #endif
 
-    bhy_callbacks_init(&cli_ref);
+    bhy2cli_callbacks_init(&cli_ref);
+
+    cli_ref.cli_dev.table = bhy2cli_get_cli_callbacks();
 
 #ifdef PC
-    while (bhy_are_sensors_active() || first_run)
+    while (bhy2cli_are_sensors_active() || first_run)
     {
         first_run = false;
         if (end_streaming)
@@ -303,22 +303,22 @@ int main(void)
 #ifndef PC
         if (coines_intf_connected(COINES_COMM_INTF_BLE))
         {
-            bhycli_intf = COINES_COMM_INTF_BLE;
+            bhy2cli_intf = COINES_COMM_INTF_BLE;
         }
         else
         {
-            bhycli_intf = COINES_COMM_INTF_USB;
+            bhy2cli_intf = COINES_COMM_INTF_USB;
         }
 
         /* Read data from the service and append into the inp buffer */
-        if (coines_intf_available(bhycli_intf))
+        if (coines_intf_available(bhy2cli_intf))
         {
-            bytes_read_now = coines_read_intf(bhycli_intf, &inp[bytes_read], coines_intf_available(bhycli_intf));
+            bytes_read_now = coines_read_intf(bhy2cli_intf, &inp[bytes_read], coines_intf_available(bhy2cli_intf));
 
             /* Only for use with the terminal. Comment the following line otherwise */
             if (echo_on)
             {
-                coines_write_intf(bhycli_intf, &inp[bytes_read], bytes_read_now); /* Echo back the input */
+                coines_write_intf(bhy2cli_intf, &inp[bytes_read], bytes_read_now); /* Echo back the input */
             }
 
             bytes_read += bytes_read_now;
@@ -334,7 +334,7 @@ int main(void)
                     /* Only for use with the terminal. Comment the following line otherwise */
                     if (echo_on)
                     {
-                        coines_write_intf(bhycli_intf, &nl, 1);
+                        coines_write_intf(bhy2cli_intf, &nl, 1);
                     }
                 }
             }
@@ -365,15 +365,15 @@ int main(void)
         {
 #ifndef PC
             (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
-            coines_write_intf(bhycli_intf, out_buff, out_idx);
+            coines_write_intf(bhy2cli_intf, out_buff, out_idx);
             out_idx = 0;
             (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
 #endif
         }
 
-        bhy_data_parse_callback(&cli_ref);
+        bhy2cli_data_parse_callback(&cli_ref);
 #ifdef PC
-        if (!bhy_are_sensors_active())
+        if (!bhy2cli_are_sensors_active())
         {
             break;
         }
@@ -389,7 +389,7 @@ int main(void)
             if (heartbeat_on)
             {
                 PRINT("[H]%u\r\n", coines_get_millis());
-                coines_flush_intf(bhycli_intf);
+                coines_flush_intf(bhy2cli_intf);
             }
         }
 
@@ -400,7 +400,7 @@ int main(void)
             if (heartbeat_on)
             {
                 PRINT("[H]%u\r\n", coines_get_millis());
-                coines_flush_intf(bhycli_intf);
+                coines_flush_intf(bhy2cli_intf);
             }
         }
 
@@ -410,7 +410,7 @@ int main(void)
 #ifdef PC
         if (end_streaming)
         {
-            bhy_exit(&cli_ref);
+            bhy2cli_exit(&cli_ref);
         }
 
 #endif
@@ -435,7 +435,7 @@ void verbose_write(uint8_t *buffer, uint16_t length)
         if ((out_idx + length) > sizeof(out_buff))
         {
             (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
-            coines_write_intf(bhycli_intf, out_buff, out_idx);
+            coines_write_intf(bhy2cli_intf, out_buff, out_idx);
             out_idx = 0;
             (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
         }
@@ -446,7 +446,7 @@ void verbose_write(uint8_t *buffer, uint16_t length)
     else
     {
         (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
-        coines_write_intf(bhycli_intf, buffer, length);
+        coines_write_intf(bhy2cli_intf, buffer, length);
         (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
     }
 

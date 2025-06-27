@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -55,7 +55,7 @@ extern bool heartbeat_on;
 extern uint16_t stream_buff_len;
 
 extern uint8_t inp[10240];
-extern enum coines_comm_intf bhycli_intf;
+extern enum coines_comm_intf bhy2cli_intf;
 extern bool cmd_in_process;
 write_file wfile;
 
@@ -498,7 +498,7 @@ int8_t cls_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     PRINT("\033c\033[2J");
-#ifdef MCU_APP30
+#if (defined(MCU_APP30) || defined(MCU_APP31))
     fflush(bt_w);
 #endif
 
@@ -549,13 +549,13 @@ void wrfile_loop_callabck(bool echo_data)
         }
 
         /*! Check if new data is available. If yes */
-        if (coines_intf_available(bhycli_intf))
+        if (coines_intf_available(bhy2cli_intf))
         {
             /*! Reset the buffer index */
             bytes_read_now = 0;
 
             /*! Read the buffer */
-            bytes_read_now = coines_read_intf(bhycli_intf, inp, coines_intf_available(bhycli_intf));
+            bytes_read_now = coines_read_intf(bhy2cli_intf, inp, coines_intf_available(bhy2cli_intf));
 
             /*! If the Write limbhys not reached */
             if (wfile.data_len >= 0)
@@ -569,7 +569,7 @@ void wrfile_loop_callabck(bool echo_data)
                 /* Only for use with the terminal. Comment the following code snippet otherwise */
                 if (echo_data)
                 {
-                    coines_write_intf(bhycli_intf, inp, len_check); /* Echo back the input */
+                    coines_write_intf(bhy2cli_intf, inp, len_check); /* Echo back the input */
                 }
 
                 progress = (double)((file_size - wfile.data_len) * 100.0f) / file_size;

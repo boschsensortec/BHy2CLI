@@ -6,7 +6,7 @@ set MTP_SENDFILE=.\mtp-tools\mtp-sendfile.exe
 set MTP_DELETE=.\mtp-tools\mtp-delfile.exe
 set MTP_GETFILE=.\mtp-tools\mtp-connect.exe --getfile
 set MTP_FORMAT=.\mtp-tools\mtp-format.exe
-set BHI3_FILES_DIR=.\..\..\BHI3-firmwares\BHI360
+set BHI3_FILES_DIR=.\..\..\BHI3-firmwares\BHI380
 
 :: Load the bhy2cli firmware (SPI Interface added by default. To use I2C interface, change to 'i2c_bhy2cli.bin')
 %APP_SWITCH% usb_dfu_bl

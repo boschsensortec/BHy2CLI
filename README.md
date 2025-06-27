@@ -13,32 +13,6 @@
 | :---:      | :---:  | :----: | :----: | :----:       | :----:       | :----: | :----: |
 | version    | 0.6.0  | 1.1.18 | IR84.3 | 2.2.0        | 2.10.2       | APP30<br>APP31 | BHI360 |
 
-## Folder Structure 🗂️
-
-The SensorAPI repositories follow this folder structure:
-
-```shell
-BHy2CLI:
-	+---config
-	+---coverage
-	+---docs
-	+---Jenkinsfile
-	+---scripts
-	+---source
-	+---submodules
-	+---test
-	+---tools
-```
-
-* config: Contains configuration files used by various processes.
-* coverage: Contains coverage report
-* docs: Contains release documents (User_Guide, CHANGELOG.md, Compatibility.txt, ...)
-* Jenkinsfile: Contains the Jenkinsfile.
-* scripts: Contains batch files to clean, generate and download BHy2CLI executables/binaries 
-* source: Holds the BHy2CLI source files.
-* submodules: Destination folder for package dependency modules.
-* test: Contains test source file and config files
-* tools: Contains initial automation tools.
 
 ## Getting Started
 

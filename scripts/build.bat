@@ -1,6 +1,8 @@
 @echo off
 
-set FIRMWARE_PATH= .\submodules\BHy-SensorAPI\firmware
+set FIRMWARE_PATH_BHI360= .\submodules\bhi360\firmware
+set FIRMWARE_PATH_BHI380= .\submodules\bhi380\firmware
+set FIRMWARE_PATH_BHI385= .\submodules\bhi385\firmware
 set COINES_BRIDGE_APP30= .\submodules\coines\firmware\app3.0
 set COINES_BRIDGE_APP31= .\submodules\coines\firmware\app3.1
 set COINES_BRIDGE_NICLA= .\submodules\coines\firmware\nicla
@@ -11,6 +13,8 @@ set COINES_USB_DFU= .\submodules\coines\tools\usb-dfu
 mkdir .\release
 mkdir .\release\BHI3-firmwares
 mkdir .\release\BHI3-firmwares\BHI360
+mkdir .\release\BHI3-firmwares\BHI380
+mkdir .\release\BHI3-firmwares\BHI385
 mkdir .\release\docs
 mkdir .\release\PC
 mkdir .\release\PC\bin
@@ -43,12 +47,34 @@ set PC_COINES_APP_SWITCH= .\release\tools\app_switch
 set PC_COINES_USB_DFU= .\release\tools\usb-dfu
 set PC_DOCS=.\release\docs
 
-@echo --------------------------------------------------- 
-@echo            Updating Firmwares of BHI360 
-@echo ---------------------------------------------------
+@echo -------------------------------------------------------------
+@echo            Updating Firmwares of BHI360, BHI380 and BHI385
+@echo -------------------------------------------------------------
 
 :: Copy BHI360 firmwares
-xcopy /s /y %FIRMWARE_PATH%\bhi360\*.fw .\release\BHI3-firmwares\BHI360
+xcopy /s /y %FIRMWARE_PATH_BHI360%\bhi360\*.fw .\release\BHI3-firmwares\BHI360
+
+:: Remove BHI360 folder if no FW
+dir /b /s /a "release\BHI3-firmwares\BHI360" | findstr .>nul || (
+  rmdir /s /q release\BHI3-firmwares\BHI360
+)
+
+:: Copy BHI380 firmwares
+xcopy /s /y %FIRMWARE_PATH_BHI380%\bhi380_swim\*.fw .\release\BHI3-firmwares\BHI380
+xcopy /s /y %FIRMWARE_PATH_BHI380%\bhi380_klio\*.fw .\release\BHI3-firmwares\BHI380
+
+:: Remove BHI380 folder if no FW
+dir /b /s /a "release\BHI3-firmwares\BHI380" | findstr .>nul || (
+  rmdir /s /q release\BHI3-firmwares\BHI380
+)
+
+:: Copy BHI385 firmwares
+xcopy /s /y %FIRMWARE_PATH_BHI385%\bhi385\*.fw .\release\BHI3-firmwares\BHI385
+
+:: Remove BHI385 folder if no FW
+dir /b /s /a "release\BHI3-firmwares\BHI385" | findstr .>nul || (
+  rmdir /s /q release\BHI3-firmwares\BHI385
+)
 
 @echo ---------------------------------------------------------- 
 @echo      Updating COINES tools and COINES_BRIDGE firmwares
@@ -76,19 +102,19 @@ echo D|xcopy /y %COINES_USB_DFU% %PC_COINES_USB_DFU%
 xcopy /s /y docs %PC_DOCS%
 
 @echo --------------------------------------------------------------
-@echo  Build PC executables for BHyCLI (I2C, SPI) and Decompressor
+@echo  Build PC executables for BHy2CLI (I2C, SPI) and Decompressor
 @echo --------------------------------------------------------------
 
-:: Build executable for BHyCLI for TARGET PC with I2C Interface
+:: Build executable for BHy2CLI for TARGET PC with I2C Interface
 mingw32-make COINES_INSTALL_PATH=submodules/coines API_LOCATION=source COMMON_LOCATION=source/common TARGET=PC BHY_INTF=I2C all
-move /y bhycli.exe i2c_bhycli.exe
+move /y bhy2cli.exe i2c_bhy2cli.exe
 
-:: Build executable for BHyCLI for TARGET PC with SPI Interface
+:: Build executable for BHy2CLI for TARGET PC with SPI Interface
 mingw32-make COINES_INSTALL_PATH=submodules/coines API_LOCATION=source COMMON_LOCATION=source/common TARGET=PC all
-move /y bhycli.exe spi_bhycli.exe
+move /y bhy2cli.exe spi_bhy2cli.exe
 
 :: Copy executable to %PC_BIN_PATH%
-xcopy /y .\*bhycli.exe %PC_BIN_PATH%
+xcopy /y .\*bhy2cli.exe %PC_BIN_PATH%
 
 :: Build executable for decompressor for TARGET PC
 cd .\tools\decompressor

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -45,11 +45,8 @@ extern "C" {
 
 #include <stdbool.h>
 
-#include "bhy.h"
-//#include "bhy_klio_param.h"
-#include "logbin.h"
-
 #include "dinject_defs.h"
+#include "bhy_defs.h"
 
 #define DINJECT_FAILED       INT8_C(-1)
 #define DINJECT_SUCCESSFUL   INT8_C(1)

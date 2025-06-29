@@ -1,4 +1,28 @@
 # Changelog
+# v0.6.0
+- Features Added:
+1. Fifo parsing handlers are moved to Sensor API
+2. CLI is independent from Sensor API and can cover multiple Sensor APIs
+3. The CLI dynamically loads the Sensor API based on the shuttle board chip ID through the API entry.
+
+- Bugs Fixed:
+1. SensorAPI issue for set/get bsx states
+2. Issues related to BSEC interface
+3. Fixing downsampling and muted features for HO sensors
+4. Correct printing info for schema command
+
+- Improvement:
+1. Change Naming back to bhy2cli to be compatible with existing documentations. 
+2. Increased test code coverage to improve reliability and maintainability.
+
+# v0.5.2
+- Features Added:
+1. Added support for the downsample comamnd to mute the selected sensor from streaming
+- Bugs Fixed:
+1. BSX magnetometer parameters are not restored properly when the sensors are enabled with logse command
+2. BSX Head Orientation output schema doesn't have axisname and parse format and also cannot log the data
+- Improvement:
+1. Head Misalignment Calibration improvement
 
 # v0.5.1
  - Features added:
@@ -8,87 +32,87 @@
  4. Added command to connect to user selectable COM port. (PC mode only)
  5. Added support for downsampling when activating sensor.
  6. Following commands are added newly for configuring various parameters
-	
-	- set & get virtual sensor configuration
-	setvirtsenconf
-	getvirtsenconf
-	
-	- to set swim logging
-	swimsetlogging
+    
+    - set & get virtual sensor configuration
+    setvirtsenconf
+    getvirtsenconf
+    
+    - to set swim logging
+    swimsetlogging
 
-	- set & get accelerometer axis remapping
-	accsetar
-	accgetar
+    - set & get accelerometer axis remapping
+    accsetar
+    accgetar
 
-	- trigger & get accelerometer NVM status
-	acctrignvm
-	accgetnvm
-	
-	- to trigger & get gyroscope NVM status
-	gyrotrignvm
-	gyrogetnvm
-	
-	- set & get maganetometer power mode
-	magsetpwm
-	maggetpwm
-	
-	- set & get barometer pressure
-	baro1setcnfg
-	baro1getcnfg
-	baro2setcnfg
-	baro2getcnfg
-	
-	- set & get step counter configuration
-	scsetcnfg
-	scgetcnfg
-	
-	- set & get misallignment mode
-	hmcsetmode
-	hmcgetmode
-	
-	- trigger foc for physical sensors
-	foc
+    - trigger & get accelerometer NVM status
+    acctrignvm
+    accgetnvm
+    
+    - to trigger & get gyroscope NVM status
+    gyrotrignvm
+    gyrogetnvm
+    
+    - set & get maganetometer power mode
+    magsetpwm
+    maggetpwm
+    
+    - set & get barometer pressure
+    baro1setcnfg
+    baro1getcnfg
+    baro2setcnfg
+    baro2getcnfg
+    
+    - set & get step counter configuration
+    scsetcnfg
+    scgetcnfg
+    
+    - set & get misallignment mode
+    hmcsetmode
+    hmcgetmode
+    
+    - trigger foc for physical sensors
+    foc
 
-	- to get chip id of the shuttle
-	chipid
+    - to get chip id of the shuttle
+    chipid
 
-	- set & get system parameters
-	syssetphyseninfo
-	sysgetphysenlist
-	sysgetvirsenlist
-	sysgettimestamps
-	sysgetfwversion
-	sysgetfifoctrl
-	syssetwkffctrl
-	syssetnwkffctrl
-	sysgetmectrl
-	syssetmectrl
+    - set & get system parameters
+    syssetphyseninfo
+    sysgetphysenlist
+    sysgetvirsenlist
+    sysgettimestamps
+    sysgetfwversion
+    sysgetfifoctrl
+    syssetwkffctrl
+    syssetnwkffctrl
+    sysgetmectrl
+    syssetmectrl
 
-	- set & get bsec parameters
-	bsecsetalstate
-	bsecgetalstate
-	bsecsettempoff
-	bsecgettempoff
-	bsecsetsamrate
-	bsecgetsamrate
+    - set & get bsec parameters
+    bsecsetalstate
+    bsecgetalstate
+    bsecsettempoff
+    bsecgettempoff
+    bsecsetsamrate
+    bsecgetsamrate
 
-	- set & get activity configuration
-	sethearactvcnfg
-	gethearactvcnfg
-	setwearactvcnfg
-	getwearactvcnfg
-	
-	- get virtual sensor parameters
-	virtseinfo
+    - set & get activity configuration
+    sethearactvcnfg
+    gethearactvcnfg
+    setwearactvcnfg
+    getwearactvcnfg
+    
+    - get virtual sensor parameters
+    virtseinfo
 
-	- set & get bsx parameters
-	setbsxparam
-	getbsxparam
-	getbsxver
-	logandstream
-	
-	- set physical range configuration
-	phyrangeconf
+    - set & get bsx parameters
+    setbsxparam
+    getbsxparam
+    getbsxver
+    logandstream
+    
+    - set physical range configuration
+    phyrangeconf
 
 
 - Bugs Fixed: 
@@ -102,10 +126,10 @@
 
 - Decompressor Version v1.0.0
 Features Added:
-	1. Label is now added to all rows instead of only one single row. IMPROVEMENT
-	2. Version number added.
+    1. Label is now added to all rows instead of only one single row. IMPROVEMENT
+    2. Version number added.
 Bugs Fixed:
-	1. Label column position is fixed. It was printing at wrong column.
+    1. Label column position is fixed. It was printing at wrong column.
 
 # v0.4.11
 - Resolved decompressing issue for logged data.
@@ -136,11 +160,11 @@ Bugs Fixed:
 - Added requisite Firmwares for validation of Data Injection and Post Mortem features.
 - Added support for BHI3 Sensor API
 - Added support for new sensors -
-	- Multi-Tap Detector
-	- Activity recognition for wearables
-	- No Motion
-	- Wrist wear wake-up
-	- Wrist gesture detector
+    - Multi-Tap Detector
+    - Activity recognition for wearables
+    - No Motion
+    - Wrist wear wake-up
+    - Wrist gesture detector
 - Added support for configuring the Physical Sensor Control Parameters
 - Added BHI3 variant Firmware Images
 - Added support for preparing the board for BHI3 Sensor

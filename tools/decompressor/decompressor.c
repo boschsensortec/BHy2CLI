@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -39,8 +39,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "logbin.h"
+#include "bhy_logbin_defs.h"
 
 #define DECOMPRESSOR_VER_MAJOR   "1"
 #define DECOMPRESSOR_VER_MINOR   "0"
@@ -738,7 +737,7 @@ int main(int argc, char *argv[])
     char output_file_name[256]; /* Limit file name to 256 characters */
 
     printf("Utility to decompress binary log files\n");
-    printf("Copyright (c) 2024 Bosch Sensortec GmbH\r\n");
+    printf("Copyright (c) 2025 Bosch Sensortec GmbH\r\n");
     printf("Version %s.%s.%s\r\n", DECOMPRESSOR_VER_MAJOR, DECOMPRESSOR_VER_MINOR, DECOMPRESSOR_VER_BUGFIX);
     if (argc == 1)
     {

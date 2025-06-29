@@ -8,9 +8,9 @@ set MTP_GETFILE=.\mtp-tools\mtp-connect.exe --getfile
 set MTP_FORMAT=.\mtp-tools\mtp-format.exe
 set BHI3_FILES_DIR=.\..\..\BHI3-firmwares\BHI360
 
-:: Load the bhycli firmware (SPI Interface added by default. To use I2C interface, change to 'i2c_bhycli.bin')
+:: Load the bhy2cli firmware (SPI Interface added by default. To use I2C interface, change to 'i2c_bhy2cli.bin')
 %APP_SWITCH% usb_dfu_bl
-%DFU_UTIL%  --device -,108c:ab39 -a FLASH -D .\spi_bhycli.bin -R
+%DFU_UTIL%  --device -,108c:ab39 -a FLASH -D .\spi_bhy2cli.bin -R
 
 :: Sleep for 5s
 timeout /t 5 /nobreak > NUL
@@ -43,5 +43,5 @@ echo + Writing %%i
 timeout /t 2 /nobreak > NUL
 
 echo ---------------------------------------------
-echo Reset or restart the board to run the bhycli firmware
+echo Reset or restart the board to run the bhy2cli firmware
 pause

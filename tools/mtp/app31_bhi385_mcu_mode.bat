@@ -6,11 +6,11 @@ set MTP_SENDFILE=.\mtp-tools\mtp-sendfile.exe
 set MTP_DELETE=.\mtp-tools\mtp-delfile.exe
 set MTP_GETFILE=.\mtp-tools\mtp-connect.exe --getfile
 set MTP_FORMAT=.\mtp-tools\mtp-format.exe
-set BHI3_FILES_DIR=.\..\..\BHI3-firmwares\BHI360
+set BHI3_FILES_DIR=.\..\..\BHI3-firmwares\BHI385
 
 :: Load the bhy2cli firmware (SPI Interface added by default. To use I2C interface, change to 'i2c_bhy2cli.bin')
 %APP_SWITCH% usb_dfu_bl
-%DFU_UTIL%  --device -,108c:ab3d -a FLASH -D .\spi_bhy2cli.bin -R
+%DFU_UTIL%  --device -,108c:ab39 -a FLASH -D .\spi_bhy2cli.bin -R
 
 :: Sleep for 5s
 timeout /t 5 /nobreak > NUL
@@ -21,7 +21,7 @@ echo Writing files to the external flash
 %APP_SWITCH% usb_dfu_bl > NUL
 
 :: Load and run MTP firmware in RAM
-%DFU_UTIL% --device -,108c:ab3d -a RAM -D .\usb_mtp_WinUSB_RAM.bin -R > NUL 2> NUL
+%DFU_UTIL% --device -,108c:ab39 -a RAM -D .\usb_mtp_WinUSB_RAM.bin -R > NUL 2> NUL
 if NOT %ERRORLEVEL%==0 ( 
 echo Unable to load MTP firmware. Error Code is: %ERRORLEVEL%
 echo Please try unplugging and re-inserting USB cables

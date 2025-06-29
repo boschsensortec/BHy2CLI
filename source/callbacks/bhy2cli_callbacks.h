@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -30,13 +30,13 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @file    bhycli_callbacks.h
+ * @file    bhy2cli_callbacks.h
  * @brief   Header file for the command line utility callbacks
  *
  */
 
-#ifndef _BHYCLI_CALLBACKS_H_
-#define _BHYCLI_CALLBACKS_H_
+#ifndef _BHY2CLI_CALLBACKS_H_
+#define _BHY2CLI_CALLBACKS_H_
 
 /* Start of CPP Guard */
 #ifdef __cplusplus
@@ -46,75 +46,64 @@ extern "C" {
 #include <stdint.h>
 
 #include "cli.h"
+#include "bhy_defs.h"
 
-#include "bhy.h"
-
-//#include "bhy_klio_param.h"
-#include "bhy_system_param.h"
-//#include "bhy_swim_param.h"
-#include "bhy_multi_tap_param.h"
-#include "bhy_head_orientation_param.h"
-#include "parse.h"
-#include "bhy_event_data.h"
-
-struct bhy_cli_ref
+struct bhy2cli_ref
 {
     struct bhy_dev bhy;
     cli_dev_t cli_dev;
-    struct parse_ref parse_table;
+    struct bhy_parse_ref parse_table;
 };
 
 /**
 * @brief Function to get all command lines callback
 * @return Reference to callback table
 */
-cli_callback_table_t * bhy_get_cli_callbacks(void);
+cli_callback_table_t * bhy2cli_get_cli_callbacks(void);
 
 /**
 * @brief Function to get number of command line callbacks
 * @return Number of command line callbacks
 */
-uint8_t bhy_get_n_cli_callbacks(void);
+uint8_t bhy2cli_get_n_cli_callbacks(void);
 
 /**
 * @brief Function to initialize interface and sensor callbacks
 * @param[in] cli_ref  : Reference to command line
 */
-void bhy_callbacks_init(struct bhy_cli_ref  *cli_ref);
+void bhy2cli_callbacks_init(struct bhy2cli_ref  *cli_ref);
 
 /**
-* @brief Function to install virtual sensor callbacks
+* @brief Function to initialize fifo parser callback table
 * @param[in] bhy         : Device instance
 * @param[in] parse_table : Pointer to parse table
 */
-void bhy_install_callbacks(struct bhy_dev *bhy, struct parse_ref *parse_table);
+void bhy2cli_initial_fifo_parser_table(struct bhy_dev *bhy, struct bhy_parse_ref *parse_table);
 
 /**
 * @brief Function to check whether any sensor is active or not
 * @return Sensor active status
 */
-bool bhy_are_sensors_active(void);
+bool bhy2cli_are_sensors_active(void);
 
 /**
 * @brief Function to deactivate all sensors and release some resources
 * @param[in] cli_ref  : Reference to command line
 */
-void bhy_exit(struct bhy_cli_ref  *cli_ref);
+void bhy2cli_exit(struct bhy2cli_ref  *cli_ref);
 
 /**
 * @brief Function to parse the callback
 * @param[in] cli_ref  : Reference to command line
 */
-void bhy_data_parse_callback(struct bhy_cli_ref *cli_ref);
+void bhy2cli_data_parse_callback(struct bhy2cli_ref *cli_ref);
 
 /**
 * @brief Function to get the parse callback
 * @param[in] sensor_id : Sensor ID
 * @return Parse callback
 */
-bhy_fifo_parse_callback_t bhy_get_callback(uint8_t sensor_id);
-
-#if 0
+bhy_fifo_parse_callback_t bhy2cli_get_callback(uint8_t sensor_id);
 
 /**
 * @brief Function to print help for kstatus command
@@ -401,8 +390,6 @@ int8_t ksimscore_help(void *ref);
 */
 int8_t ksimscore_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
-#endif
-
 /**
 * @brief Function to print help for version command
 * @param[in] ref  : Reference to command line
@@ -462,25 +449,6 @@ int8_t ramb_help(void *ref);
 * @param[in] ref  : Reference to command line
 */
 int8_t ramb_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-#if 0
-
-/**
-* @brief Function to print help for flb command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t flb_help(void *ref);
-
-/**
-* @brief Function to implement callback for flb command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t flb_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-#endif
 
 /**
 * @brief Function to print help for reset command
@@ -602,25 +570,6 @@ int8_t ram_help(void *ref);
 */
 int8_t ram_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
-#if 0
-
-/**
-* @brief Function to print help for fl command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t fl_help(void *ref);
-
-/**
-* @brief Function to implement callback for fl command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t fl_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-#endif
-
 /**
 * @brief Function to print help for boot command
 * @param[in] ref  : Reference to command line
@@ -635,40 +584,6 @@ int8_t boot_help(void *ref);
 * @param[in] ref  : Reference to command line
 */
 int8_t boot_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-#if 0
-
-/**
-* @brief Function to print help for erase command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t erase_help(void *ref);
-
-/**
-* @brief Function to implement callback for erase command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t erase_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for efd command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t efd_help(void *ref);
-
-/**
-* @brief Function to implement callback for efd command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t efd_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-#endif
 
 /**
 * @brief Function to print help for actse command
@@ -790,8 +705,6 @@ int8_t slabel_help(void *ref);
 */
 int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
-#if 0
-
 /**
 * @brief Function to print help for swim command
 * @param[in] ref  : Reference to command line
@@ -852,8 +765,6 @@ int8_t swimgetaxes_help(void *ref);
 */
 int8_t swimsetaxes_help(void *ref);
 
-#endif
-
 /**
 * @brief Function to implement callback for setvirtsenconf command
 * @param[in] argc : Number of arguments in command line
@@ -883,8 +794,6 @@ int8_t getvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 * @return API error codes
 */
 int8_t getvirtsenconf_help(void *ref);
-
-#if 0
 
 /**
 * @brief Function to print help for swimver command
@@ -930,8 +839,6 @@ int8_t swimgetfreq_help(void *ref);
 * @return API error codes
 */
 int8_t swimsetfreq_help(void *ref);
-
-#endif
 
 /**
 * @brief Function to print help for dmode command
@@ -2258,4 +2165,4 @@ int8_t logandstream_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 }
 #endif /*__cplusplus */
 
-#endif /* _BHYCLI_CALLBACKS_H_ */
+#endif /* _BHY2CLI_CALLBACKS_H_ */

@@ -1,10 +1,12 @@
 COINES_INSTALL_PATH ?= submodules/coines
-EXAMPLE_FILE ?= bhycli.c
+EXAMPLE_FILE ?= bhy2cli.c
 BHY_INTF ?= 
 COINES_BACKEND ?= COINES_BRIDGE
 
-CLI_API_LOCATION ?= submodules/BHy-SensorAPI/source
+CLI360_API_LOCATION ?= submodules/bhi360
+
 API_LOCATION ?= source
+BHY_DEF_LOCATION ?= $(API_LOCATION)/bhy_def
 COMMON_LOCATION ?= source/common
 
 VALID_LOCATION := FLASH
@@ -15,22 +17,24 @@ LOCATION := FLASH
 endif
 
 # Automatically collect all .c files in CLI_API_LOCATION
-CLI_API_SRCS := $(wildcard $(CLI_API_LOCATION)/*.c)
+CLI360_API_SRCS := $(wildcard $(CLI360_API_LOCATION)/*.c)
 
 API_C_SRCS := $(filter-out source/$(EXAMPLE_FILE), $(wildcard $(API_LOCATION)/*.c))
 
 C_SRCS += \
 $(API_C_SRCS) \
 $(COMMON_LOCATION)/common.c \
-$(API_LOCATION)/callbacks/bhycli_callbacks.c \
+$(API_LOCATION)/callbacks/bhy2cli_callbacks.c \
 $(API_LOCATION)/callbacks/common_callbacks.c \
-$(CLI_API_SRCS)
+$(BHY_DEF_LOCATION)/bhy_defs.c \
+$(CLI360_API_SRCS) \
 
 INCLUDEPATHS += . \
 $(COMMON_LOCATION) \
 $(API_LOCATION)/callbacks \
 $(API_LOCATION) \
-$(CLI_API_LOCATION) \
+$(BHY_DEF_LOCATION) \
+$(CLI360_API_LOCATION) \
 $(FW_LOCATION)/firmware
 
 # By default, the sensor is connected over SPI. Define this to change to I2C

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -47,7 +47,8 @@ extern "C" {
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bhy.h"
+
+#include "bhy_defs.h"
 
 #define STACK_SIZE            4096
 
@@ -60,7 +61,7 @@ extern "C" {
 #define PM_LOG_SUCCESS        0
 
 /*! Error Register Values*/
-/*! To be moved to bhy2_defs.h in future */
+/*! To be moved to bhy_defs.h in future */
 #define PM_DATA_AVAILABLE     0x44      /*Unhandled Interrupt Error/Exception/Post Mortem Data Available*/
 #define WATCH_DOG_RESET       0x19      /*Unexpected Watchdog Reset*/
 #define FATAL_FIRMWARE_ERROR  0x1B      /*Fatal Firmware Error*/

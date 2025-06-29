@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -39,20 +39,7 @@
 #define _COMMON_H_
 
 #include <stdbool.h>
-
-#include "bhy.h"
-#include "bhi3_defs.h"
-#include "bhy_activity_param.h"
-#include "bhy_bsec_param.h"
-#include "bhy_bsx_algo_param.h"
-#include "bhy_head_orientation_param.h"
-//#include "bhy_klio_param.h"
-#include "bhy_multi_tap_param.h"
-#include "bhy_phy_sensor_ctrl_param.h"
-//#include "bhy_swim_param.h"
-#include "bhy_system_param.h"
-#include "bhy_virtual_sensor_conf_param.h"
-#include "bhy_virtual_sensor_info_param.h"
+#include "bhy_defs.h"
 #include "coines.h"
 
 #define BHY260_APP20_CS_PIN     COINES_SHUTTLE_PIN_7
@@ -64,12 +51,12 @@
 
 #ifdef PC
 #ifdef COINES_BRIDGE
-#define BHY2_RD_WR_LEN          256    /* Coines bridge maximum read write length */
+#define BHY_RD_WR_LEN           256   /* Coines bridge maximum read write length */
 #else
-#define BHY2_RD_WR_LEN          44     /* USB maximum read write length(DD firmware) */
+#define BHY_RD_WR_LEN           44    /* USB maximum read write length(DD firmware) */
 #endif
 #else
-#define BHY2_RD_WR_LEN          256    /* MCU maximum read write length */
+#define BHY_RD_WR_LEN           256   /* MCU maximum read write length */
 #endif
 
 /**
@@ -143,16 +130,12 @@ char *get_sensor_parse_format(uint8_t sensor_id);
 */
 char *get_sensor_axis_names(uint8_t sensor_id);
 
-#if 0
-
 /**
 * @brief Function to get KLIO error
 * @param[in] error  : Error code
 * @return String represents KLIO error
 */
 char *get_klio_error(bhy_klio_param_driver_error_state_t error);
-
-#endif
 
 /**
 * @brief Function to set up interface
@@ -176,7 +159,7 @@ void close_interfaces(enum bhy_intf intf);
 * @param[in] intf_ptr  : Pointer to interface
 * @return API error codes
 */
-int8_t bhy2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr);
+int8_t bhydev_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr);
 
 /**
 * @brief Function to write data via SPI
@@ -186,7 +169,7 @@ int8_t bhy2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void 
 * @param[in] intf_ptr  : Pointer to interface
 * @return API error codes
 */
-int8_t bhy2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr);
+int8_t bhydev_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr);
 
 /**
 * @brief Function to read data via I2C
@@ -196,7 +179,7 @@ int8_t bhy2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length
 * @param[in] intf_ptr  : Pointer to interface
 * @return API error codes
 */
-int8_t bhy2_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr);
+int8_t bhydev_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr);
 
 /**
 * @brief Function to write data via I2C
@@ -206,14 +189,14 @@ int8_t bhy2_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void 
 * @param[in] intf_ptr  : Pointer to interface
 * @return API error codes
 */
-int8_t bhy2_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr);
+int8_t bhydev_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr);
 
 /**
 * @brief Function to introduce a delay in microseconds
 * @param[in] us           : Number of time to delay (microseconds)
 * @param[in] private_data : Pointer to private data
 */
-void bhy2_delay_us(uint32_t us, void *private_data);
+void bhydev_delay_us(uint32_t us, void *private_data);
 
 /**
 * @brief Function to get interrupt status

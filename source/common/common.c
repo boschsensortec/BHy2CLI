@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -37,7 +37,7 @@
 
 /*lint -e750*/
 #include "common.h"
-
+#include "bhy_defs.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -290,45 +290,6 @@ char *get_motion_sensor_name(uint8_t sensor_id)
     {
         switch (sensor_id)
         {
-            #if 0
-            case BHY_SENSOR_ID_TILT_DETECTOR:
-                ret = "Tilt detector";
-                break;
-            case BHY_SENSOR_ID_WAKE_GESTURE:
-                ret = "Wake gesture";
-                break;
-            case BHY_SENSOR_ID_GLANCE_GESTURE:
-                ret = "Glance gesture";
-                break;
-            case BHY_SENSOR_ID_PICKUP_GESTURE:
-                ret = "Pickup gesture";
-                break;
-            case BHY_SENSOR_ID_STC:
-                ret = "Step counter";
-                break;
-            case BHY_SENSOR_ID_STC_WU:
-                ret = "Step counter wake up";
-                break;
-            case BHY_SENSOR_ID_AR:
-                ret = "Activity recognition";
-                break;
-            case BHY_SENSOR_ID_WRIST_TILT_GESTURE:
-                ret = "Wrist tilt gesture";
-                break;
-            case BHY_SENSOR_ID_DEVICE_ORI:
-                ret = "Device orientation";
-                break;
-            case BHY_SENSOR_ID_DEVICE_ORI_WU:
-                ret = "Device orientation wake up";
-                break;
-            case BHY_SENSOR_ID_STATIONARY_DET:
-                ret = "Stationary detect";
-                break;
-            case BHY_SENSOR_ID_MOTION_DET:
-                ret = "Motion detect";
-                break;
-            #endif
-
             case BHY_SENSOR_ID_AIR_QUALITY:
                 ret = "Air Quality";
                 break;
@@ -375,7 +336,6 @@ char *get_misc_sensor_names(uint8_t sensor_id)
         case BHY_SENSOR_ID_GAS_WU:
             ret = "Gas wake up";
             break;
-    #if 0
         case BHY_SENSOR_ID_KLIO:
             ret = "Klio cyclic";
             break;
@@ -388,29 +348,6 @@ char *get_misc_sensor_names(uint8_t sensor_id)
         case BHY_SENSOR_ID_SWIM:
             ret = "Swim recognition";
             break;
-    #endif
-        case BHY_SENSOR_ID_SI_ACCEL:
-            ret = "SI Accel";
-            break;
-        case BHY_SENSOR_ID_SI_GYROS:
-            ret = "SI Gyro";
-            break;
-
-        #if 0
-        case BHY_SENSOR_ID_LIGHT:
-            ret = "Light";
-            break;
-        case BHY_SENSOR_ID_LIGHT_WU:
-            ret = "Light wake up";
-            break;
-        case BHY_SENSOR_ID_PROX:
-            ret = "Proximity";
-            break;
-        case BHY_SENSOR_ID_PROX_WU:
-            ret = "Proximity wake up";
-            break;
-        #endif
-
         case BHY_SENSOR_ID_STC_LP:
             ret = "Low Power Step counter";
             break;
@@ -451,35 +388,25 @@ char *get_misc_sensor_name(uint8_t sensor_id)
             case BHY_SENSOR_ID_STD_LP_WU:
                 ret = "Low Power Step detector wake up";
                 break;
-
-            #if 0
-            case BHY_SENSOR_ID_EXCAMERA:
-                ret = "External camera trigger";
-                break;
-            case BHY_SENSOR_ID_GPS:
-                ret = "GPS";
-                break;
-            #endif
-
             case BHY_SENSOR_BMP_TEMPERATURE_WU:
                 ret = "BMP Temperature wake up";
                 break;
             case BHY_SENSOR_ID_ANY_MOTION_LP_WU:
                 ret = "Low Power Any motion wake up";
                 break;
-            case BHI3_SENSOR_ID_NO_MOTION_LP_WU:
+            case BHY_SENSOR_ID_NO_MOTION_LP_WU:
                 ret = "Low Power No Motion wake up";
                 break;
-            case BHI3_SENSOR_ID_AR_WEAR_WU:
+            case BHY_SENSOR_ID_AR_WEAR_WU:
                 ret = "Activity recognition for Wearables";
                 break;
-            case BHI3_SENSOR_ID_WRIST_WEAR_LP_WU:
+            case BHY_SENSOR_ID_WRIST_WEAR_LP_WU:
                 ret = "Low Power Wrist Wear wake up";
                 break;
-            case BHI3_SENSOR_ID_WRIST_GEST_DETECT_LP_WU:
+            case BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU:
                 ret = "Low Power Wrist Gesture wake up";
                 break;
-            case BHI3_SENSOR_ID_MULTI_TAP:
+            case BHY_SENSOR_ID_MULTI_TAP:
                 ret = "Multi Tap Detector";
                 break;
             case BHY_SENSOR_ID_HEAD_ORI_MIS_ALG:
@@ -527,33 +454,6 @@ char *get_sensor_axis_name(uint8_t sensor_id)
     {
         ret = "h,p,r";
     }
-
-    #if 0
-    else if ((sensor_id == BHY_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY_SENSOR_ID_DEVICE_ORI_WU))
-    {
-        ret = "o";
-    }
-    else if (sensor_id == BHY_SENSOR_ID_KLIO)
-    {
-        ret = "lin,lid,lpr,lcr,rin,rid,rc";
-    }
-    else if (sensor_id == BHY_SENSOR_ID_KLIO_GENERIC)
-    {
-        ret = "gid,gsc,gc,fc,fsc";
-    }
-    else if (sensor_id == BHY_SENSOR_ID_SWIM)
-    {
-        ret = "d,lc,f,br,bu,ba,sc";
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU))
-    {
-        ret = "l";
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_PROX) || (sensor_id == BHY_SENSOR_ID_PROX_WU))
-    {
-        ret = "p";
-    }
-    #endif
 
     return ret;
 }
@@ -898,7 +798,7 @@ void close_interfaces(enum bhy_intf intf)
 * @param[in] intf_ptr  : Pointer to interface
 * @return API error codes
 */
-int8_t bhy2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr)
+int8_t bhydev_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr)
 {
     (void)intf_ptr;
 
@@ -913,7 +813,7 @@ int8_t bhy2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void 
 * @param[in] intf_ptr  : Pointer to interface
 * @return API error codes
 */
-int8_t bhy2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr)
+int8_t bhydev_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr)
 {
     (void)intf_ptr;
 
@@ -928,7 +828,7 @@ int8_t bhy2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length
 * @param[in] intf_ptr  : Pointer to interface
 * @return API error codes
 */
-int8_t bhy2_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr)
+int8_t bhydev_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void *intf_ptr)
 {
     (void)intf_ptr;
 
@@ -943,7 +843,7 @@ int8_t bhy2_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t length, void 
 * @param[in] intf_ptr  : Pointer to interface
 * @return API error codes
 */
-int8_t bhy2_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr)
+int8_t bhydev_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length, void *intf_ptr)
 {
     (void)intf_ptr;
 
@@ -955,7 +855,7 @@ int8_t bhy2_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t length
 * @param[in] us           : Number of time to delay (microseconds)
 * @param[in] private_data : Pointer to private data
 */
-void bhy2_delay_us(uint32_t us, void *private_data)
+void bhydev_delay_us(uint32_t us, void *private_data)
 {
     (void)private_data;
     coines_delay_usec(us);
@@ -1360,6 +1260,9 @@ char *get_physical_sensor_names(uint8_t sensor_id)
         case BHY_PHYS_SENSOR_ID_GAS_RESISTOR:
             ret = "Gas Resistor";
             break;
+        case BHY_PHYS_SENSOR_ID_MAGNETOMETER_DUMMY:
+            ret = "Magnetometer dummy";
+            break;
         case BHY_PHYS_SENSOR_ID_PHYS_STEP_COUNTER:
             ret = "Step Counter";
             break;
@@ -1394,7 +1297,6 @@ char *get_physical_sensor_name(uint8_t sensor_id)
             case BHY_PHYS_SENSOR_ID_PHYS_ANY_MOTION:
                 ret = "Any Motion";
                 break;
-                #if 0
             case BHY_PHYS_SENSOR_ID_EX_CAMERA_INPUT:
                 ret = "External Camera Input";
                 break;
@@ -1410,7 +1312,6 @@ char *get_physical_sensor_name(uint8_t sensor_id)
             case BHY_PHYS_SENSOR_ID_ACT_REC:
                 ret = "Activity Recognition";
                 break;
-                #endif
             case BHY_PHYS_SENSOR_ID_PHYS_NO_MOTION:
                 ret = "No Motion";
                 break;
@@ -1600,8 +1501,6 @@ char *get_sensor_parse_format_text(uint8_t sensor_id)
     {
         ret = "s16,s16,s16";
     }
-
-#if 0
     else if (sensor_id == BHY_SENSOR_ID_KLIO)
     {
         ret = "u8,u8,u8,u8,u8,u8,f";
@@ -1614,7 +1513,6 @@ char *get_sensor_parse_format_text(uint8_t sensor_id)
     {
         ret = "u16,u16,u16,u16,u16,u16,u16";
     }
-#endif
     else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU))
     {
         ret = "s16";
@@ -1635,7 +1533,7 @@ char *get_sensor_parse_format_data(uint8_t sensor_id)
     if ((sensor_id == BHY_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY_SENSOR_ID_DEVICE_ORI_WU) ||
         (sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU) || (sensor_id == BHY_SENSOR_ID_PROX) ||
         (sensor_id == BHY_SENSOR_ID_PROX_WU) || (sensor_id == BHY_SENSOR_ID_EXCAMERA) ||
-        (sensor_id == BHI3_SENSOR_ID_MULTI_TAP))
+        (sensor_id == BHY_SENSOR_ID_MULTI_TAP))
     {
         ret = "u8";
     }
@@ -1669,12 +1567,12 @@ char *get_sensor_parse_format_rep(uint8_t sensor_id)
         (sensor_id == BHY_SENSOR_ID_STD_WU) || (sensor_id == BHY_SENSOR_ID_SIG_LP_WU) ||
         (sensor_id == BHY_SENSOR_ID_STD_LP) || (sensor_id == BHY_SENSOR_ID_STD_LP_WU) ||
         (sensor_id == BHY_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY_SENSOR_ID_STATIONARY_DET) ||
-        (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
-        (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU))
+        (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHY_SENSOR_ID_NO_MOTION_LP_WU) ||
+        (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHY_SENSOR_ID_WRIST_WEAR_LP_WU))
     {
         ret = "";
     }
-    else if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
+    else if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHY_SENSOR_ID_AR_WEAR_WU))
     {
         ret = "u16";
     }
@@ -1712,7 +1610,7 @@ char *get_sensor_parse_format(uint8_t sensor_id)
                     ret = "u24";
                 }
 
-                if (sensor_id == BHI3_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
+                if (sensor_id == BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
                 {
                     ret = "u8";
                 }
@@ -1769,8 +1667,8 @@ char *get_sensor_axes_name(uint8_t sensor_id)
              (sensor_id == BHY_SENSOR_ID_STD_WU) || (sensor_id == BHY_SENSOR_ID_SIG_LP_WU) ||
              (sensor_id == BHY_SENSOR_ID_STD_LP) || (sensor_id == BHY_SENSOR_ID_STD_LP_WU) ||
              (sensor_id == BHY_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY_SENSOR_ID_STATIONARY_DET) ||
-             (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHI3_SENSOR_ID_NO_MOTION_LP_WU) ||
-             (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHI3_SENSOR_ID_WRIST_WEAR_LP_WU))
+             (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHY_SENSOR_ID_NO_MOTION_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHY_SENSOR_ID_WRIST_WEAR_LP_WU))
     {
         ret = "e";
     }
@@ -1787,23 +1685,15 @@ char *get_sensor_axis_name_format(uint8_t sensor_id)
 {
     char *ret = " ";
 
-    if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHI3_SENSOR_ID_AR_WEAR_WU))
+    if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHY_SENSOR_ID_AR_WEAR_WU))
     {
         ret = "a";
     }
-
-    #if 0
-    else if (sensor_id == BHY_SENSOR_ID_GPS)
-    {
-        ret = "g";
-    }
-    #endif
-
-    else if (sensor_id == BHI3_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
+    else if (sensor_id == BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
     {
         ret = "wrist_gesture";
     }
-    else if (sensor_id == BHI3_SENSOR_ID_MULTI_TAP)
+    else if (sensor_id == BHY_SENSOR_ID_MULTI_TAP)
     {
         ret = "taps";
     }
@@ -1860,37 +1750,36 @@ char *get_sensor_axis_names(uint8_t sensor_id)
     return ret;
 }
 
-#if 0
 char *get_klio_error(bhy_klio_param_driver_error_state_t error)
 {
     char *ret = " ";
 
     switch (error)
     {
-        case KLIO_DRIVER_ERROR_NONE:
+        case BHY_KLIO_DRIVER_ERROR_NONE:
             break;
-        case KLIO_DRIVER_ERROR_INVALID_PARAMETER:
+        case BHY_KLIO_DRIVER_ERROR_INVALID_PARAMETER:
             ret = "[Klio error] Invalid parameter";
             break;
-        case KLIO_DRIVER_ERROR_PARAMETER_OUT_OF_RANGE:
+        case BHY_KLIO_DRIVER_ERROR_PARAMETER_OUT_OF_RANGE:
             ret = "[Klio error] Parameter out of range";
             break;
-        case KLIO_DRIVER_ERROR_INVALID_PATTERN_OPERATION:
+        case BHY_KLIO_DRIVER_ERROR_INVALID_PATTERN_OPERATION:
             ret = "[Klio error] Invalid pattern operation";
             break;
-        case KLIO_DRIVER_ERROR_NOT_IMPLEMENTED:
+        case BHY_KLIO_DRIVER_ERROR_NOT_IMPLEMENTED:
             ret = "[Klio error] Not implemented";
             break;
-        case KLIO_DRIVER_ERROR_BUFSIZE:
+        case BHY_KLIO_DRIVER_ERROR_BUFSIZE:
             ret = "[Klio error] Buffer size";
             break;
-        case KLIO_DRIVER_ERROR_INTERNAL:
+        case BHY_KLIO_DRIVER_ERROR_INTERNAL:
             ret = "[Klio error] Internal";
             break;
-        case KLIO_DRIVER_ERROR_UNDEFINED:
+        case BHY_KLIO_DRIVER_ERROR_UNDEFINED:
             ret = "[Klio error] Undefined";
             break;
-        case KLIO_DRIVER_ERROR_OPERATION_PENDING:
+        case BHY_KLIO_DRIVER_ERROR_OPERATION_PENDING:
             ret = "[Klio error] Operation pending";
             break;
         default:
@@ -1899,7 +1788,6 @@ char *get_klio_error(bhy_klio_param_driver_error_state_t error)
 
     return ret;
 }
-#endif
 
 #ifndef PC
 

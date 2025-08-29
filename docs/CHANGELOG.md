@@ -1,4 +1,25 @@
 # Changelog
+
+# v1.0.0
+- Feature Added:
+1. Support cyclic KLIO for BHI385
+2. New commands for static calibration
+
+- Bug Fixed:
+1. The output data format from gravity/liner ACC sensor are not as expected
+2. Correct output for Step counter sensor
+
+- Improvement:
+1. Change output format for BSX commands as their expectation
+2. Update to show the user about the calibration profile reading error
+3. Check valid sensor IDs for multiple commands
+4. Change input/output of BSX commands to .bin extension
+5. Update to display value for hmcsetmode command only when mode=1
+
+- Decompressor Version v1.1.0
+Features Added:
+    1. Increase buffer size to 18MB to process big binary input files. IMPROVEMENT
+
 # v0.6.0
 - Features Added:
 1. Fifo parsing handlers are moved to Sensor API

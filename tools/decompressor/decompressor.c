@@ -42,11 +42,11 @@
 #include "bhy_logbin_defs.h"
 
 #define DECOMPRESSOR_VER_MAJOR   "1"
-#define DECOMPRESSOR_VER_MINOR   "0"
+#define DECOMPRESSOR_VER_MINOR   "1"
 #define DECOMPRESSOR_VER_BUGFIX  "0"
 
 #define LUT_STRING_SIZE          (40)
-#define EVENT_BUFFER_SIZE        (65535)
+#define EVENT_BUFFER_SIZE        (65535 * 300)
 
 #define LUT_LE2U16(x)            ((uint16_t)((x)[0] | (x)[1] << 8))
 #define LUT_LE2S16(x)            ((int16_t)LUT_LE2U16(x))

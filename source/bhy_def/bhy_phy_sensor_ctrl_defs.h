@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_phy_sensor_ctrl_param_defs.h
-* @date       2025-03-28
-* @version    v0.6.0
+* @date       2025-08-20
+* @version    v1.0.0
 *
 */
 
@@ -188,7 +188,7 @@ typedef struct
     uint8_t x;
     uint8_t y;
     uint8_t z;
-} BHY_PACKED bhy_phy_sensor_ctrl_param_gyro_crt_status;
+} BHY_PACKED bhy_phy_sensor_ctrl_param_gyro_crt_data;
 
 /*!
  *
@@ -360,9 +360,10 @@ typedef int8_t (*bhy_phy_sensor_ctrl_param_gyro_get_fast_startup_cfg_func)(uint8
 
 typedef int8_t (*bhy_phy_sensor_ctrl_param_gyro_start_comp_retrim_func)(struct bhy_dev *dev);
 
-typedef int8_t (*bhy_phy_sensor_ctrl_param_gyro_get_crt_status_func)(bhy_phy_sensor_ctrl_param_gyro_crt_status* crt,
-                                                                     struct bhy_dev *dev);
-
+typedef int8_t (*bhy_phy_sensor_ctrl_param_gyro_get_crt_data_func)(bhy_phy_sensor_ctrl_param_gyro_crt_data* crt,
+                                                                   struct bhy_dev *dev);
+typedef int8_t (*bhy_phy_sensor_ctrl_param_set_gyro_data_func)(bhy_phy_sensor_ctrl_param_gyro_crt_data* crt,
+                                                               struct bhy_dev *dev);
 typedef int8_t (*bhy_phy_sensor_ctrl_param_gyro_set_power_mode_func)(uint8_t mode, struct bhy_dev *dev);
 
 typedef int8_t (*bhy_phy_sensor_ctrl_param_gyro_get_power_mode_func)(uint8_t* mode, struct bhy_dev *dev);

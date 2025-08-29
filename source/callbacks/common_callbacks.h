@@ -106,21 +106,6 @@ int8_t heartbeat_help(void *ref);
 int8_t heartbeat_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to print help for strbuf command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t streambuff_help(void *ref);
-
-/**
-* @brief Function to implement callback for strbuf command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t streambuff_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
 * @brief Function to print help for mklog command
 * @param[in] ref  : Reference to command line
 * @return API error codes

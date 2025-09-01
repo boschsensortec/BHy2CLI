@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_bsx_defs.h
-* @date       2025-03-28
-* @version    v0.6.0
+* @date       2025-08-20
+* @version    v1.0.0
 *
 */
 

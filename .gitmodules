@@ -4,3 +4,6 @@
 [submodule "submodules/bhi360"]
 	path = submodules/bhi360
 	url = https://github.com/boschsensortec/BHI360_SensorAPI.git
+[submodule "submodules/bhi385"]
+	path = submodules/bhi385
+	url = https://github.com/boschsensortec/BHI385_SensorAPI.git

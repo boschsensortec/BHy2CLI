@@ -13,62 +13,74 @@
 | :---:      | :---:  | :----: | :----: | :----:       | :----:       | :----: | :----: |
 | version    | 0.6.0  | 1.1.18 | IR84.3 | 2.2.0        | 2.10.2       | APP30<br>APP31 | BHI360 |
 
+## Folder Structure 🗂️
+
+The SensorAPI repositories follow this folder structure:
+
+```shell
+BHy2CLI:
+    +---config
+    +---coverage
+    +---docs
+    +---Jenkinsfile
+    +---scripts
+    +---source
+    +---submodules
+    +---test
+    +---tools
+```
+
+* config: Contains configuration files used by various processes.
+* coverage: Contains coverage report
+* docs: Contains release documents (User_Guide, CHANGELOG.md, Compatibility.txt, ...)
+* Jenkinsfile: Contains the Jenkinsfile.
+* scripts: Contains batch files to clean, generate and download BHy2CLI executables/binaries 
+* source: Holds the BHy2CLI source files.
+* submodules: Destination folder for package dependency modules.
+* test: Contains test source file and config files
+* tools: Contains initial automation tools.
 
 ## Getting Started
 
-### Cloning the Repository with Submodules
-To clone this repository along with all its submodules, use the following command:
+Ensure that all dependencies are correctly initialized on your system. 
+Use the `tools\update_dependency.bat` and
+`tools\update_python_libraries.bat` scripts to achieve this.
 
-```sh
-git clone --recursive https://github.com/boschsensortec/BHy2CLI.git
+To execute the scripts, follow the steps below:
+
+```
+1. Open powershell in root directory of BHy2CLI project.
+2. Execute, update_dependency.bat
+3. Execute, update_python_libraries.bat
 ```
 
-## Initializing and Updating Submodules
-If you have already cloned the repository without submodules, you can initialize and update them using:
+> ⚠️ **Note**
+>
+> Ensure you have the necessary access rights to the repository.
+> If you encounter any errors related to repository access, please verify your SSH keys and user permissions.
 
-```sh
-git submodule update --init --recursive
-```
-
-## Keeping Submodules Updated
-To ensure submodules remain up to date when pulling the latest changes, run:
-
-```sh
-git pull --recurse-submodules
-```
-
-Then, update the submodules using:
-
-```sh
-git submodule update --recursive
-```
-
-
-2. By default, BHI360 will be cloned as submodule and the source code and Makefile locate the BHI360 sensor API v2.2.0 under "submodules/bhi360".
-   
 ### Steps to include a new sensor API (Optional)
-
-1. Other BHI sensorAPI folder can be cloned inside the submodules
-
+1. Copy the sensor API folder under "submodules" so that the API source code is available under "submodules/bhixxx/source".
+By default, the source code and Makefile locate the BHI360 sensor API v2.2.0 under "submodules/bhi360/source".
 2. Update the Makefile of the CLI to include definitions and source code for the new sensor API. Follow these steps:
    - Add the location of the new sensor API:
-	 ```
-	 CLIxxx_API_LOCATION ?= submodules/bhixxx
-	 ```
+     ```
+     CLIxxx_API_LOCATION ?= submodules/bhixxx/source
+     ```
    - Add the source files of the new sensor API to the build process:
-	 ```
-	 CLIxxx_API_SRCS := $(wildcard $(CLIxxx_API_LOCATION)/*.c)
-	 ```
+     ```
+     CLIxxx_API_SRCS := $(wildcard $(CLIxxx_API_LOCATION)/*.c)
+     ```
    - Include the source files in the list of C source files:
-	 ```
-	 C_SRCS += \
-	 $(CLIxxx_API_SRCS) \
-	 ```
+     ```
+     C_SRCS += \
+     $(CLIxxx_API_SRCS) \
+     ```
    - Add the API location to the include paths:
-	 ```
-	 INCLUDEPATHS += . \
-	 $(CLIxxx_API_LOCATION) \
-	 ```
+     ```
+     INCLUDEPATHS += . \
+     $(CLIxxx_API_LOCATION) \
+     ```
 3. In "bhy_defs.c", locate the `all_sensor_api_entry` array definition. Add the new api_entry inside. This ensures the CLI can recognize and use the new sensor API. For example:
    ```c
    #include "bhixxx_api_entry.h"
@@ -77,9 +89,9 @@ git submodule update --recursive
 
    ```c
    static const ChipAPIEntry all_sensor_api_entry[] = {
-	..., { BHIxxx_CHIP_ID, bhixxx_sensor_api_entry }, { 0, NULL } /* End of
-																   * table
-																   * marker */
+    ..., { BHIxxx_CHIP_ID, bhixxx_sensor_api_entry }, { 0, NULL } /* End of
+                                                                   * table
+                                                                   * marker */
    };
    ```
 
@@ -107,3 +119,5 @@ Release package helps to generate executables and binaries of BHy2CLI , which ca
 
 
 - Refer Section 2 of BHy2CLI_User_Guide.pdf (From docs/ folder)
+
+

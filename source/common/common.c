@@ -337,10 +337,7 @@ char *get_misc_sensor_names(uint8_t sensor_id)
             ret = "Gas wake up";
             break;
         case BHY_SENSOR_ID_KLIO:
-            ret = "Klio cyclic";
-            break;
-        case BHY_SENSOR_ID_KLIO_GENERIC:
-            ret = "Klio generic";
+            ret = "Klio";
             break;
         case BHY_SENSOR_ID_KLIO_LOG:
             ret = "Klio log";
@@ -1503,11 +1500,7 @@ char *get_sensor_parse_format_text(uint8_t sensor_id)
     }
     else if (sensor_id == BHY_SENSOR_ID_KLIO)
     {
-        ret = "u8,u8,u8,u8,u8,u8,f";
-    }
-    else if (sensor_id == BHY_SENSOR_ID_KLIO_GENERIC)
-    {
-        ret = "u8,u8,f,u8,f";
+        ret = "u8,u8,u8,u8,u8,u8,f,f";
     }
     else if (sensor_id == BHY_SENSOR_ID_SWIM)
     {

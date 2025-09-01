@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_event_data_defs.h
-* @date       2025-03-28
-* @version    v0.6.0
+* @date       2025-08-20
+* @version    v1.0.0
 *
 */
 
@@ -113,6 +113,9 @@ typedef struct
 
     /*! The current repetition count of the recognized activity. */
     float count;
+
+    /*! The current score of the recognized activity. */
+    float score;
 } BHY_PACKED bhy_event_data_klio_recognition_t;
 
 /*!

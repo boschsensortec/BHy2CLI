@@ -3,7 +3,8 @@ EXAMPLE_FILE ?= bhy2cli.c
 BHY_INTF ?= 
 COINES_BACKEND ?= COINES_BRIDGE
 
-CLI360_API_LOCATION ?= submodules/bhi360
+CLI360_API_LOCATION ?= submodules/bhi360/source
+CLI385_API_LOCATION ?= submodules/bhi385/source
 
 API_LOCATION ?= source
 BHY_DEF_LOCATION ?= $(API_LOCATION)/bhy_def
@@ -18,6 +19,7 @@ endif
 
 # Automatically collect all .c files in CLI_API_LOCATION
 CLI360_API_SRCS := $(wildcard $(CLI360_API_LOCATION)/*.c)
+CLI385_API_SRCS := $(wildcard $(CLI385_API_LOCATION)/*.c)
 
 API_C_SRCS := $(filter-out source/$(EXAMPLE_FILE), $(wildcard $(API_LOCATION)/*.c))
 
@@ -28,14 +30,16 @@ $(API_LOCATION)/callbacks/bhy2cli_callbacks.c \
 $(API_LOCATION)/callbacks/common_callbacks.c \
 $(BHY_DEF_LOCATION)/bhy_defs.c \
 $(CLI360_API_SRCS) \
+$(CLI385_API_SRCS)
 
 INCLUDEPATHS += . \
 $(COMMON_LOCATION) \
 $(API_LOCATION)/callbacks \
 $(API_LOCATION) \
 $(BHY_DEF_LOCATION) \
+$(FW_LOCATION)/firmware \
 $(CLI360_API_LOCATION) \
-$(FW_LOCATION)/firmware
+$(CLI385_API_LOCATION) \
 
 # By default, the sensor is connected over SPI. Define this to change to I2C
 ifeq ($(BHY_INTF), I2C)

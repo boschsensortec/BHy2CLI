@@ -35,8 +35,8 @@
  *
  */
 
-#define BHY2CLI_VER_MAJOR       "0"
-#define BHY2CLI_VER_MINOR       "6"
+#define BHY2CLI_VER_MAJOR       "1"
+#define BHY2CLI_VER_MINOR       "0"
 #define BHY2CLI_VER_BUGFIX      "0"
 
 #ifdef __STDC_ALLOC_LIB__
@@ -57,7 +57,6 @@
 #if defined(PC)
 #include <dirent.h>
 #endif
-
 #include "coines.h"
 #include "bhy2cli_callbacks.h"
 #include "common_callbacks.h"
@@ -186,24 +185,21 @@ static cli_callback_table_t bhy2cli_callbacks[] = {
     { 0, "setvirtsenconf", 3, setvirtsenconf_callback, setvirtsenconf_help }, /* Setting virtual sensor configuration */
     { 0, "getvirtsenconf", 1, getvirtsenconf_callback, getvirtsenconf_help }, /* Getting virtual sensor configuration */
     { 0, "kstatus", 0, kstatus_callback, kstatus_help }, /* Get Klio status */
-    { 0, "ksetstate", 4, ksetstate_callback, ksetstate_help }, /* Set state of cyclic Klio */
-    { 0, "kgetstate", 0, kgetstate_callback, kgetstate_help }, /* Get state of cyclic Klio */
-    { 0, "ksetgstate", 1, ksetgstate_callback, ksetgstate_help }, /* Set state of generic Klio */
-    { 0, "kgetgstate", 0, kgetgstate_callback, kgetgstate_help }, /* Get state of generic Klio */
+    { 0, "ksetstate", 4, ksetstate_callback, ksetstate_help }, /* Set state of Klio */
+    { 0, "kgetstate", 0, kgetstate_callback, kgetstate_help }, /* Get state of Klio */
     { 0, "kreset", 0, kreset_callback, kreset_help }, /* Reset all Klio state */
-    { 0, "ksetgestconf", 2, ksetgestconf_callback, ksetgestconf_help }, /* Set config for generic Klio gesture */
-    { 0, "ksettimeconf", 1, ksettimeconf_callback, ksettimeconf_help }, /* Set expected timing for gestures */
-    { 0, "kldpatt", 2, kldpatt_callback, kldpatt_help }, /* Load Klio pattern for cyclic recognition */
-    { 0, "kldgpatt", 2, kldgpatt_callback, kldgpatt_help }, /* Load Klio pattern for generic recognition */
-    { 0, "kenpatt", 1, kenpatt_callback, kenpatt_help }, /* Enable cyclic Klio pattern */
-    { 0, "kdispatt", 1, kdispatt_callback, kdispatt_help }, /* Disable cyclic Klio pattern */
-    { 0, "kdisapatt", 1, kdisapatt_callback, kdisapatt_help }, /* Disable cyclic Klio adaptive pattern */
-    { 0, "kswpatt", 1, kswpatt_callback, kswpatt_help }, /* Switch cyclic Klio pattern between left/right hand */
-    { 0, "kautldpatt", 2, kautldpatt_callback, kautldpatt_help }, /* Auto-load cyclic Klio patterns */
-    { 0, "kgetparam", 1, kgetparam_callback, kgetparam_help }, /* Get cyclic Klio parameters */
-    { 0, "ksetparam", 2, ksetparam_callback, ksetparam_help }, /* Set cyclic Klio parameters */
-    { 0, "ksimscore", 2, ksimscore_callback, ksimscore_help }, /* Get cyclic Klio Similarity score */
-    { 0, "kmsimscore", 2, kmsimscore_callback, kmsimscore_help }, /* Get Multiple cyclic Klio Similarity score */
+    { 0, "kldpatt", 2, kldpatt_callback, kldpatt_help }, /* Load Klio pattern for recognition */
+    { 0, "kenpatt", 1, kenpatt_callback, kenpatt_help }, /* Enable Klio pattern */
+    { 0, "kdispatt", 1, kdispatt_callback, kdispatt_help }, /* Disable Klio pattern */
+    { 0, "kdisapatt", 1, kdisapatt_callback, kdisapatt_help }, /* Disable Klio adaptive pattern */
+    { 0, "kswpatt", 1, kswpatt_callback, kswpatt_help }, /* Switch Klio pattern between left/right hand */
+    { 0, "kautldpatt", 2, kautldpatt_callback, kautldpatt_help }, /* Auto-load Klio patterns */
+    { 0, "kgetparam", 1, kgetparam_callback, kgetparam_help }, /* Get Klio parameters */
+    { 0, "ksetparam", 2, ksetparam_callback, ksetparam_help }, /* Set Klio parameters */
+    { 0, "kgetpattparam", 2, kgetpattparam_callback, kgetpattparam_help }, /* Get Klio pattern parameters */
+    { 0, "ksetpattparam", 3, ksetpattparam_callback, ksetpattparam_help }, /* Set Klio pattern parameters */
+    { 0, "ksimscore", 2, ksimscore_callback, ksimscore_help }, /* Get Klio Similarity score */
+    { 0, "kmsimscore", 2, kmsimscore_callback, kmsimscore_help }, /* Get Multiple Klio Similarity score */
     { 0, "swim", 3, swim_callback, swim_help }, /* Configure the Swim recognition */
     { 0, "swimver", 0, swimver_callback, swimver_help }, /* Get the Swim Version */
     { 0, "swimgetfreq", 0, swimgetfreq_callback, swimgetfreq_help }, /* Get the Swim frequency */
@@ -316,6 +312,11 @@ static cli_callback_table_t bhy2cli_callbacks[] = {
     { 0, "getbsxver", 0, getbsxver_callback, getbsxver_help }, /* Set bsx algo SIC matrix */
     { 0, "phyrangeconf", 2, phyrangeconf_callback, phyrangeconf_help }, /* Set physical range configuration */
     { 0, "logandstream", 1, logandstream_callback, logandstream_help }, /* Set logging and streaming together */
+    { 0, "staticcalib", 0, staticcalib_callback, staticcalib_help }, /* Execute Accel/Gyro FOC, Gyro CRT */
+    { 0, "getstaticcalib", 1, getstaticcalib_callback, getstaticcalib_help }, /* Get accel/gyro foc and gyro CRT, store
+                                                                               * in file */
+    { 0, "setstaticcalib", 1, setstaticcalib_callback, setstaticcalib_help }, /* Take value from file, set accel/gyro
+                                                                               * foc and gyro CRT */
 #ifndef PC
     { 0, "echo", 1, echo_callback, echo_help }, /* Toggle the echo setting */
     { 0, "heart", 1, heartbeat_callback, heartbeat_help }, /* Toggle the heartbeat message setting */
@@ -326,7 +327,6 @@ static cli_callback_table_t bhy2cli_callbacks[] = {
     { 0, "rdfile", 1, rdfile_callback, rdfile_help }, /* Read content from a file */
     { 0, "slabel", 1, slabel_callback, slabel_help }, /* Write a binary label into the log file */
     { 0, "cls", 0, cls_callback, cls_help }, /* Clear screen */
-    { 0, "strbuf", 1, streambuff_callback, streambuff_help }, /* Enable streaming buffer */
 #endif
 };
 
@@ -437,7 +437,7 @@ static void klio_enable(struct bhy_dev *bhy);
 static void klio_status(struct bhy_dev *bhy);
 
 /**
-* @brief Function to set state of cyclic Klio
+* @brief Function to set state of Klio
 * @param[in] arg1 : Argument for learning status
 * @param[in] arg2 : Argument for learning reset
 * @param[in] arg3 : Argument for recognition status
@@ -447,54 +447,18 @@ static void klio_status(struct bhy_dev *bhy);
 static void klio_set_state(const char *arg1, const char *arg2, const char *arg3, const char *arg4, struct bhy_dev *bhy);
 
 /**
-* @brief Function to get state of cyclic Klio
+* @brief Function to get state of Klio
 * @param[in] bhy  : Device instance
 */
 static void klio_get_state(struct bhy_dev *bhy);
 
 /**
-* @brief Function to set state of generic recognition
-* @param[in] arg  : Argument for gestures status
-* @param[in] bhy  : Device instance
-*/
-static void klio_set_generic_recognition_state(const char *arg, struct bhy_dev *bhy);
-
-/**
-* @brief Function to get state of generic recognition
-* @param[in] bhy  : Device instance
-*/
-static void klio_get_generic_recognition_state(struct bhy_dev *bhy);
-
-/**
-* @brief Function to load cyclic pattern
+* @brief Function to load Klio pattern
 * @param[in] arg1 : Argument for pattern index
 * @param[in] arg2 : Argument for pattern/adaptive pattern
 * @param[in] bhy  : Device instance
 */
-static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy);
-
-/**
-* @brief Function to load generic pattern
-* @param[in] arg1 : Argument for pattern index
-* @param[in] arg2 : Argument for pattern as bare hex bytestring
-* @param[in] bhy  : Device instance
-*/
-static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy);
-
-/**
-* @brief Function to set gesture configuration
-* @param[in] arg1 : Argument for configuration index
-* @param[in] arg2 : Argument for configuration as bare hex bytestring
-* @param[in] bhy  : Device instance
-*/
-static void klio_set_gesture_config(const char *arg1, const char *arg2, struct bhy_dev *bhy);
-
-/**
-* @brief Function to set timing configuration
-* @param[in] arg : Argument for configuration as bare hex bytestring
-* @param[in] bhy : Device instance
-*/
-static void klio_set_timing_config(const char *arg, struct bhy_dev *bhy);
+static void klio_load_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy);
 
 /**
 * @brief Function to get Klio parameter
@@ -510,6 +474,26 @@ static void klio_get_parameter(const uint16_t *arg, struct bhy_dev *bhy);
 * @param[in] bhy  : Device instance
 */
 static void klio_set_parameter(const char *arg1, char *arg2, struct bhy_dev *bhy);
+
+/**
+* @brief Function to get Klio pattern parameter
+* @param[in] pattern   : Argument for pattern ID
+* @param[in] parameter : Argument for parameter ID
+* @param[in] bhy       : Device instance
+*/
+static void klio_get_pattern_parameter(const uint8_t *pattern, const uint8_t *parameter, struct bhy_dev *bhy);
+
+/**
+* @brief Function to set Klio pattern parameter
+* @param[in] pattern         : Argument for pattern ID
+* @param[in] parameter       : Argument for parameter ID
+* @param[in] parameter_value : Argument for value to set
+* @param[in] bhy             : Device instance
+*/
+static void klio_set_pattern_parameter(const uint8_t *pattern,
+                                       const uint8_t *parameter,
+                                       const uint8_t *parameter_value,
+                                       struct bhy_dev *bhy);
 
 /**
 * @brief Function to get Klio Similarity score
@@ -857,10 +841,6 @@ bhy_fifo_parse_callback_t bhy2cli_get_func_callback(uint8_t sensor_id)
     {
         LOAD_DYNAMIC_SENSOR_API(bhy_parse_klio, "bhy_parse_klio", callback);
     }
-    else if (sensor_id == BHY_SENSOR_ID_KLIO_GENERIC)
-    {
-        LOAD_DYNAMIC_SENSOR_API(bhy_parse_klio_generic, "bhy_parse_klio_generic", callback);
-    }
     else if (sensor_id == BHY_SENSOR_ID_KLIO_LOG)
     {
         LOAD_DYNAMIC_SENSOR_API(bhy_parse_klio_log, "bhy_parse_klio_log", callback);
@@ -882,8 +862,7 @@ bhy_fifo_parse_callback_t bhy2cli_get_motion_callback(uint8_t sensor_id)
 {
     bhy_fifo_parse_callback_t callback = NULL;
 
-    if ((sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU) ||
-        (sensor_id == BHY_SENSOR_ID_STC_LP) || (sensor_id == BHY_SENSOR_ID_STC_LP_WU))
+    if ((sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU))
     {
         LOAD_DYNAMIC_SENSOR_API(bhy_parse_scalar_u32, "bhy_parse_scalar_u32", callback);
     }
@@ -892,7 +871,7 @@ bhy_fifo_parse_callback_t bhy2cli_get_motion_callback(uint8_t sensor_id)
              (sensor_id == BHY_SENSOR_ID_STD_LP) || (sensor_id == BHY_SENSOR_ID_STD_LP_WU) ||
              (sensor_id == BHY_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY_SENSOR_ID_STATIONARY_DET) ||
              (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHY_SENSOR_ID_NO_MOTION_LP_WU) ||
-             (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHY_SENSOR_ID_WRIST_WEAR_LP_WU) ||
+             (sensor_id == BHY_SENSOR_ID_MOTION_DET) ||
              ((sensor_id >= BHY_SENSOR_ID_SIG) && (sensor_id <= BHY_SENSOR_ID_PICKUP_GESTURE)))
     {
         LOAD_DYNAMIC_SENSOR_API(bhy_parse_scalar_event, "bhy_parse_scalar_event", callback);
@@ -914,9 +893,17 @@ bhy_fifo_parse_callback_t bhy2cli_get_misc_callback(uint8_t sensor_id)
     {
         LOAD_DYNAMIC_SENSOR_API(bhy_parse_activity, "bhy_parse_activity", callback);
     }
+    else if ((sensor_id == BHY_SENSOR_ID_STC_LP) || (sensor_id == BHY_SENSOR_ID_STC_LP_WU))
+    {
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_step_counter_data, "bhy_parse_step_counter_data", callback);
+    }
     else if (sensor_id == BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
     {
         LOAD_DYNAMIC_SENSOR_API(bhy_parse_wrist_gesture_detect, "bhy_parse_wrist_gesture_detect", callback);
+    }
+    else if (sensor_id == BHY_SENSOR_ID_WRIST_WEAR_LP_WU)
+    {
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_wrist_wear_wakeup_data, "bhy_parse_wrist_wear_wakeup_data", callback);
     }
     else if (sensor_id == BHY_SENSOR_ID_MULTI_TAP)
     {
@@ -999,10 +986,24 @@ int8_t kstatus_help(void * const ref)
 int8_t kstatus_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_status(&cli_ref->bhy);
     PRINT("\r\n\r\n");
@@ -1019,7 +1020,7 @@ int8_t ksetstate_help(void *ref)
 {
     (void)ref;
     PRINT("  ksetstate <le> <lr> <re> <rr>\r\n");
-    PRINT("        = Set cyclic klio state\r\n");
+    PRINT("        = Set klio state\r\n");
     PRINT("         <le> learning enable (0/1)\r\n");
     PRINT("         <lr> learning reset (0/1)\r\n");
     PRINT("         <re> recognition enable (0/1)\r\n");
@@ -1037,7 +1038,7 @@ int8_t ksetstate_help(void *ref)
 int8_t ksetstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s %s %s %s\r\n",
@@ -1046,76 +1047,23 @@ int8_t ksetstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
          (char *)argv[2],
          (char *)argv[3],
          (char *)argv[4]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_set_state((char *)argv[1], (char *)argv[2], (char *)argv[3], (char *)argv[4], &cli_ref->bhy);
     PRINT("\r\n\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to print help for ksetgstate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t ksetgstate_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  ksetgstate <en>\r\n");
-    PRINT("        = Enable/disable generic gesture recognition\r\n");
-    PRINT("         <en> recognition enabled (0/1)\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for ksetgstate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t ksetgstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    INFO("Executing %s %s\r\n", argv[0], argv[1]);
-    klio_set_generic_recognition_state((char *)argv[1], &cli_ref->bhy);
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to print help for kgetgstate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t kgetgstate_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  kgetgstate\r\n");
-    PRINT("        = Get current generic Klio state\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for kgetgstate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t kgetgstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    INFO("Executing %s\r\n", argv[0]);
-    klio_get_generic_recognition_state(&cli_ref->bhy);
 
     return CLI_OK;
 }
@@ -1130,7 +1078,7 @@ int8_t kgetstate_help(void *ref)
     (void)ref;
 
     PRINT("  kgetstate\r\n");
-    PRINT("        = Get current cyclic Klio state\r\n");
+    PRINT("        = Get current Klio state\r\n");
 
     return CLI_OK;
 }
@@ -1159,84 +1107,25 @@ int8_t kreset_help(void *ref)
 int8_t kreset_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", (char *)argv[0]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_reset, "bhy_klio_param_reset", &cli_ref->bhy);
-    PRINT("\r\n\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to print help for ksetgestconf command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t ksetgestconf_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  ksetgestconf <index> <config>\r\n");
-    PRINT("        = Load a pattern config for the generic recognition algorithm.\r\n");
-    PRINT("          Each pattern must have a config associated with it.\r\n");
-    PRINT("         <index> config index to write to, must match pattern index\r\n");
-    PRINT("         <config> config as bare hex bytestring\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for ksetgestconf command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t ksetgestconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    INFO("Executing %s %s\r\n", (char *)argv[0], (char *)argv[1]);
-    klio_set_gesture_config((char *)argv[1], (char *)argv[2], &cli_ref->bhy);
-    PRINT("\r\n\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to print help for ksettimeconf command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t ksettimeconf_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  ksettimeconf <config>\r\n");
-    PRINT("        = Load expected timing between gestures for the generic\r\n");
-    PRINT("          recognition algorithm.\r\n");
-    PRINT("         <config> config as bare hex bytestring\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for ksettimeconf command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t ksettimeconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    INFO("Executing %s\r\n", (char *)argv[0]);
-    klio_set_timing_config((char *)argv[1], &cli_ref->bhy);
     PRINT("\r\n\r\n");
 
     return CLI_OK;
@@ -1252,28 +1141,11 @@ int8_t kldpatt_help(void *ref)
     (void)ref;
 
     PRINT("  kldpatt <index> <pattern>\r\n");
-    PRINT("        = Load a pattern/adaptive pattern for cyclic recognition. If loading an\r\n");
+    PRINT("        = Load a pattern/adaptive pattern for recognition. If loading an\r\n");
     PRINT("          adaptive pattern, a regular pattern must have been previously\r\n");
     PRINT("          loaded on the given index\r\n");
     PRINT("         <index> pattern index to write to\r\n");
     PRINT("         <pattern> pattern/adaptive pattern as bare hex bytestring\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to print help for kldgpatt command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t kldgpatt_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  kldgpatt <index> <pattern>\r\n");
-    PRINT("        = Load a pattern for generic recognition.\r\n");
-    PRINT("         <index> pattern index to write to\r\n");
-    PRINT("         <pattern> pattern as bare hex bytestring\r\n");
 
     return CLI_OK;
 }
@@ -1288,7 +1160,7 @@ int8_t kenpatt_help(void *ref)
     (void)ref;
 
     PRINT("  kenpatt <patterns>\r\n");
-    PRINT("        = Enable pattern ids for cyclic recognition\r\n");
+    PRINT("        = Enable pattern ids for recognition\r\n");
     PRINT("         <patterns> pattern indices to enable, specified as 0,1,4 etc\r\n");
 
     return CLI_OK;
@@ -1304,7 +1176,7 @@ int8_t kdispatt_help(void *ref)
     (void)ref;
 
     PRINT("  kdispatt <patterns>\r\n");
-    PRINT("        = Disable pattern ids for cyclic recognition\r\n");
+    PRINT("        = Disable pattern ids for recognition\r\n");
     PRINT("         <patterns> pattern indices to disable, specified as 0,1,4 etc\r\n");
 
     return CLI_OK;
@@ -1384,10 +1256,24 @@ int8_t kgetparam_help(void *ref)
 int8_t kgetstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_get_state(&cli_ref->bhy);
     PRINT("\r\n\r\n");
@@ -1405,32 +1291,26 @@ int8_t kgetstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t kldpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
-    klio_load_cyclic_pattern((char *)argv[1], (char *)argv[2], &cli_ref->bhy);
-    PRINT("\r\n\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for kldgpatt command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t kldgpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    INFO("Executing %s %s\r\n", argv[0], argv[1]);
-    klio_enable(&cli_ref->bhy);
-    klio_load_generic_pattern((char *)argv[1], (char *)argv[2], &cli_ref->bhy);
+    klio_load_pattern((char *)argv[1], (char *)argv[2], &cli_ref->bhy);
     PRINT("\r\n\r\n");
 
     return CLI_OK;
@@ -1445,10 +1325,24 @@ int8_t kldgpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t kenpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_pattern_state_operation(BHY_KLIO_PATTERN_STATE_ENABLE, (char *)argv[1], &cli_ref->bhy);
     PRINT("Enabled pattern %s for recognition\r\n", argv[1]);
@@ -1465,10 +1359,24 @@ int8_t kenpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t kdispatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_pattern_state_operation(BHY_KLIO_PATTERN_STATE_DISABLE, (char *)argv[1], &cli_ref->bhy);
     PRINT("Disabled pattern %s from recognition\r\n", argv[1]);
@@ -1485,10 +1393,24 @@ int8_t kdispatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t kdisapatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_pattern_state_operation(BHY_KLIO_PATTERN_STATE_AP_DISABLE, (char *)argv[1], &cli_ref->bhy);
     PRINT("Disable adaptation for pattern %s\r\n", argv[1]);
@@ -1505,10 +1427,24 @@ int8_t kdisapatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t kswpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_pattern_state_operation(BHY_KLIO_PATTERN_STATE_SWITCH_HAND, (char *)argv[1], &cli_ref->bhy);
     PRINT("Switched pattern to opposite hand for pattern %s\r\n", argv[1]);
@@ -1529,8 +1465,22 @@ int8_t kautldpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     (void)argc;
-
+    uint8_t rslt;
     INFO("Executing %s %s %s\r\n", argv[0], argv[1], argv[2]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
     klio_vars = *ret;
     klio_enable(&cli_ref->bhy);
@@ -1554,10 +1504,24 @@ int8_t kautldpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t kgetparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
 
     /*lint -e826*/
@@ -1576,13 +1540,92 @@ int8_t kgetparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t ksetparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
+    uint8_t rslt;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
+    INFO("Executing %s %s %s\r\n", argv[0], argv[1], argv[2]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
+    klio_enable(&cli_ref->bhy);
+    klio_set_parameter((char *)argv[1], (char *)argv[2], &cli_ref->bhy);
+    PRINT("Set value %s for parameter id %s\r\n", argv[2], argv[1]);
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to print help for kgetpattparam command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t kgetpattparam_help(void *ref)
+{
+    PRINT("  kgetpattparam <pattern> <param>\r\n");
+    PRINT("        = Print klio pattern parameter\r\n");
+    PRINT("         <param> parameter id for pattern <pattern>, see documentation\r\n");
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to implement callback for kgetpattparam command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t kgetpattparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s %s %s\r\n", argv[0], argv[1], argv[2]);
     klio_enable(&cli_ref->bhy);
-    klio_set_parameter((char *)argv[1], (char *)argv[2], &cli_ref->bhy);
-    PRINT("Set value %s for parameter id %s\r\n", argv[2], argv[1]);
+    klio_get_pattern_parameter(argv[1], argv[2], &cli_ref->bhy);
+    PRINT("\r\n\r\n");
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to print help for ksetpattparam command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t ksetpattparam_help(void *ref)
+{
+    PRINT("  ksetpattparam <pattern> <param> <value>\r\n");
+    PRINT("        = Set klio pattern parameter\r\n");
+    PRINT("         <param> parameter id for pattern <pattern>, see documentation\r\n");
+    PRINT("         <value> depends on parameter id, see documentation\r\n");
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to implement callback for ksetpattparam command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t ksetpattparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    INFO("Executing %s %s %s %s\r\n", argv[0], argv[1], argv[2], argv[3]);
+    klio_enable(&cli_ref->bhy);
+    klio_set_pattern_parameter(argv[1], argv[2], argv[3], &cli_ref->bhy);
+    PRINT("Pattern %s parameter %s set to value %s\r\n", argv[1], argv[2], argv[3]);
 
     return CLI_OK;
 }
@@ -1596,10 +1639,24 @@ int8_t ksetparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t ksimscore_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0], argv[1], argv[2]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_similarity_score(argv[1], argv[2], &cli_ref->bhy);
     PRINT("\r\n\r\n");
@@ -1617,10 +1674,24 @@ int8_t ksimscore_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t kmsimscore_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0], argv[1], argv[2]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_KLIO,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     klio_enable(&cli_ref->bhy);
     klio_similarity_score_multiple((const char *)argv[1], (const char *)argv[2], &cli_ref->bhy);
     PRINT("\r\n\r\n");
@@ -2534,7 +2605,7 @@ int8_t getvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     PRINT("Virtual sensor configuration get successfully \r\n");
-    PRINT("Custom sensor ID=%d, rate=%.2fHz,latency=%ld, range=%d\r\n",
+    PRINT("Custom sensor ID=%d, rate=%.2fHz,latency=%ld, range=%d\r\n\r\n\r\n",
           sensor_id,
           sensor_conf.sample_rate,
           sensor_conf.latency,
@@ -2584,7 +2655,6 @@ int8_t slabel_help(void *ref)
 int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t label[LOGBIN_LABEL_SIZE] = { 0 };
     uint64_t timestamp_ns;
@@ -2733,10 +2803,24 @@ int8_t swimsetlogging_help(void *ref)
 int8_t swimgetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
+    uint8_t rslt;
 
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_SWIM,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
 
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_virtual_sensor_conf_param_get_cfg,
                                 "bhy_virtual_sensor_conf_param_get_cfg",
@@ -2766,13 +2850,26 @@ int8_t swimgetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t swimsetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     sensor_conf.sample_rate = 0.0F;
     sensor_conf.latency = 0;
 
     INFO("Executing %s\r\n", argv[0]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_SWIM,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
 
     sensor_conf.sample_rate = (bhy_float) atof((const char *)argv[1]);
     sensor_conf.latency = (uint32_t) atoi((const char *)argv[2]);
@@ -2806,7 +2903,7 @@ int8_t swimsetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t swimver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-    int8_t rtsl;
+    int8_t rslt;
 
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_swim_param_version_t swim_algo_ver;
@@ -2814,20 +2911,33 @@ int8_t swimver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     INFO("Executing %s\r\n", argv[0]);
 
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_SWIM,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_swim_param_get_version,
                                 "bhy_swim_param_get_version",
-                                rtsl,
+                                rslt,
                                 &swim_algo_ver,
                                 &cli_ref->bhy);
-    if (rtsl)
+    if (rslt)
     {
         PRINT("SWIMVER 0.0.0\r\n\r\n\r\n");
     }
     else
     {
-        CALL_OUT_DYNAMIC_SENSOR_API(bhy_swim_param_get_config, "bhy_swim_param_get_config", rtsl, &config,
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_swim_param_get_config, "bhy_swim_param_get_config", rslt, &config,
                                     &cli_ref->bhy);
-        if (rtsl)
+        if (rslt)
         {
             PRINT("SWIMVER %u.%u.%u\r\n\r\n\r\n", swim_algo_ver.major, swim_algo_ver.minor, swim_algo_ver.platform);
         }
@@ -2854,7 +2964,6 @@ int8_t swimver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t swimgetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     struct bhy_system_param_orient_matrix orient_matrix;
@@ -2947,12 +3056,25 @@ int8_t swimsetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t swimsetlogging_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
-
+    uint8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     uint8_t state;
 
     INFO("Executing %s\r\n", argv[0]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_SWIM,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
 
     state = (uint8_t) atoi((const char *)argv[1]);
 
@@ -2984,6 +3106,7 @@ int8_t swimsetlogging_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t swim_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
+    uint8_t rslt;
 
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
@@ -2991,6 +3114,19 @@ int8_t swim_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     bhy_event_data_swim_output_t *swim_data;
 
     INFO("Executing %s %s %s %s\r\n", argv[0], argv[1], argv[2], argv[3]);
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rslt,
+                                BHY_SENSOR_ID_SWIM,
+                                &cli_ref->bhy);
+    if (rslt == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
 
     config.update_swim_config = (uint8_t)((argv[1][0] == 'e') ? BHY_SWIM_ENABLE_CONFIG : BHY_SWIM_DISABLE_CONFIG);
     config.dev_on_left_hand =
@@ -4345,7 +4481,7 @@ static void klio_enable(struct bhy_dev *bhy)
 
         CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
         klio_vars = *ret;
-        memcpy(&klio_vars.max_cyclic_patterns, buf, 1);
+        memcpy(&klio_vars.max_patterns, buf, 1);
 
         size = sizeof(buf);
 
@@ -4360,39 +4496,9 @@ static void klio_enable(struct bhy_dev *bhy)
                                      &klio_driver_status,
                                      bhy);
 
-        memcpy(&klio_vars.max_cyclic_pattern_blob_size, buf, 1);
+        memcpy(&klio_vars.max_pattern_blob_size, buf, 1);
 
         klio_vars.auto_load_pattern_write_index = 0;
-
-        if (minor >= 1)
-        {
-            /* Support for generic gestures was added in version 3.1.0 of Klio. */
-            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
-                                         "bhy_klio_param_get_parameter",
-                                         BHY_KLIO_PARAM_MAX_NUM_PATTERNS_GENERIC,
-                                         buf,
-                                         &size,
-                                         bhy);
-            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_read_reset_driver_status,
-                                         "bhy_klio_param_read_reset_driver_status",
-                                         &klio_driver_status,
-                                         bhy);
-
-            memcpy(&klio_vars.max_generic_patterns, buf, 1);
-
-            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
-                                         "bhy_klio_param_get_parameter",
-                                         BHY_KLIO_PARAM_MAX_BLOB_SIZE_GENERIC,
-                                         buf,
-                                         &size,
-                                         bhy);
-            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_read_reset_driver_status,
-                                         "bhy_klio_param_read_reset_driver_status",
-                                         &klio_driver_status,
-                                         bhy);
-
-            memcpy(&klio_vars.max_generic_pattern_blob_size, buf, 2);
-        }
 
         CALL_VOID_DYNAMIC_SENSOR_API(bhy_set_klio_info, "bhy_set_klio_info", &klio_vars);
 
@@ -4417,7 +4523,7 @@ static void klio_status(struct bhy_dev *bhy)
 }
 
 /**
-* @brief Function to set state of cyclic Klio
+* @brief Function to set state of Klio
 * @param[in] arg1 : Argument for learning status
 * @param[in] arg2 : Argument for learning reset
 * @param[in] arg3 : Argument for recognition status
@@ -4445,7 +4551,7 @@ static void klio_set_state(const char *arg1, const char *arg2, const char *arg3,
 }
 
 /**
-* @brief Function to get state of cyclic Klio
+* @brief Function to get state of Klio
 * @param[in] bhy  : Device instance
 */
 static void klio_get_state(struct bhy_dev *bhy)
@@ -4461,43 +4567,6 @@ static void klio_get_state(struct bhy_dev *bhy)
     PRINT("Recognition enabled : %u\r\n", state.recognition_enabled);
     INFO("[kgetstate] ");
     PRINT("Recognition reset   : %u\r\n", state.recognition_reset);
-}
-
-/**
-* @brief Function to set state of generic recognition
-* @param[in] arg  : Argument for gestures status
-* @param[in] bhy  : Device instance
-*/
-static void klio_set_generic_recognition_state(const char *arg, struct bhy_dev *bhy)
-{
-    bhy_klio_param_generic_sensor_state_t state = { 0 };
-
-    state.gestures_enabled = (uint8_t)atoi(arg);
-
-    INFO("[ksetgstate] ");
-    PRINT("Generic recognition enabled : %u\r\n", state.gestures_enabled);
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_set_generic_recognition_state,
-                                 "bhy_klio_param_set_generic_recognition_state",
-                                 &state,
-                                 bhy);
-}
-
-/**
-* @brief Function to get state of generic recognition
-* @param[in] bhy  : Device instance
-*/
-static void klio_get_generic_recognition_state(struct bhy_dev *bhy)
-{
-    bhy_klio_param_generic_sensor_state_t state;
-
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_generic_recognition_state,
-                                 "bhy_klio_param_get_generic_recognition_state",
-                                 &state,
-                                 bhy);
-    INFO("[kgetgstate] ");
-    PRINT("Gesture detection enabled : %u\r\n", state.gestures_enabled);
-    INFO("[kgetgstate] ");
-    PRINT("Timing detection enabled  : %u\r\n", state.timing_enabled);
 }
 
 static int32_t hex_to_char(char c)
@@ -4542,12 +4611,12 @@ static int32_t pattern_blob_to_bytes(const uint8_t *pattern_blob_char, uint8_t *
 }
 
 /**
-* @brief Function to load cyclic pattern
+* @brief Function to load Klio pattern
 * @param[in] arg1 : Argument for pattern index
 * @param[in] arg2 : Argument for pattern/adaptive pattern
 * @param[in] bhy  : Device instance
 */
-static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy)
+static void klio_load_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy)
 {
     uint8_t pattern_data[244];
     uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg2, (uint8_t *)pattern_data);
@@ -4557,9 +4626,9 @@ static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct 
 
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
     klio_vars = *ret;
-    if (size <= klio_vars.max_cyclic_pattern_blob_size)
+    if (size <= klio_vars.max_pattern_blob_size)
     {
-        if (loop < klio_vars.max_cyclic_patterns)
+        if (loop < klio_vars.max_patterns)
         {
             CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_write_pattern,
                                          "bhy_klio_param_write_pattern",
@@ -4576,7 +4645,7 @@ static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct 
         else
         {
             INFO("[kldpatt] ");
-            ERROR("Pattern index: %d >= Max patterns %d\r\n", loop, klio_vars.max_cyclic_patterns);
+            ERROR("Pattern index: %d >= Max patterns %d\r\n", loop, klio_vars.max_patterns);
             (void)kldpatt_help(NULL);
 
             return;
@@ -4585,98 +4654,11 @@ static void klio_load_cyclic_pattern(const char *arg1, const char *arg2, struct 
     else
     {
         INFO("[kldpatt] ");
-        ERROR("Pattern size: %d != Expected pattern size %d\r\n", size, klio_vars.max_cyclic_pattern_blob_size);
+        ERROR("Pattern size: %d != Expected pattern size %d\r\n", size, klio_vars.max_pattern_blob_size);
         (void)kldpatt_help(NULL);
 
         return;
     }
-}
-
-/**
-* @brief Function to load generic pattern
-* @param[in] arg1 : Argument for pattern index
-* @param[in] arg2 : Argument for pattern as bare hex bytestring
-* @param[in] bhy  : Device instance
-*/
-static void klio_load_generic_pattern(const char *arg1, const char *arg2, struct bhy_dev *bhy)
-{
-    static uint8_t pattern_data[10240];
-    uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg2, (uint8_t *)pattern_data);
-    uint8_t loop = (uint8_t)atoi(arg1);
-    bhy_klio_info klio_vars;
-    bhy_klio_info *ret;
-
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
-    klio_vars = *ret;
-    if (size <= klio_vars.max_generic_pattern_blob_size)
-    {
-        if (loop < klio_vars.max_generic_patterns)
-        {
-            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_write_generic_pattern,
-                                         "bhy_klio_param_write_generic_pattern",
-                                         loop,
-                                         pattern_data,
-                                         size,
-                                         bhy);
-        }
-        else
-        {
-            INFO("[kldgpatt] ");
-            ERROR("Pattern index: %d >= Max patterns %d\r\n", loop, klio_vars.max_generic_patterns);
-            (void)kldgpatt_help(NULL);
-
-            return;
-        }
-    }
-    else
-    {
-        INFO("[kldgpatt] ");
-        ERROR("Pattern size: %d > Maximum pattern size %d\r\n", size, klio_vars.max_generic_pattern_blob_size);
-        (void)kldgpatt_help(NULL);
-
-        return;
-    }
-}
-
-/**
-* @brief Function to set gesture configuration
-* @param[in] arg1 : Argument for configuration index
-* @param[in] arg2 : Argument for configuration as bare hex bytestring
-* @param[in] bhy  : Device instance
-*/
-static void klio_set_gesture_config(const char *arg1, const char *arg2, struct bhy_dev *bhy)
-{
-    uint8_t config_data[128] = { 0 };
-    uint8_t loop = (uint8_t)atoi(arg1);
-    uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg2, config_data);
-
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_write_gesture_config,
-                                 "bhy_klio_param_write_gesture_config",
-                                 loop,
-                                 config_data,
-                                 size,
-                                 bhy);
-
-    return;
-}
-
-/**
-* @brief Function to set timing configuration
-* @param[in] arg : Argument for configuration as bare hex bytestring
-* @param[in] bhy : Device instance
-*/
-static void klio_set_timing_config(const char *arg, struct bhy_dev *bhy)
-{
-    uint8_t config_data[128] = { 0 };
-    uint16_t size = (uint16_t)pattern_blob_to_bytes((uint8_t *)arg, config_data);
-
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_write_timing_config,
-                                 "bhy_klio_param_write_timing_config",
-                                 config_data,
-                                 size,
-                                 bhy);
-
-    return;
 }
 
 /**
@@ -4690,7 +4672,7 @@ static void klio_get_parameter(const uint16_t *arg, struct bhy_dev *bhy)
     uint8_t buf[255];
     uint16_t size = sizeof(buf);
     float similarity = 0.0f;
-    uint16_t max_cyclic_patterns = 0;
+    uint16_t max_patterns = 0;
 
     CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_parameter,
                                  "bhy_klio_param_get_parameter",
@@ -4708,18 +4690,15 @@ static void klio_get_parameter(const uint16_t *arg, struct bhy_dev *bhy)
             break;
         case BHY_KLIO_PARAM_RECOGNITION_RESPONSIVNESS:
         case BHY_KLIO_PARAM_LEARNING_SIMILARITY_THRESHOLD:
-        case BHY_KLIO_PARAM_RECOGNITION_THRESHOLD_GENERIC:
             INFO("[kgetparam] ");
             memcpy(&similarity, buf, 4);
             PRINT("Parameter %d: %f\r\n", param_id, similarity);
             break;
         case BHY_KLIO_PARAM_PATTERN_BLOB_SIZE:
-        case BHY_KLIO_PARAM_MAX_BLOB_SIZE_GENERIC:
         case BHY_KLIO_PARAM_RECOGNITION_MAX_PATTERNS:
-        case BHY_KLIO_PARAM_MAX_NUM_PATTERNS_GENERIC:
             INFO("[kgetparam] ");
-            memcpy(&max_cyclic_patterns, buf, 2);
-            PRINT("Parameter %d: %u\r\n", param_id, max_cyclic_patterns);
+            memcpy(&max_patterns, buf, 2);
+            PRINT("Parameter %d: %u\r\n", param_id, max_patterns);
             break;
         case BHY_KLIO_PARAM_LEARNING_IGNORE_INSIG_MOVEMENT:
             INFO("[kgetparam] ");
@@ -4761,7 +4740,6 @@ static void klio_set_parameter(const char *arg1, char *arg2, struct bhy_dev *bhy
     switch (param_id)
     {
         case BHY_KLIO_PARAM_RECOGNITION_RESPONSIVNESS:
-        case BHY_KLIO_PARAM_RECOGNITION_THRESHOLD_GENERIC:
             cycle_count = (float)atof(param_value);
             CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_set_parameter,
                                          "bhy_klio_param_set_parameter",
@@ -4781,6 +4759,74 @@ static void klio_set_parameter(const char *arg1, char *arg2, struct bhy_dev *bhy
             break;
         default:
             break;
+    }
+}
+
+/**
+* @brief Function to get Klio pattern parameter
+* @param[in] pattern   : Argument for pattern ID
+* @param[in] parameter : Argument for parameter ID
+* @param[in] bhy       : Device instance
+*/
+static void klio_get_pattern_parameter(const uint8_t *pattern, const uint8_t *parameter, struct bhy_dev *bhy)
+{
+    int pattern_id = atoi((char*) pattern);
+    int parameter_id = atoi((char*) parameter);
+    size_t buf_length = sizeof(float);
+    uint8_t buf[buf_length];
+    uint16_t bytes_written;
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_get_pattern_parameter,
+                                 "bhy_klio_param_get_pattern_parameter",
+                                 pattern_id,
+                                 parameter_id,
+                                 buf,
+                                 buf_length,
+                                 &bytes_written,
+                                 bhy);
+
+    INFO("[kgetpattparam] ");
+    switch (parameter_id)
+    {
+        case BHY_KLIO_PATTERN_PARAM_EXPONENT_SCALING_FACTOR:
+        {
+            float result;
+            memcpy(&result, buf, sizeof(float));
+            PRINT("Pattern %d Parameter %d has value: %f\r\n", parameter_id, pattern_id, result);
+            break;
+        }
+    }
+}
+
+/**
+* @brief Function to set Klio pattern parameter
+* @param[in] pattern         : Argument for pattern ID
+* @param[in] parameter       : Argument for parameter ID
+* @param[in] parameter_value : Argument for value to set
+* @param[in] bhy             : Device instance
+*/
+static void klio_set_pattern_parameter(const uint8_t *pattern,
+                                       const uint8_t *parameter,
+                                       const uint8_t *parameter_value,
+                                       struct bhy_dev *bhy)
+{
+    int pattern_id = atoi((char*) pattern);
+    int parameter_id = atoi((char*) parameter);
+
+    switch (parameter_id)
+    {
+        case BHY_KLIO_PATTERN_PARAM_EXPONENT_SCALING_FACTOR:
+        {
+            float parsed_value = atof((char*) parameter_value);
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_klio_param_set_pattern_parameter,
+                                         "bhy_klio_param_set_pattern_parameter",
+                                         pattern_id,
+                                         parameter_id,
+                                         &parsed_value,
+                                         sizeof(float),
+                                         bhy);
+            break;
+        }
     }
 }
 
@@ -4833,9 +4879,9 @@ static void klio_similarity_score_multiple(const char *arg1, const char *arg2, s
     uint8_t loop = (uint8_t)atoi(arg1);
     char *indexes_str = (char *)strdup((const char *)arg2);
     char *strtok_ptr;
-    uint8_t indexes[klio_vars.max_cyclic_patterns];
+    uint8_t indexes[klio_vars.max_patterns];
     uint8_t count = 0;
-    float similarity[klio_vars.max_cyclic_patterns];
+    float similarity[klio_vars.max_patterns];
 
     strtok_ptr = strtok(indexes_str, ",");
     while (strtok_ptr != NULL)
@@ -4878,7 +4924,7 @@ static void klio_pattern_state_operation(const uint8_t operation, const char *ar
 
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_klio_info, "bhy_get_klio_info", ret);
     bhy_klio_info klio_vars = *ret;
-    uint8_t pattern_states[klio_vars.max_cyclic_patterns];
+    uint8_t pattern_states[klio_vars.max_patterns];
 
     char *sep = ",";
     char *str = (char *)strdup((const char *)arg1);
@@ -4897,7 +4943,7 @@ static void klio_pattern_state_operation(const uint8_t operation, const char *ar
     {
         uint8_t loop = (uint8_t)atoi(token);
 
-        if (loop < klio_vars.max_cyclic_patterns && count < klio_vars.max_cyclic_patterns)
+        if (loop < klio_vars.max_patterns && count < klio_vars.max_patterns)
         {
             pattern_states[count++] = loop;
         }
@@ -5072,7 +5118,7 @@ static float get_sensor_default_scaling_value(uint8_t sensor_id, struct bhy_dev 
     struct bhy_system_param_phys_sensor_info psi = { 0 };
 
     if (((sensor_id >= BHY_SENSOR_ID_ACC_PASS) && (sensor_id <= BHY_SENSOR_ID_ACC_RAW_WU)) ||
-        ((sensor_id >= BHY_SENSOR_ID_GRA) && (sensor_id == BHY_SENSOR_ID_LACC_WU)) ||
+        ((sensor_id >= BHY_SENSOR_ID_GRA) && (sensor_id <= BHY_SENSOR_ID_LACC_WU)) ||
         (sensor_id == BHY_SENSOR_ID_ACC_BIAS_WU))
     {
         CALL_VOID_DYNAMIC_SENSOR_API(bhy_system_param_get_physical_sensor_info,
@@ -5585,7 +5631,7 @@ int8_t lsactse_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
             if (sensor_details != NULL)
             {
-                PRINT("SID : %3d \t ODR : %4.2f \t R : %4d \t Acquisition : %s\r\n",
+                PRINT("SID : %3d \t ODR : %4.4f \t R : %4d \t Acquisition : %s\r\n",
                       i,
                       act_sensor_conf.sample_rate,
                       act_sensor_conf.range,
@@ -6541,15 +6587,16 @@ int8_t gyrogetcrt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-    bhy_phy_sensor_ctrl_param_gyro_crt_status status;
+    bhy_phy_sensor_ctrl_param_gyro_crt_data status;
 
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_crt_status,
-                                 "bhy_phy_sensor_ctrl_param_gyro_get_crt_status",
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_crt_data,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_crt_data",
                                  &status,
                                  &cli_ref->bhy);
 
     PRINT("Gyroscope CRT Status : %s\r\n",
           (status.status == BHY_PHY_PARAM_GYRO_COMP_RETRIM_SUCCESS) ? "Successful" : "Failed");
+    PRINT("x %02x y %02x z %02x\r\n", status.x, status.y, status.z);
 
     return CLI_OK;
 }
@@ -6834,8 +6881,8 @@ int8_t magsetpwm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     static char* power_str[] = { "NORMAL", "UNDEFINED", "LOW POWER" };
 
     power_mode = (uint8_t)atoi((char *)argv[1]);
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_power_mode,
-                                 "bhy_phy_sensor_ctrl_param_gyro_set_power_mode",
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_magnet_set_power_mode,
+                                 "bhy_phy_sensor_ctrl_param_magnet_set_power_mode",
                                  power_mode,
                                  &cli_ref->bhy);
 
@@ -6874,8 +6921,8 @@ int8_t maggetpwm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     static char* power_str[] = { "NORMAL", "UNDEFINED", "LOW POWER" };
 
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_power_mode,
-                                 "bhy_phy_sensor_ctrl_param_gyro_get_power_mode",
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_magnet_get_power_mode,
+                                 "bhy_phy_sensor_ctrl_param_magnet_get_power_mode",
                                  &power_mode,
                                  &cli_ref->bhy);
 
@@ -8094,6 +8141,7 @@ int8_t hmcsetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
+    int8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     bhy_head_misalignment_mode_vector_x hmc_mode_vect_x = { 0 };
@@ -8105,10 +8153,24 @@ int8_t hmcsetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     hmc_mode_vect_x.vector_x_1.f_val = string_to_float((char *)argv[3]);
     hmc_mode_vect_x.vector_x_2.f_val = string_to_float((char *)argv[4]);
 
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_hmc_mode_vector_x,
-                                 "bhy_head_orientation_param_set_hmc_mode_vector_x",
-                                 &hmc_mode_vect_x,
-                                 &cli_ref->bhy);
+    if (hmc_mode_vect_x.mode == 0U)
+    {
+        ERROR("Vector X can only be set in semi-mode\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_hmc_mode_vector_x,
+                                "bhy_head_orientation_param_set_hmc_mode_vector_x",
+                                rslt,
+                                &hmc_mode_vect_x,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to set Mode and Vector X value !\r\n");
+
+        return rslt;
+    }
 
     PRINT("Set Head Misalignment Mode and Vector X value:\r\n");
     PRINT("    \t -<mode> : %d\r\n", hmc_mode_vect_x.mode);
@@ -8452,7 +8514,7 @@ int8_t getchipid_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_chip_id, "bhy_get_chip_id", &chip_id, &cli_ref->bhy);
 
-    PRINT("CHIP ID : 0x%02x\r\n", chip_id);
+    PRINT("CHIP ID : 0x%02x\r\n\r\n\r\n", chip_id);
 
     return CLI_OK;
 }
@@ -8932,8 +8994,22 @@ int8_t sethearactvcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
 
+    uint8_t rstl;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_activity_param_hearable hearable = { 0 };
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rstl,
+                                BHY_SENSOR_ID_HEAD_ORI_MIS_ALG,
+                                &cli_ref->bhy);
+    if (rstl == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
 
     hearable.seg_size = (uint16_t)atoi((char *)argv[1]);
     hearable.post_process_en = (uint16_t)atoi((char *)argv[2]);
@@ -8991,8 +9067,22 @@ int8_t gethearactvcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     (void)argv;
 
+    uint8_t rstl;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     bhy_activity_param_hearable hearable = { 0 };
+
+    /* Check if FW supports this command */
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_is_sensor_available,
+                                "bhy_is_sensor_available",
+                                rstl,
+                                BHY_SENSOR_ID_HEAD_ORI_MIS_ALG,
+                                &cli_ref->bhy);
+    if (rstl == 0U)
+    {
+        ERROR("Firmware does not support this command.\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
 
     CALL_VOID_DYNAMIC_SENSOR_API(bhy_activity_param_get_hearable_config,
                                  "bhy_activity_param_get_hearable_config",
@@ -9539,7 +9629,7 @@ int8_t setbsxparam_help(void *ref)
     PRINT(
         "    \t -<parameter_id> : ID of the parameter (e.g., '0x201' for accelerometer, '0x203' for gyroscope, '0x205' for magnetometer)\r\n");
     PRINT(
-        "    \t <file_name> : Name of the file from where the calibration state is read, provide the file name with '.txt'as extension\r\n");
+        "    \t <file_name> : Name of the file from where the calibration state is read, provide the file name with '.bin'as extension\r\n");
     PRINT("    \t Send just <parameter_id> to set the latest calibration profile \r\n");
     PRINT("    \t Send <parameter_id> <file_name> to set already saved calibration profile from a file\r\n");
 
@@ -9562,7 +9652,7 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     char file_name[MAX_FILENAME_LENGTH] = { 0 };
     char file_ext[6] = { 0 };
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-    bhy_bsx_algo_param_state_exg bsx_state_exg[20] = { { 0 } };
+    bhy_bsx_algo_param_state_exg bsx_state_exg[BHY_BSX_STATE_MAX_BLOCKS] = { { 0 } };
     char buffer[512] = { 0 };
     int8_t ret_val = 0;
     uint32_t bytes_read = 0;
@@ -9607,12 +9697,12 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
         file_ext[strlen(file_ext)] = '\0';
 
-        ret_val = (int8_t)strcmp(file_ext, "txt");
+        ret_val = (int8_t)strcmp(file_ext, "bin");
         if (ret_val == 0)
         {
             uint8_t file_idx = 0;
 
-            FILE *fp = fopen(file_name, "r");
+            FILE *fp = fopen(file_name, "rb");
 
             if (fp == NULL)
             {
@@ -9638,6 +9728,13 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
                     break;
                 }
 
+                if (block > BHY_BSX_STATE_MAX_BLOCKS)
+                {
+                    PRINT("Error in BSX calibration!\r\n");
+
+                    return CLI_E_INVALID_PARAM;
+                }
+
                 memcpy(&bsx_state_exg[block], &buffer[0], BHY_BSX_STATE_STRUCT_LEN);
                 memset(buffer, 0, sizeof(buffer));
                 file_idx++;
@@ -9658,7 +9755,7 @@ int8_t setbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         }
         else
         {
-            PRINT("Invalid file extension. Please provide a file with .txt extension\r\n");
+            PRINT("Invalid file extension. Please provide a file with .bin extension\r\n");
 
             return CLI_E_INVALID_PARAM;
         }
@@ -9706,7 +9803,7 @@ int8_t getbsxparam_help(void *ref)
     PRINT(
         "    \t -<parameter_id> : ID of the parameter (e.g., '0x201' for accelerometer, '0x203' for gyroscope, '0x205' for magnetometer)\r\n");
     PRINT(
-        "    \t <file_name> : Name of the file to which the calibration state is written, provide the file name with '.txt'as extension\r\n");
+        "    \t <file_name> : Name of the file to which the calibration state is written, provide the file name with '.bin'as extension\r\n");
     PRINT("    \t Send just <parameter_id> to see the calibration profile on the console\r\n");
     PRINT("    \t Send <parameter_id> <file_name> to save the calibration profile to the file\r\n");
 
@@ -9751,13 +9848,21 @@ int8_t getbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("Get Calibration profile of BSX parameter id: 0x%04X\r\n", param_id);
 
     /* Get bsx states for physical sensors*/
-    CALL_VOID_DYNAMIC_SENSOR_API(bhy_bsx_algo_param_get_bsx_states,
-                                 "bhy_bsx_algo_param_get_bsx_states",
-                                 param_id,
-                                 bsx_state_exg,
-                                 sizeof(bsx_state_exg),
-                                 &actual_len,
-                                 &cli_ref->bhy);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_bsx_algo_param_get_bsx_states,
+                                "bhy_bsx_algo_param_get_bsx_states",
+                                ret_val,
+                                param_id,
+                                bsx_state_exg,
+                                sizeof(bsx_state_exg),
+                                &actual_len,
+                                &cli_ref->bhy);
+    if (ret_val == BHY_E_INVALID_DATA)
+    {
+        PRINT("Error in reading BSX calibration profile!\r\n");
+
+        return CLI_E_INVALID_PARAM;
+    }
+
 #ifdef PC
     if (argc >= 3)
 #else
@@ -9779,7 +9884,7 @@ int8_t getbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
         file_ext[strlen(file_ext)] = '\0';
 
-        ret_val = (int8_t)strcmp(file_ext, "txt");
+        ret_val = (int8_t)strcmp(file_ext, "bin");
 
         if (ret_val == 0)
         {
@@ -9827,7 +9932,7 @@ int8_t getbsxparam_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         }
         else
         {
-            PRINT("Invalid file extension. Please provide a file with .txt extension\r\n");
+            PRINT("Invalid file extension. Please provide a file with .bin extension\r\n");
 
             return CLI_E_INVALID_PARAM;
         }
@@ -10545,4 +10650,260 @@ int8_t logandstream_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     return ret;
+}
+
+/**
+* @brief Function to implement callback for getstaticcalib command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t getstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    char file_name[MAX_FILENAME_LENGTH] = { 0 };
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    /* Create a file and copy the calibration profile to the file */
+    strncpy(file_name, (char *)argv[1], strlen((char *)argv[1]));
+    file_name[strlen((char *)argv[1])] = '\0';
+
+    FILE *fp = fopen(file_name, "w");
+
+    if (fp == NULL)
+    {
+        PRINT("Error opening file!\r\n");
+
+        return CLI_E_NULL_PTR;
+    }
+
+    bhy_phy_sensor_ctrl_param_accel_fast_offset_calib accfoc = { 0 };
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_get_foc_calibration,
+                                 "bhy_phy_sensor_ctrl_param_accel_get_foc_calibration",
+                                 &accfoc,
+                                 &cli_ref->bhy);
+    PRINT("Accelerometer Fast Offset Calibration : \r\n");
+    PRINT("    \t -<x_offset> : %d\r\n", accfoc.x_offset);
+    PRINT("    \t -<y_offset> : %d\r\n", accfoc.y_offset);
+    PRINT("    \t -<z_offset> : %d\r\n", accfoc.z_offset);
+    fprintf(fp, "%d %d %d\n", accfoc.x_offset, accfoc.y_offset, accfoc.z_offset);
+    PRINT("Write Accel foc done\r\n");
+
+    bhy_phy_sensor_ctrl_param_gyro_fast_offset_calib gyrofoc = { 0 };
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_foc_calibration,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_foc_calibration",
+                                 &gyrofoc,
+                                 &cli_ref->bhy);
+
+    PRINT("Gyroscope Fast Offset Calibration : \r\n");
+    PRINT("    \t -<x_offset> : %d\r\n", gyrofoc.x_offset);
+    PRINT("    \t -<y_offset> : %d\r\n", gyrofoc.y_offset);
+    PRINT("    \t -<z_offset> : %d\r\n", gyrofoc.z_offset);
+    fprintf(fp, "%d %d %d\n", gyrofoc.x_offset, gyrofoc.y_offset, gyrofoc.z_offset);
+    PRINT("Write Gyro foc done\r\n");
+
+    bhy_phy_sensor_ctrl_param_gyro_crt_data gyro_crt;
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_crt_data,
+                                 "bhy_phy_sensor_ctrl_param_gyro_get_crt_data",
+                                 &gyro_crt,
+                                 &cli_ref->bhy);
+
+    fprintf(fp, "%d %d %d", gyro_crt.x, gyro_crt.y, gyro_crt.z);
+    PRINT("Gyroscope CRT : \r\n");
+    PRINT("    \t -<status> : %d\r\n", gyro_crt.status);
+    PRINT("    \t -<x_offset> : %d\r\n", gyro_crt.x);
+    PRINT("    \t -<y_offset> : %d\r\n", gyro_crt.y);
+    PRINT("    \t -<z_offset> : %d\r\n", gyro_crt.z);
+    PRINT("Write Gyro CRT done\r\n");
+
+    return CLI_OK;
+
+}
+
+/**
+* @brief Function to print help for getstaticcalib command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t getstaticcalib_help(void *ref)
+{
+    (void)ref;
+    PRINT("  getstaticcalib\r\n");
+    PRINT("    \t= Getting Accel/Gyro FOC and Gyro CRT offset values\r\n");
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to implement callback for setstaticcalib command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t setstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    char file_name[MAX_FILENAME_LENGTH] = { 0 };
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    /* Create a file and copy the calibration profile to the file */
+    strncpy(file_name, (char *)argv[1], strlen((char *)argv[1]));
+    file_name[strlen((char *)argv[1])] = '\0';
+
+    FILE *fp = fopen(file_name, "r");
+
+    if (fp == NULL)
+    {
+        PRINT("Error opening file!\r\n");
+
+        return CLI_E_NULL_PTR;
+    }
+
+    bhy_phy_sensor_ctrl_param_accel_fast_offset_calib acc_foc = { 0 };
+    bhy_phy_sensor_ctrl_param_gyro_fast_offset_calib gyro_foc = { 0 };
+    bhy_phy_sensor_ctrl_param_gyro_crt_data gyro_crt = { 0 };
+
+    char delimiters[] = " ";
+    char *token;
+    char line[256];
+    int16_t tmp_buf[9] = { 0 };
+    char buffer[2];
+    uint8_t idx = 0;
+    token = strtok(buffer, delimiters);
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        token = strtok(line, delimiters);
+        while (token != NULL && idx <= 8)
+        {
+            if (sscanf(token, "%ld", &tmp_buf[idx]) == 1)
+            {
+                idx++;
+                token = strtok(NULL, delimiters);
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    acc_foc.x_offset = tmp_buf[0];
+    acc_foc.y_offset = tmp_buf[1];
+    acc_foc.z_offset = tmp_buf[2];
+    gyro_foc.x_offset = tmp_buf[3];
+    gyro_foc.y_offset = tmp_buf[4];
+    gyro_foc.z_offset = tmp_buf[5];
+    gyro_crt.x = tmp_buf[6];
+    gyro_crt.y = tmp_buf[7];
+    gyro_crt.z = tmp_buf[8];
+
+    PRINT("Set the Accelerometer Fast Offset Calibration\r\n");
+    PRINT("    \t -<x_offset> : %d\r\n", acc_foc.x_offset);
+    PRINT("    \t -<y_offset> : %d\r\n", acc_foc.y_offset);
+    PRINT("    \t -<z_offset> : %d\r\n", acc_foc.z_offset);
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_accel_set_foc_calibration,
+                                 "bhy_phy_sensor_ctrl_param_accel_set_foc_calibration",
+                                 &acc_foc,
+                                 &cli_ref->bhy);
+
+    PRINT("Set the Gyroscope Fast Offset Calibration \r\n");
+    PRINT("    \t -<x_offset> : %d\r\n", gyro_foc.x_offset);
+    PRINT("    \t -<y_offset> : %d\r\n", gyro_foc.y_offset);
+    PRINT("    \t -<z_offset> : %d\r\n", gyro_foc.z_offset);
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_foc_calibration,
+                                 "bhy_phy_sensor_ctrl_param_gyro_set_foc_calibration",
+                                 &gyro_foc,
+                                 &cli_ref->bhy);
+
+    PRINT("Set the Gyroscope Component Retrim \r\n");
+    PRINT("    \t -<x_offset> : %d\r\n", gyro_crt.x);
+    PRINT("    \t -<y_offset> : %d\r\n", gyro_crt.y);
+    PRINT("    \t -<z_offset> : %d\r\n", gyro_crt.z);
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_gyro_data,
+                                 "bhy_phy_sensor_ctrl_param_set_gyro_data",
+                                 &gyro_crt,
+                                 &cli_ref->bhy);
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to print help for setstaticcalib command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t setstaticcalib_help(void *ref)
+{
+    (void)ref;
+    PRINT("  setstaticcalib\r\n");
+    PRINT("    \t= Setting Accel/Gyro FOC and Gyro CRT offset values\r\n");
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to implement callback for staticcalib command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t staticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    INFO("Executing %s %s\r\n", argv[0], argv[1]);
+    struct bhy_foc_resp foc_resp = { 0 };
+
+    PRINT("Keep the sensor stable for accel foc\r\n");
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_perform_foc, "bhy_perform_foc", BHY_ACCEL_FOC, &foc_resp, &cli_ref->bhy);
+
+    PRINT("Gyro foc getting enabled\r\n");
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_perform_foc, "bhy_perform_foc", BHY_GYRO_FOC, &foc_resp, &cli_ref->bhy);
+
+    switch (foc_resp.foc_status)
+    {
+        case BHY_FOC_SUCCESS:
+            PRINT("FOC Success\r\n");
+            break;
+        case BHY_FOC_FAILURE:
+            PRINT("FOC failed\r\n");
+            break;
+        case BHY_FOC_UNKNOWN_ERROR:
+            PRINT("Unknown FOC failure\r\n");
+            break;
+        default:
+            PRINT("Undefined FOC status %u\r\n", foc_resp.foc_status);
+            break;
+    }
+
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_start_comp_retrim,
+                                 "bhy_phy_sensor_ctrl_param_gyro_start_comp_retrim",
+                                 &cli_ref->bhy);
+    PRINT("Execute Gyro CRT sucessfully\r\n");
+
+    PRINT("\r\n\r\n");
+
+    return CLI_OK;
+}
+
+/**
+* @brief Function to print help for staticcalib command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t staticcalib_help(void *ref)
+{
+    (void)ref;
+    PRINT("  staticcalib\r\n");
+    PRINT("    \t= Executing Accel/Gyro FOC and Gyro CRT\r\n");
+
+    return CLI_OK;
 }

@@ -136,66 +136,6 @@ int8_t ksetstate_help(void *ref);
 int8_t ksetstate_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to print help for ksetgstate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t ksetgstate_help(void *ref);
-
-/**
-* @brief Function to implement callback for ksetgstate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t ksetgstate_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for kgetgstate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t kgetgstate_help(void *ref);
-
-/**
-* @brief Function to implement callback for kgetgstate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t kgetgstate_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for ksetgestconf command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t ksetgestconf_help(void *ref);
-
-/**
-* @brief Function to implement callback for ksetgestconf command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t ksetgestconf_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for ksettimeconf command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t ksettimeconf_help(void *ref);
-
-/**
-* @brief Function to implement callback for ksettimeconf command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t ksettimeconf_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
 * @brief Function to print help for kgetstate command
 * @param[in] ref  : Reference to command line
 * @return API error codes
@@ -239,21 +179,6 @@ int8_t kldpatt_help(void *ref);
 * @param[in] ref  : Reference to command line
 */
 int8_t kldpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for kldgpatt command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t kldgpatt_help(void *ref);
-
-/**
-* @brief Function to implement callback for kldgpatt command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t kldgpatt_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
 * @brief Function to print help for kenpatt command
@@ -359,6 +284,36 @@ int8_t ksetparam_help(void *ref);
 * @param[in] ref  : Reference to command line
 */
 int8_t ksetparam_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to print help for kgetpattparam command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t kgetpattparam_help(void *ref);
+
+/**
+* @brief Function to implement callback for kgetpattparam command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t kgetpattparam_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to print help for ksetpattparam command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t ksetpattparam_help(void *ref);
+
+/**
+* @brief Function to implement callback for ksetpattparam command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t ksetpattparam_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
 * @brief Function to print help for kmsimscore command
@@ -2159,6 +2114,51 @@ int8_t logandstream_help(void *ref);
 * @param[in] ref  : Reference to command line
 */
 int8_t logandstream_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to implement callback for getting static calibration offset values command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t getstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to print help for getstaticcalib command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t getstaticcalib_help(void *ref);
+
+/**
+* @brief Function to implement callback for setstaticcalib command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t setstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to print help for setstaticcalib command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t setstaticcalib_help(void *ref);
+
+/**
+* @brief Function to implement callback for staticcalib command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t staticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to print help for staticcalib command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t staticcalib_help(void *ref);
 
 /* End of CPP Guard */
 #ifdef __cplusplus

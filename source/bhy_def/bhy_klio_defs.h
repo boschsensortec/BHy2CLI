@@ -31,7 +31,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_klio_defs.h
-* @date       2025-03-28
+* @date       2025-08-20
 * @version    v1.0.0
 *
 */
@@ -46,16 +46,15 @@ extern "C" {
 
 #include <stdint.h>
 
-#define BHY_SENSOR_ID_KLIO          UINT8_C(112)
-#define BHY_SENSOR_ID_KLIO_GENERIC  UINT8_C(117)
-#define BHY_SENSOR_ID_KLIO_LOG      UINT8_C(127)
+#define BHY_SENSOR_ID_KLIO      UINT8_C(112)
+#define BHY_SENSOR_ID_KLIO_LOG  UINT8_C(127)
 
 #ifndef BHY_KLIO_PAGE
-#define BHY_KLIO_PAGE               UINT16_C(9)
+#define BHY_KLIO_PAGE           UINT16_C(9)
 #endif
-#define BHY_KLIO_PARAM(id)          (((BHY_KLIO_PAGE) << 8) | (id))
+#define BHY_KLIO_PARAM(id)      (((BHY_KLIO_PAGE) << 8) | (id))
 
-#define MAX_DATA_SIZE               244
+#define MAX_DATA_SIZE           244
 
 /*!
  * @enum bhy_klio_param
@@ -82,20 +81,6 @@ extern "C" {
  * @var bhy_klio_param::BHY_KLIO_PARAM_LEARNING_IGNORE_INSIG_MOVEMENT
  * Flag if insignificant movements should be ignored in learning. Value 0 or 1. (read / write)
  * @code{.c} uint8_t ignore_insig_movement; @endcode
- *
- * @var bhy_klio_param::BHY_KLIO_PARAM_MAX_NUM_PATTERNS_GENERIC
- * Maximum number of patterns for generic gesture recognition. (read)
- * @code{.c} uint16_t max_num_patterns_generic; @endcode
- *
- * @var bhy_klio_param::BHY_KLIO_PARAM_MAX_BLOB_SIZE_GENERIC
- * Maximum size of one generic gesture pattern. (read)
- * @code{.c} uint16_t max_blob_size_generic; @endcode
- *
- * @var bhy_klio_param::BHY_KLIO_PARAM_RECOGNITION_THRESHOLD_GENERIC
- * Recognition threshold for the generic gesture algorithm, between 0.0 and 1.0.
- * A lower number means the algorithm will recognize more easily, but can also lead to false positives.
- * If the generic gesture algorithm is disabled, this will be read as -999.0. (read / write)
- * @code{.c} float recognition_threshold_generic; @endcode
  */
 typedef enum
 {
@@ -109,21 +94,31 @@ typedef enum
     BHY_KLIO_PARAM_PATTERN_BLOB_SIZE = 7,
     BHY_KLIO_PARAM_RECOGNITION_MAX_PATTERNS = 8,
     BHY_KLIO_PARAM_INPUT_SENSORS = 9,
-    BHY_KLIO_PARAM_LEARNING_IGNORE_INSIG_MOVEMENT = 10,
-    /* Start of parameters for the generic gesture algorithm */
-    BHY_KLIO_PARAM_MAX_NUM_PATTERNS_GENERIC = 128,
-    BHY_KLIO_PARAM_MAX_BLOB_SIZE_GENERIC = 129,
-    BHY_KLIO_PARAM_RECOGNITION_THRESHOLD_GENERIC = 130
+    BHY_KLIO_PARAM_LEARNING_IGNORE_INSIG_MOVEMENT = 10
 } bhy_klio_param_t;
+
+/*!
+ * @enum bhy_klio_param_pattern_parameter_t
+ *
+ * KLIO parameters that can be set for each pattern
+ *
+ * @var bhy_klio_param_pattern_parameter_t::KLIO_PATTERN_PARAM_EXPONENT_SCALING_FACTOR
+ * Exponent scaling factor. (read/write)
+ * A value smaller than 1.0 will make the pattern less likely to be recognized.
+ * A value larger than 1.0 will make the pattern more likely to be recognized.
+ * @code{.c} float exponent_scaling_factor @endcode
+ */
+typedef enum
+{
+    BHY_KLIO_PATTERN_PARAM_EXPONENT_SCALING_FACTOR = 0,
+} bhy_klio_param_pattern_parameter_t;
 
 typedef struct
 {
-    uint8_t max_cyclic_patterns;
-    uint8_t max_cyclic_pattern_blob_size;
+    uint8_t max_patterns;
+    uint8_t max_pattern_blob_size;
     uint8_t auto_load_pattern_write_index;
     uint8_t auto_load_pattern;
-    uint8_t max_generic_patterns;
-    uint16_t max_generic_pattern_blob_size;
 } bhy_klio_info;
 
 /*!
@@ -144,15 +139,46 @@ typedef struct
         uint16_t pattern_blob_size;
         uint16_t recognition_max_patterns;
         uint8_t ignore_insig_movement;
-        uint16_t max_num_patterns_generic;
-        uint16_t max_blob_size_generic;
-        float recognition_threshold_generic;
     } BHY_PACKED payload;
 } BHY_PACKED bhy_klio_param_wrapper_t;
 
 /*!
+* @brief Header for pattern parameter requests.
+*/
+typedef struct
+{
+    uint8_t pattern_id;
+    uint8_t parameter_id;
+    uint8_t size;
+    uint8_t padding[1]; /* Padding to make the struct a multiple of 4 bytes for convenience. */
+} BHY_PACKED bhy_klio_param_pattern_parameter_wrapper_header_t;
+
+/*!
  *
- * @brief bhy cyclic klio state structure
+ * @brief Struct used for writing, requesting read, and reading a pattern parameter.
+ *
+ * When setting a parameter. Size should be set to the size of the payload.
+ * And the new value should be in the payload field.
+ *
+ * To request a parameter read,  the pattern and parameter that should be read can be specified,
+ * together with a size of zero, indicating that no parameter should be set.
+ * When reading the parameter, the size field will be set to the actual size of the payload.
+ *
+ * The struct should be padded to a multiple of 4 bytes.
+ */
+typedef struct
+{
+    bhy_klio_param_pattern_parameter_wrapper_header_t header;
+    union
+    {
+        uint8_t data[sizeof(float)];
+        float exponent_scaling_factor;
+    } BHY_PACKED payload;
+} BHY_PACKED bhy_klio_param_pattern_parameter_wrapper_t;
+
+/*!
+ *
+ * @brief bhy klio state structure
  *
  */
 typedef struct
@@ -162,43 +188,6 @@ typedef struct
     uint8_t recognition_enabled; /*!< 0 - disable recognition, 1 - enable recognition. */
     uint8_t recognition_reset; /*!< 0 - nop, 1 - reset learning. Always read as 0. */
 } BHY_PACKED bhy_klio_param_sensor_state_t;
-
-/*!
- *
- * @brief bhy generic klio state structure
- *
- */
-typedef struct
-{
-    uint8_t gestures_enabled; /*!< 0 - gesture detection disabled, 1 - gesture detection enabled */
-    uint8_t timing_enabled; /*!< 0 - timing detection disabled, 1 - timing detection enabled (read-only) */
-    uint8_t dummy[2]; /*!< Padding bytes to make the parameter size a multiple of 4 bytes, since the BHI requires this.
-                       * */
-} BHY_PACKED bhy_klio_param_generic_sensor_state_t;
-
-/*!
- *
- * @brief bhy klio generic data structure
- *
- * When the algorithm generates a new data frame, it is sent in this structure.
- */
-typedef struct
-{
-    /*! The ID of the recognized subgesture. */
-    uint8_t subgest_id;
-
-    /*! Number of repetitions of this subgesture. */
-    uint8_t subgest_count;
-
-    /*! The score of the recognized subgesture. */
-    float subgest_score;
-
-    /*! The repetition count of the full gesture. Only valid if timing recognition is enabled. */
-    uint8_t full_gest_count;
-
-    /*! The score of the full gesture. Only valid if timing recognition is enabled. */
-    float full_gest_score;
-} BHY_PACKED bhy_klio_param_generic_sensor_frame_t;
 
 /*!
  *
@@ -216,7 +205,7 @@ typedef struct
 
 /*!
  *
- * @brief bhy klio cyclic pattern transfer format
+ * @brief bhy klio pattern transfer format
  *
  */
 typedef struct
@@ -235,48 +224,6 @@ typedef struct
     /*! Actual pattern data describing the exercise. */
     uint8_t pattern_data[MAX_DATA_SIZE];
 } BHY_PACKED bhy_klio_param_pattern_transfer_t;
-
-/*!
- *
- * @brief bhy klio generic pattern transfer format
- *
- */
-typedef struct
-{
-    /*! Start offset to write this chunk of pattern data to. */
-    uint16_t offset;
-
-    /*! Size of full pattern data in bytes. The maximum size of patterns may be obtained
-    using the @ref bhy_klio_param::BHY_KLIO_PARAM_MAX_PATTERN_SIZE_GENERIC
-    parameter. */
-    uint16_t full_size;
-
-    /*! Size of this block of pattern data in bytes. */
-    uint8_t block_size;
-
-    /*! Id of pattern to write. */
-    uint8_t pattern_id;
-
-    /*! Actual pattern data describing the exercise. */
-    uint8_t pattern_data[MAX_DATA_SIZE];
-} BHY_PACKED bhy_klio_param_generic_pattern_transfer_t;
-
-/*!
- *
- * @brief bhy klio config transfer format
- *
- */
-typedef struct
-{
-    /*! Size of config data in bytes. */
-    uint16_t size;
-
-    /*! Index to load config to. Only used for gesture config. */
-    uint8_t id;
-
-    /*! Actual config data. */
-    uint8_t config_data[MAX_DATA_SIZE];
-} BHY_PACKED bhy_klio_param_config_transfer_t;
 
 /*!
  *
@@ -339,9 +286,9 @@ typedef enum
  */
 typedef enum
 {
-    /*! Read and write cyclic algorithm state. */
+    /*! Read and write algorithm state. */
     BHY_KLIO_HIF_PARAM_ALGORITHM_STATE = 0,
-    /*! Read and write cyclic patterns. */
+    /*! Read and write patterns. */
     BHY_KLIO_HIF_PARAM_PATTERN = 1,
     /*! Read and write algorithm parameters. */
     BHY_KLIO_HIF_PARAM_ALGO_DRIVER_PARAMETER = 2,
@@ -352,15 +299,10 @@ typedef enum
     BHY_KLIO_HIF_PARAM_PATTERN_COMBINING = 6,
     /*! Read driver status. */
     BHY_KLIO_HIF_PARAM_DRIVER_STATUS = 7,
-    /*! Reset driver, including both Klio and non-rep algorithm states. */
+    /*! Reset driver to its startup state. */
     BHY_KLIO_HIF_PARAM_RESET = 8,
-    /* Start of parameters for the generic algorithm. */
-    /*! Read and write generic algorithm state. */
-    BHY_KLIO_HIF_PARAM_ALGORITHM_STATE_GENERIC = 128,
-    /*! Write generic patterns. */
-    BHY_KLIO_HIF_PARAM_PATTERN_GENERIC = 129,
-    /*! Write generic algorithm config. */
-    BHY_KLIO_HIF_PARAM_CONFIG_GENERIC = 130
+    /*! Read and write pattern parameters. */
+    BHY_KLIO_HIF_PARAM_PATTERN_PARAM = 9
 } bhy_klio_param_hif_parameter_t;
 
 /*!
@@ -401,25 +343,10 @@ typedef int8_t (*bhy_klio_param_read_pattern_func)(const uint8_t id, uint8_t *bu
 
 typedef int8_t (*bhy_klio_param_set_state_func)(const bhy_klio_param_sensor_state_t *state, struct bhy_dev *dev);
 
-typedef int8_t (*bhy_klio_param_set_generic_recognition_state_func)(const bhy_klio_param_generic_sensor_state_t *state,
-                                                                    struct bhy_dev *dev);
-
 typedef int8_t (*bhy_klio_param_get_state_func)(bhy_klio_param_sensor_state_t *state, struct bhy_dev *dev);
-
-typedef int8_t (*bhy_klio_param_get_generic_recognition_state_func)(bhy_klio_param_generic_sensor_state_t *state,
-                                                                    struct bhy_dev *dev);
 
 typedef int8_t (*bhy_klio_param_write_pattern_func)(const uint8_t idx, const uint8_t *pattern_data, const uint16_t size,
                                                     struct bhy_dev *dev);
-
-typedef int8_t (*bhy_klio_param_write_generic_pattern_func)(const uint8_t idx, const uint8_t *pattern_data,
-                                                            const uint16_t size, struct bhy_dev *dev);
-
-typedef int8_t (*bhy_klio_param_write_gesture_config_func)(const uint8_t idx, const uint8_t *config_data,
-                                                           const uint16_t size, struct bhy_dev *dev);
-
-typedef int8_t (*bhy_klio_param_write_timing_config_func)(const uint8_t *config_data, const uint16_t size,
-                                                          struct bhy_dev *dev);
 
 typedef int8_t (*bhy_klio_param_set_pattern_states_func)(const bhy_klio_param_pattern_state_t operation,
                                                          const uint8_t *pattern_ids, const uint16_t arr_size,
@@ -437,6 +364,16 @@ typedef int8_t (*bhy_klio_param_set_parameter_func)(const bhy_klio_param_t id, c
 
 typedef int8_t (*bhy_klio_param_get_parameter_func)(const bhy_klio_param_t id, uint8_t *parameter_data, uint16_t *size,
                                                     struct bhy_dev *dev);
+
+typedef int8_t (*bhy_klio_param_set_pattern_parameter_func)(const uint8_t pattern_id,
+                                                            const bhy_klio_param_pattern_parameter_t parameter_id,
+                                                            const void *parameter_data, const uint16_t size,
+                                                            struct bhy_dev *dev);
+
+typedef int8_t (*bhy_klio_param_get_pattern_parameter_func)(const uint8_t pattern_id,
+                                                            const bhy_klio_param_pattern_parameter_t parameter_id,
+                                                            uint8_t *result_buffer, const uint16_t result_buffer_size,
+                                                            uint16_t *bytes_written, struct bhy_dev *dev);
 
 typedef int8_t (*bhy_klio_param_reset_func)(struct bhy_dev *dev);
 

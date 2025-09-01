@@ -31,7 +31,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_parse.h
-* @date       2025-03-28
+* @date       2025-08-20
 * @version    v1.0.0
 *
 */
@@ -115,6 +115,11 @@ typedef void (*bhy_parse_multitap_func)(const struct bhy_fifo_parse_data_info *c
 typedef void (*bhy_parse_wrist_gesture_detect_func)(const struct bhy_fifo_parse_data_info *callback_info,
                                                     void *callback_ref);
 
+typedef void (*bhy_parse_step_counter_data_func)(const struct bhy_fifo_parse_data_info *callback_info,
+                                                 void *callback_ref);
+typedef void (*bhy_parse_wrist_wear_wakeup_data_func)(const struct bhy_fifo_parse_data_info *callback_info,
+                                                      void *callback_ref);
+
 typedef void (*bhy_parse_air_quality_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 typedef void (*bhy_parse_hmc_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
@@ -141,8 +146,6 @@ typedef void (*bhy_parse_pressure_func)(const uint8_t *data, bhy_float *pressure
 typedef void (*bhy_parse_altitude_func)(const uint8_t *data, bhy_float *altitude);
 
 typedef void (*bhy_parse_klio_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-typedef void (*bhy_parse_klio_generic_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 typedef void (*bhy_parse_klio_log_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 

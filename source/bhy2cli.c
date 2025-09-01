@@ -59,11 +59,6 @@
 
 bool echo_on = true;
 bool heartbeat_on = false;
-uint16_t stream_buff_len = 0;
-#ifndef PC
-static uint8_t out_buff[CLI_STREAM_BUF_MAX] = { 0 };
-#endif
-static uint16_t out_idx = 0;
 #ifdef PC
 static volatile bool end_streaming = false;
 #endif
@@ -361,16 +356,6 @@ int main(void)
             argc = 0;
         }
 
-        if (stream_buff_len && out_idx)
-        {
-#ifndef PC
-            (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
-            coines_write_intf(bhy2cli_intf, out_buff, out_idx);
-            out_idx = 0;
-            (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
-#endif
-        }
-
         bhy2cli_data_parse_callback(&cli_ref);
 #ifdef PC
         if (!bhy2cli_are_sensors_active())
@@ -430,25 +415,9 @@ int main(void)
 void verbose_write(uint8_t *buffer, uint16_t length)
 {
 #ifndef PC
-    if (stream_buff_len)
-    {
-        if ((out_idx + length) > sizeof(out_buff))
-        {
-            (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
-            coines_write_intf(bhy2cli_intf, out_buff, out_idx);
-            out_idx = 0;
-            (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
-        }
-
-        memcpy(&out_buff[out_idx], buffer, length);
-        out_idx += length;
-    }
-    else
-    {
-        (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
-        coines_write_intf(bhy2cli_intf, buffer, length);
-        (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
-    }
+    (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
+    coines_write_intf(bhy2cli_intf, buffer, length);
+    (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
 
 #endif
 }

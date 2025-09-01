@@ -52,7 +52,6 @@
 
 extern bool echo_on;
 extern bool heartbeat_on;
-extern uint16_t stream_buff_len;
 
 extern uint8_t inp[10240];
 extern enum coines_comm_intf bhy2cli_intf;
@@ -156,53 +155,6 @@ int8_t heartbeat_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     }
 
     PRINT("Setting Heartbeat message to %s\r\n", heartbeat_on ? "on" : "off");
-    PRINT("\r\n\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to print help for strbuf command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t streambuff_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  strbuf <buffer size>\r\n");
-    PRINT("    \t= Set the streaming buffer size. Maximum of %u bytes\r\n", CLI_STREAM_BUF_MAX);
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for strbuf command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t streambuff_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-    (void)ref;
-
-    uint16_t buffer_size;
-
-    INFO("Executing %s %s\r\n", argv[0], argv[1]);
-
-    buffer_size = (uint16_t)atoi((char *)argv[1]);
-
-    if (buffer_size <= CLI_STREAM_BUF_MAX)
-    {
-        PRINT("Streaming buffer size set to %u\r\n", buffer_size);
-        stream_buff_len = buffer_size;
-    }
-    else
-    {
-        ERROR("Invalid streaming buffer size of %u\r\n", buffer_size);
-    }
-
     PRINT("\r\n\r\n");
 
     return CLI_OK;

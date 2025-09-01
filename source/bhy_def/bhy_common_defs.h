@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_common_defs.h
-* @date       2025-03-28
-* @version    v0.6.0
+* @date       2025-08-20
+* @version    v1.0.0
 *
 */
 
@@ -199,6 +199,7 @@ extern "C" {
 #define BHY_E_FUNCTION_NOT_FOUND                                    INT8_C(-11)
 #define BHY_E_UNKNOWN_CHIP_ID                                       INT8_C(-12)
 #define BHY_E_API_NUM_OUT                                           INT8_C(-13)
+#define BHY_E_INVALID_DATA                                          INT8_C(-14)
 
 #ifndef BHY_COMMAND_PACKET_LEN
 #define BHY_COMMAND_PACKET_LEN                                      UINT16_C(256)

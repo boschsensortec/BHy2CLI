@@ -6,53 +6,50 @@
 2. [Folder Structure](#folder-structure-🗂️)
 3. [Getting Started](#getting-started)
 4. [Release Package](#release-package)
-5. [Execute BHy2CLI Application](#execute-bhy2cli-application🏃‍♂️)
+5. [Execute BHy2CLI Application](#execute-BHy2cli-application🏃‍♂️)
 
 ## Compatibility
-| Items      | BHy2CLI | FW     | BSX4   |BHy SensorAPI | COINES SDK   | Supported Boards | Supported Sensors |
-| :---:      | :---:  | :----: | :----: | :----:       | :----:       | :----: | :----: |
-| version    | 0.6.0  | 1.1.18 | IR84.3 | 2.2.0        | 2.10.2       | APP30<br>APP31 | BHI360 |
+| Items      | BHy2CLI | FW     | BSX   |BHI SensorAPI | COINES SDK   | Supported Boards | Supported Sensors |
+| :---:      | :---:   | :----: | :----: | :----:        | :----:      | :----: | :----:  |
+| version    | 1.0.0   | 1.1.18<br>1.0.0.4 | IR84.3<br>1.3.2 | 2.2.0<br>1.0.0         | 2.10        | APP30<br>APP31   | BHI360<br>BHI385     |
 
 ## Folder Structure 🗂️
 
-The SensorAPI repositories follow this folder structure:
+The BHy2CLI repositories follow this folder structure:
 
 ```shell
 BHy2CLI:
-    +---config
-    +---coverage
+    +---bin
     +---docs
-    +---Jenkinsfile
     +---scripts
     +---source
     +---submodules
-    +---test
     +---tools
+    +---Makefile
+    +---README.md
 ```
 
-* config: Contains configuration files used by various processes.
-* coverage: Contains coverage report
+* bin: Contains BHy2CLI executable files
 * docs: Contains release documents (User_Guide, CHANGELOG.md, Compatibility.txt, ...)
-* Jenkinsfile: Contains the Jenkinsfile.
 * scripts: Contains batch files to clean, generate and download BHy2CLI executables/binaries 
 * source: Holds the BHy2CLI source files.
 * submodules: Destination folder for package dependency modules.
-* test: Contains test source file and config files
 * tools: Contains initial automation tools.
+* Makefile: A script to configure and build BHy2CLI
+* README.md: A text file that introduces and explains a software
 
 ## Getting Started
 
-Ensure that all dependencies are correctly initialized on your system. 
-Use the `tools\update_dependency.bat` and
-`tools\update_python_libraries.bat` scripts to achieve this.
-
-To execute the scripts, follow the steps below:
+To clone BHy2CLI from Github, follow the below command
 
 ```
-1. Open powershell in root directory of BHy2CLI project.
-2. Execute, update_dependency.bat
-3. Execute, update_python_libraries.bat
+1. Open your terminal or Git Bash on your local machine.
+2. Use the cd command to navigate to the folder where you want to save the project.
+3. Type the following command 
+  git clone --recurse-submodules https://github.com/boschsensortec/BHy2CLI.git
+4. Press Enter, the repository will download to your computer
 ```
+
 
 > ⚠️ **Note**
 >
@@ -60,12 +57,12 @@ To execute the scripts, follow the steps below:
 > If you encounter any errors related to repository access, please verify your SSH keys and user permissions.
 
 ### Steps to include a new sensor API (Optional)
-1. Copy the sensor API folder under "submodules" so that the API source code is available under "submodules/bhixxx/source".
-By default, the source code and Makefile locate the BHI360 sensor API v2.2.0 under "submodules/bhi360/source".
+1. Copy the sensor API folder under "submodules" so that the API source code is available under "submodules/bhixxx".
+By default, the source code and Makefile locate the BHI360 sensor API v2.2.0 under "submodules/bhi360".
 2. Update the Makefile of the CLI to include definitions and source code for the new sensor API. Follow these steps:
    - Add the location of the new sensor API:
      ```
-     CLIxxx_API_LOCATION ?= submodules/bhixxx/source
+     CLIxxx_API_LOCATION ?= submodules/bhixxx
      ```
    - Add the source files of the new sensor API to the build process:
      ```
@@ -100,10 +97,10 @@ By default, the source code and Makefile locate the BHI360 sensor API v2.2.0 und
 Release package helps to generate executables and binaries of BHy2CLI , which can then be used to test BHy2CLI Application on PC/MCU in Application Board APP3.0 / APP3.1
 ### Creating Release package :
 ```
-1.Open powershell in root directory of BHy2CLI project.
-2.For TARGET PC, run .\scripts\build.bat
-3.For TARGET MCU_APP30, run .\scripts\build_app30.bat
-4.For TARGET MCU_APP31, run .\scripts\build_app31.bat
+1. Open powershell in root directory of BHy2CLI project.
+2. For TARGET PC, run .\scripts\build.bat
+3. For TARGET MCU_APP30, run .\scripts\build_app30.bat
+4. For TARGET MCU_APP31, run .\scripts\build_app31.bat
 ```
 #### Release folder structure :
 		 - BHI3-firmwares/BHI360 : Holds BHI360 firmwares
@@ -121,3 +118,11 @@ Release package helps to generate executables and binaries of BHy2CLI , which ca
 - Refer Section 2 of BHy2CLI_User_Guide.pdf (From docs/ folder)
 
 
+> ⚠️ **Note**
+>
+> If the TARGET is MCU_APP30 or MCU_APP31, please copy the Firmware into Application board memory.
+```
+1. Switch application board to MTP mode.
+2. Copy Firmware from Window to application board memory
+```
+> Ensure the file name length of Firmware is not more than 39 characters, then please short its name if necessary.

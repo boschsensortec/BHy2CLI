@@ -1,11 +1,9 @@
 @echo off
 
 set FIRMWARE_PATH_BHI360= .\submodules\bhi360\firmware
-set FIRMWARE_PATH_BHI380= .\submodules\bhi380\firmware
 set FIRMWARE_PATH_BHI385= .\submodules\bhi385\firmware
 set COINES_BRIDGE_APP30= .\submodules\coines\firmware\app3.0
 set COINES_BRIDGE_APP31= .\submodules\coines\firmware\app3.1
-set COINES_BRIDGE_NICLA= .\submodules\coines\firmware\nicla
 set COINES_APP_SWITCH= .\submodules\coines\tools\app_switch
 set COINES_USB_DFU= .\submodules\coines\tools\usb-dfu
 
@@ -13,7 +11,6 @@ set COINES_USB_DFU= .\submodules\coines\tools\usb-dfu
 mkdir .\release
 mkdir .\release\BHI3-firmwares
 mkdir .\release\BHI3-firmwares\BHI360
-mkdir .\release\BHI3-firmwares\BHI380
 mkdir .\release\BHI3-firmwares\BHI385
 mkdir .\release\docs
 mkdir .\release\PC
@@ -21,7 +18,6 @@ mkdir .\release\PC\bin
 mkdir .\release\firmware
 mkdir .\release\firmware\app30
 mkdir .\release\firmware\app31
-mkdir .\release\firmware\nicla
 mkdir .\release\tools
 mkdir .\release\tools\app_switch
 mkdir .\release\tools\usb-dfu
@@ -42,13 +38,12 @@ del GCC.txt
 set PC_BIN_PATH= .\release\PC\bin\%COMPILER%
 set PC_COINES_BRIDGE_APP30= .\release\firmware\app30
 set PC_COINES_BRIDGE_APP31= .\release\firmware\app31
-set PC_COINES_BRIDGE_NICLA= .\release\firmware\nicla
 set PC_COINES_APP_SWITCH= .\release\tools\app_switch
 set PC_COINES_USB_DFU= .\release\tools\usb-dfu
 set PC_DOCS=.\release\docs
 
 @echo -------------------------------------------------------------
-@echo            Updating Firmwares of BHI360, BHI380 and BHI385
+@echo            Updating Firmwares of BHI360 and BHI385
 @echo -------------------------------------------------------------
 
 :: Copy BHI360 firmwares
@@ -57,15 +52,6 @@ xcopy /s /y %FIRMWARE_PATH_BHI360%\bhi360\*.fw .\release\BHI3-firmwares\BHI360
 :: Remove BHI360 folder if no FW
 dir /b /s /a "release\BHI3-firmwares\BHI360" | findstr .>nul || (
   rmdir /s /q release\BHI3-firmwares\BHI360
-)
-
-:: Copy BHI380 firmwares
-xcopy /s /y %FIRMWARE_PATH_BHI380%\bhi380_swim\*.fw .\release\BHI3-firmwares\BHI380
-xcopy /s /y %FIRMWARE_PATH_BHI380%\bhi380_klio\*.fw .\release\BHI3-firmwares\BHI380
-
-:: Remove BHI380 folder if no FW
-dir /b /s /a "release\BHI3-firmwares\BHI380" | findstr .>nul || (
-  rmdir /s /q release\BHI3-firmwares\BHI380
 )
 
 :: Copy BHI385 firmwares
@@ -85,9 +71,6 @@ xcopy /s /y %COINES_BRIDGE_APP30% %PC_COINES_BRIDGE_APP30%
 
 :: Copy coines_bridge_app31 folders 
 xcopy /s /y %COINES_BRIDGE_APP31% %PC_COINES_BRIDGE_APP31%
-
-:: Copy coines_bridge_nicla folders 
-xcopy /s /y %COINES_BRIDGE_NICLA% %PC_COINES_BRIDGE_NICLA%
 
 :: Copy app_switch and usb-dfu 
 echo D|xcopy /y %COINES_APP_SWITCH%\*.exe %PC_COINES_APP_SWITCH%

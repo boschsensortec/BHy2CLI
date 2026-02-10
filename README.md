@@ -7,6 +7,7 @@
 3. [Getting Started](#getting-started)
 4. [Release Package](#release-package)
 5. [Execute BHy2CLI Application](#execute-BHy2cli-application🏃‍♂️)
+6. [Link to COINES-SDK](#link-to-coines-sdk)
 
 ## Compatibility
 | Items      | BHy2CLI | FW     | BSX   |BHI SensorAPI | COINES SDK   | Supported Boards | Supported Sensors |
@@ -126,3 +127,6 @@ Release package helps to generate executables and binaries of BHy2CLI , which ca
 2. Copy Firmware from Window to application board memory
 ```
 > Ensure the file name length of Firmware is not more than 39 characters, then please short its name if necessary.
+
+## Link to COINES-SDK
+https://github.com/boschsensortec/COINES_SDK/

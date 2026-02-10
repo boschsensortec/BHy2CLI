@@ -18,7 +18,7 @@ The user can modify, compile and run these use cases and also some SensorAPI exa
 ================ Licenses =========================
 ===================================================
 
-Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
 
 Subject to the compliance with these terms, the User may use COINES software development kit and any derivatives exclusively with Bosch Sensortec GmbH hardware products.
 It is the User responsibility to comply with third party license terms applicable to the use of third-party software (including open-source software) that may accompany COINES software development kit.

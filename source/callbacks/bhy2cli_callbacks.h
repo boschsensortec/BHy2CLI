@@ -661,64 +661,34 @@ int8_t slabel_help(void *ref);
 int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to print help for swim command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t swim_help(void *ref);
-
-/**
-* @brief Function to implement callback for swim command
+* @brief Function to implement callback for getorientmatrix command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t swim_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+int8_t getorientmatrix_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to implement callback for swimgetaxes command
+* @brief Function to implement callback for setorientmatrix command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t swimgetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+int8_t setorientmatrix_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to implement callback for swimsetaxes command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t swimsetaxes_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to implement callback for swimsetlogging command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t swimsetlogging_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for swimsetlogging command
+* @brief Function to print help for getorientmatrix command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t swimsetlogging_help(void *ref);
+int8_t getorientmatrix_help(void *ref);
 
 /**
-* @brief Function to print help for swimgetaxes command
+* @brief Function to print help for setorientmatrix command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t swimgetaxes_help(void *ref);
-
-/**
-* @brief Function to print help for swimsetaxes command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t swimsetaxes_help(void *ref);
+int8_t setorientmatrix_help(void *ref);
 
 /**
 * @brief Function to implement callback for setvirtsenconf command
@@ -749,51 +719,6 @@ int8_t getvirtsenconf_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 * @return API error codes
 */
 int8_t getvirtsenconf_help(void *ref);
-
-/**
-* @brief Function to print help for swimver command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t swimver_help(void *ref);
-
-/**
-* @brief Function to implement callback for swimver command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t swimver_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to implement callback for swimgetfreq command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t swimgetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to implement callback for swimsetfreq command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t swimsetfreq_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for swimgetfreq command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t swimgetfreq_help(void *ref);
-
-/**
-* @brief Function to print help for swimsetfreq command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t swimsetfreq_help(void *ref);
 
 /**
 * @brief Function to print help for dmode command
@@ -2069,6 +1994,36 @@ int8_t getbsxver_help(void *ref);
 * @param[in] ref  : Reference to command line
 */
 int8_t getbsxver_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to implement callback for getbsxsicmatrix command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t getbsxsicmatrix_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to print help for getbsxsicmatrix command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t getbsxsicmatrix_help(void *ref);
+
+/**
+* @brief Function to implement callback for setbsxsicmatrix command
+* @param[in] argc : Number of arguments in command line
+* @param[in] argv : Array of pointer to arguments
+* @param[in] ref  : Reference to command line
+*/
+int8_t setbsxsicmatrix_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+* @brief Function to print help for setbsxsicmatrix command
+* @param[in] ref  : Reference to command line
+* @return API error codes
+*/
+int8_t setbsxsicmatrix_help(void *ref);
 
 /**
 * @brief Function to print help for virtseinfo command

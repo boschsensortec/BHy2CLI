@@ -1,3 +1,4 @@
+
 ::Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
 
 ::BSD-3-Clause
@@ -103,6 +104,7 @@ xcopy /s /y %COINES_BRIDGE_APP30% %PC_COINES_BRIDGE_APP30%
 :: Copy coines_bridge_app31 folders 
 xcopy /s /y %COINES_BRIDGE_APP31% %PC_COINES_BRIDGE_APP31%
 
+
 :: Copy app_switch and usb-dfu 
 echo D|xcopy /y %COINES_APP_SWITCH%\*.exe %PC_COINES_APP_SWITCH%
 echo D|xcopy /y %COINES_APP_SWITCH%\*.md %PC_COINES_APP_SWITCH%
@@ -116,7 +118,7 @@ echo D|xcopy /y %COINES_USB_DFU% %PC_COINES_USB_DFU%
 xcopy /s /y docs %PC_DOCS%
 
 @echo --------------------------------------------------------------
-@echo  Build PC executables for BHy2CLI (I2C, SPI) and Decompressor
+@echo  Build PC executables for BHy2CLI (I2C, SPI) and UDF tools (udf2csv, udf_updater)
 @echo --------------------------------------------------------------
 
 :: Build executable for BHy2CLI for TARGET PC with I2C Interface
@@ -129,11 +131,3 @@ move /y bhy2cli.exe spi_bhy2cli.exe
 
 :: Copy executable to %PC_BIN_PATH%
 xcopy /y .\*bhy2cli.exe %PC_BIN_PATH%
-
-:: Build executable for decompressor for TARGET PC
-cd .\tools\decompressor
-mingw32-make COINES_INSTALL_PATH=../../submodules/coines API_LOCATION=../../source COMMON_LOCATION=../../source all
-
-:: Copy decompressor executable to %PC_BIN_PATH%
-cd ..\..\
-xcopy /y .\tools\decompressor\decompressor.exe %PC_BIN_PATH%

@@ -32,7 +32,7 @@
 *
 * @file       bhy_parse.h
 * @date       2025-08-20
-* @version    v1.0.0
+* @version    v1.2.0
 *
 */
 #ifndef __BHY_PARSE_H__
@@ -102,8 +102,6 @@ typedef void (*bhy_parse_scalar_u8_func)(const struct bhy_fifo_parse_data_info *
 
 typedef void (*bhy_parse_generic_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
-typedef void (*bhy_parse_device_ori_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
 typedef void (*bhy_parse_gps_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 typedef void (*bhy_parse_debug_message_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
@@ -148,8 +146,6 @@ typedef void (*bhy_parse_altitude_func)(const uint8_t *data, bhy_float *altitude
 typedef void (*bhy_parse_klio_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 typedef void (*bhy_parse_klio_log_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
-typedef void (*bhy_parse_swim_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 /* End of CPP Guard */
 #ifdef __cplusplus

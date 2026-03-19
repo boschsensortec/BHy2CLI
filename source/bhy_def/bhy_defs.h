@@ -32,7 +32,7 @@
 *
 * @file       bhy_defs.h
 * @date       2025-08-20
-* @version    v1.0.0
+* @version    v1.2.0
 *
 */
 
@@ -63,7 +63,6 @@
 #include "bhy_logbin_defs.h"
 #include "bhy_multi_tap_defs.h"
 #include "bhy_phy_sensor_ctrl_defs.h"
-#include "bhy_swim_defs.h"
 #include "bhy_system_param_defs.h"
 #include "bhy_virtual_sensor_conf_defs.h"
 #include "bhy_virtual_sensor_info_defs.h"
@@ -201,6 +200,8 @@ extern bhy_bsec_param_get_sample_rate_func bhy_bsec_param_get_sample_rate;
 extern bhy_bsx_algo_param_get_bsx_states_func bhy_bsx_algo_param_get_bsx_states;
 extern bhy_bsx_algo_param_set_bsx_states_func bhy_bsx_algo_param_set_bsx_states;
 extern bhy_bsx_algo_param_get_bsx_version_func bhy_bsx_algo_param_get_bsx_version;
+extern bhy_bsx_algo_param_get_bsx_sic_matrix_func bhy_bsx_algo_param_get_bsx_sic_matrix;
+extern bhy_bsx_algo_param_set_bsx_sic_matrix_func bhy_bsx_algo_param_set_bsx_sic_matrix;
 extern bhy_event_data_parse_quaternion_func bhy_event_data_parse_quaternion;
 extern bhy_event_data_parse_orientation_func bhy_event_data_parse_orientation;
 extern bhy_event_data_parse_xyz_func bhy_event_data_parse_xyz;
@@ -348,7 +349,6 @@ extern bhy_parse_u24_as_float_func bhy_parse_u24_as_float;
 /*extern bhy_parse_proximity_func bhy_parse_proximity; */
 extern bhy_parse_scalar_u8_func bhy_parse_scalar_u8;
 extern bhy_parse_generic_func bhy_parse_generic;
-extern bhy_parse_device_ori_func bhy_parse_device_ori;
 
 /*extern bhy_parse_gps_func bhy_parse_gps; */
 extern bhy_parse_debug_message_func bhy_parse_debug_message;
@@ -356,7 +356,6 @@ extern bhy_parse_debug_message_func bhy_parse_debug_message;
 /*extern bhy_parse_acc_gyro_func bhy_parse_acc_gyro; */
 extern bhy_parse_multitap_func bhy_parse_multitap;
 extern bhy_parse_wrist_gesture_detect_func bhy_parse_wrist_gesture_detect;
-extern bhy_parse_step_counter_data_func bhy_parse_step_counter_data;
 extern bhy_parse_wrist_wear_wakeup_data_func bhy_parse_wrist_wear_wakeup_data;
 extern bhy_parse_air_quality_func bhy_parse_air_quality;
 extern bhy_parse_hmc_func bhy_parse_hmc;
@@ -389,14 +388,6 @@ extern bhy_parse_klio_func bhy_parse_klio;
 extern bhy_parse_klio_log_func bhy_parse_klio_log;
 extern bhy_get_klio_info_func bhy_get_klio_info;
 extern bhy_set_klio_info_func bhy_set_klio_info;
-
-/*     //bhy_swim_param_algo_callback; */
-extern bhy_swim_param_get_config_func bhy_swim_param_get_config;
-extern bhy_swim_param_set_config_func bhy_swim_param_set_config;
-extern bhy_swim_param_get_version_func bhy_swim_param_get_version;
-extern bhy_swim_param_set_logging_func bhy_swim_param_set_logging;
-extern bhy_parse_swim_func bhy_parse_swim;
-extern bhy_get_swim_data_func bhy_get_swim_data;
 
 extern uint8_t cli_load_sensor_api_entry(uint8_t chip_id);
 extern void *cli_load_api(const char *name);

@@ -44,15 +44,16 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#define BHA260_SHUTTLE_ID      0x139
-#define BHI260_SHUTTLE_ID      0x119
+#define BHA260_SHUTTLE_ID       0x139
+#define BHI260_SHUTTLE_ID       0x119
 
-#define ROBERT_BOSCH_USB_VID   (0x108C)
-#define ARDUINO_USB_VID        (0x2341)
-#define BST_APP31_CDC_USB_PID  (0xAB38)
-#define BST_APP30_CDC_USB_PID  (0xAB3C)
-#define BST_APP20_CDC_USB_PID  (0xAB2C)
-#define ARDUINO_NICLA_USB_PID  (0x0060)
+#define ROBERT_BOSCH_USB_VID    (0x108C)
+#define ARDUINO_USB_VID         (0x2341)
+#define BST_APP31_CDC_USB_PID   (0xAB38)
+#define BST_APP30_CDC_USB_PID   (0xAB3C)
+#define BST_APP20_CDC_USB_PID   (0xAB2C)
+#define BST_HEAR3X_CDC_USB_PID  (0x4B3C)
+#define ARDUINO_NICLA_USB_PID   (0x0060)
 
 #ifndef PC
 static uint8_t verb_buff[256] = { 0 };
@@ -90,9 +91,9 @@ static enum coines_multi_io_pin cs_pin = BHY260_APP20_CS_PIN;
 static enum coines_multi_io_pin int_pin = BHY260_APP20_INT_PIN;
 static enum coines_multi_io_pin reset_pin = BHY260_APP20_RESET_PIN;
 #else
-static enum coines_multi_io_pin cs_pin = BHY260_APP30_CS_PIN;
-static enum coines_multi_io_pin int_pin = BHY260_APP30_INT_PIN;
-static enum coines_multi_io_pin reset_pin = BHY260_APP30_RESET_PIN;
+static enum coines_multi_io_pin cs_pin = BHY260_APP3X_CS_PIN;
+static enum coines_multi_io_pin int_pin = BHY260_APP3X_INT_PIN;
+static enum coines_multi_io_pin reset_pin = BHY260_APP3X_RESET_PIN;
 #endif
 
 /**
@@ -330,6 +331,12 @@ char *get_misc_sensor_names(uint8_t sensor_id)
         case BHY_SENSOR_ID_BARO_WU:
             ret = "Barometer wake up";
             break;
+        case BHY_SENSOR_ID_PRESSURE_WU:
+            ret = "BMP Pressure wake up";
+            break;
+        case BHY_SENSOR_ID_PRESSURE:
+            ret = "BMP Pressure";
+            break;
         case BHY_SENSOR_ID_HUM_WU:
             ret = "Humidity wake up";
             break;
@@ -339,11 +346,11 @@ char *get_misc_sensor_names(uint8_t sensor_id)
         case BHY_SENSOR_ID_KLIO:
             ret = "Klio";
             break;
+        case BHY_SENSOR_ID_KLIO_GENERIC:
+            ret = "Klio Generic";
+            break;
         case BHY_SENSOR_ID_KLIO_LOG:
             ret = "Klio log";
-            break;
-        case BHY_SENSOR_ID_SWIM:
-            ret = "Swim recognition";
             break;
         case BHY_SENSOR_ID_STC_LP:
             ret = "Low Power Step counter";
@@ -395,7 +402,7 @@ char *get_misc_sensor_name(uint8_t sensor_id)
                 ret = "Low Power No Motion wake up";
                 break;
             case BHY_SENSOR_ID_AR_WEAR_WU:
-                ret = "Activity recognition for Wearables";
+                ret = "Activity recognition wake up";
                 break;
             case BHY_SENSOR_ID_WRIST_WEAR_LP_WU:
                 ret = "Low Power Wrist Wear wake up";
@@ -420,6 +427,9 @@ char *get_misc_sensor_name(uint8_t sensor_id)
                 break;
             case BHY_SENSOR_ID_NDOF_HEAD_ORI_E:
                 ret = "NDOF Head Orientation Euler";
+                break;
+            case BHY_SENSOR_ID_HEAD_GESTURE:
+                ret = "Head Gesture";
                 break;
             default:
                 break;
@@ -450,6 +460,14 @@ char *get_sensor_axis_name(uint8_t sensor_id)
     else if ((sensor_id == BHY_SENSOR_ID_ORI) || (sensor_id == BHY_SENSOR_ID_ORI_WU))
     {
         ret = "h,p,r";
+    }
+    else if (sensor_id == BHY_SENSOR_ID_KLIO)
+    {
+        ret = "lin,lid,lpr,lcr,rin,rid,rc,rsc";
+    }
+    else if (sensor_id == BHY_SENSOR_ID_KLIO_GENERIC)
+    {
+        ret = "gid,gsc,gc,fc,fsc";
     }
 
     return ret;
@@ -639,7 +657,7 @@ void setup_interfaces(bool reset_power, enum bhy_intf intf, const char *com_port
 #ifndef PC
     (void)com_port;
     struct coines_ble_config ble_config;
-    ble_config.name = NULL;
+    ble_config.name = "bhycli";
     ble_config.tx_power = COINES_TX_POWER_8_DBM;
     (void)coines_ble_config(&ble_config);
     coines_rslt = coines_open_comm_intf(COINES_COMM_INTF_BLE, NULL);
@@ -681,14 +699,24 @@ void setup_interfaces(bool reset_power, enum bhy_intf intf, const char *com_port
             {
                 scom_config.product_id = BST_APP31_CDC_USB_PID;
             }
+            else if (board_info.board == 10) /* Hear 3x board*/
+            {
+                scom_config.product_id = BST_HEAR3X_CDC_USB_PID;
+            }
         }
 
 #endif
-        if (board_info.board == 5) /* Application Board 3.0 */
+        if ((board_info.board == 5) || (board_info.board == 9)) /* Application Board 3.x */
         {
-            cs_pin = BHY260_APP30_CS_PIN;
-            int_pin = BHY260_APP30_INT_PIN;
-            reset_pin = BHY260_APP30_RESET_PIN;
+            cs_pin = BHY260_APP3X_CS_PIN;
+            int_pin = BHY260_APP3X_INT_PIN;
+            reset_pin = BHY260_APP3X_RESET_PIN;
+        }
+        else if (board_info.board == 10) /* Hear 3x board*/
+        {
+            cs_pin = COINES_HEARABLE_SHUTTLE_PIN_8;
+            int_pin = COINES_HEARABLE_SHUTTLE_PIN_15;
+            reset_pin = COINES_HEARABLE_SHUTTLE_PIN_1;
         }
     }
     else
@@ -718,7 +746,7 @@ void setup_interfaces(bool reset_power, enum bhy_intf intf, const char *com_port
     if (intf == BHY_SPI_INTERFACE)
     {
         PRINT("Host Interface : SPI\r\n");
-        coines_rslt = coines_config_spi_bus(COINES_SPI_BUS_0, COINES_SPI_SPEED_1_MHZ, COINES_SPI_MODE0);
+        coines_rslt = coines_config_spi_bus(COINES_SPI_BUS_0, COINES_SPI_SPEED_5_MHZ, COINES_SPI_MODE0);
         if (coines_rslt != COINES_SUCCESS)
         {
             PRINT("Error configuring to SPI.\r\n%s\r\n", get_coines_error(coines_rslt));
@@ -1318,6 +1346,9 @@ char *get_physical_sensor_name(uint8_t sensor_id)
             case BHY_PHYS_SENSOR_ID_WRIST_WEAR_WAKEUP:
                 ret = "Wrist Wear Wakeup";
                 break;
+            case BHY_PHYS_SENSOR_ID_BMP_PRESSURE:
+                ret = "BMP Pressure";
+                break;
             default:
                 ret = "Undefined sensor ID ";
                 break;
@@ -1502,9 +1533,9 @@ char *get_sensor_parse_format_text(uint8_t sensor_id)
     {
         ret = "u8,u8,u8,u8,u8,u8,f,f";
     }
-    else if (sensor_id == BHY_SENSOR_ID_SWIM)
+    else if (sensor_id == BHY_SENSOR_ID_KLIO_GENERIC)
     {
-        ret = "u16,u16,u16,u16,u16,u16,u16";
+        ret = "u8,u8,f,u8,f";
     }
     else if ((sensor_id == BHY_SENSOR_ID_LIGHT) || (sensor_id == BHY_SENSOR_ID_LIGHT_WU))
     {
@@ -1526,7 +1557,7 @@ char *get_sensor_parse_format_data(uint8_t sensor_id)
     if ((sensor_id == BHY_SENSOR_ID_DEVICE_ORI) || (sensor_id == BHY_SENSOR_ID_DEVICE_ORI_WU) ||
         (sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU) || (sensor_id == BHY_SENSOR_ID_PROX) ||
         (sensor_id == BHY_SENSOR_ID_PROX_WU) || (sensor_id == BHY_SENSOR_ID_EXCAMERA) ||
-        (sensor_id == BHY_SENSOR_ID_MULTI_TAP))
+        (sensor_id == BHY_SENSOR_ID_MULTI_TAP) || (sensor_id == BHY_SENSOR_ID_HEAD_GESTURE))
     {
         ret = "u8";
     }
@@ -1578,6 +1609,17 @@ char *get_sensor_parse_format_rep(uint8_t sensor_id)
 }
 
 /**
+* @brief Function to check if the sensor id output is of the barometer
+* @param[in] sensor_id : Sensor ID
+* @return true if sensor is barometer else false
+*/
+static bool is_baro_sensor(uint8_t sensor_id)
+{
+    return (sensor_id == BHY_SENSOR_ID_BARO) || (sensor_id == BHY_SENSOR_ID_BARO_WU) ||
+           (sensor_id == BHY_SENSOR_ID_PRESSURE) || (sensor_id == BHY_SENSOR_ID_PRESSURE_WU);
+}
+
+/**
 * @brief Function to get sensor parse format
 * @param[in] sensor_id     : Sensor ID
 * @return String represents sensor parse format
@@ -1598,18 +1640,17 @@ char *get_sensor_parse_format(uint8_t sensor_id)
 
             if (strcmp(ret, " ") == 0)
             {
-                if ((sensor_id == BHY_SENSOR_ID_BARO) || (sensor_id == BHY_SENSOR_ID_BARO_WU))
+                if (is_baro_sensor(sensor_id))
                 {
                     ret = "u24";
                 }
-
-                if (sensor_id == BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
+                else if (sensor_id == BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
                 {
                     ret = "u8";
                 }
                 else if (sensor_id == BHY_SENSOR_ID_AIR_QUALITY)
                 {
-                    ret = "f32,f32,f32,f32,f32,f32,f32,u8";
+                    ret = "f,f,f,f,f,f,f,u8";
                 }
                 else if ((sensor_id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) || (sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_Q) ||
                          (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
@@ -1622,7 +1663,7 @@ char *get_sensor_parse_format(uint8_t sensor_id)
                 }
                 else if ((sensor_id == BHY_SENSOR_ID_GAS) || (sensor_id == BHY_SENSOR_ID_GAS_WU))
                 {
-                    ret = "g";
+                    ret = "u32";
                 }
                 else if ((sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU) ||
                          (sensor_id == BHY_SENSOR_ID_STC_LP) || (sensor_id == BHY_SENSOR_ID_STC_LP_WU) ||
@@ -1703,13 +1744,22 @@ char *get_sensor_axis_name_format(uint8_t sensor_id)
     {
         ret = "h,p,r";
     }
-    else if ((sensor_id == BHY_SENSOR_ID_BARO) || (sensor_id == BHY_SENSOR_ID_BARO_WU))
+    else if (is_baro_sensor(sensor_id))
     {
         ret = "p";
     }
     else if ((sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU))
     {
         ret = "h";
+    }
+    else if ((sensor_id == BHY_SENSOR_ID_HEAD_GESTURE))
+    {
+        ret = "g";
+    }
+    else if ((sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU) ||
+             (sensor_id == BHY_SENSOR_ID_STC_LP) || (sensor_id == BHY_SENSOR_ID_STC_LP_WU))
+    {
+        ret = "sc";
     }
     else
     {

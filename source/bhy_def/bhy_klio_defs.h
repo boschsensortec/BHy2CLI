@@ -32,7 +32,7 @@
 *
 * @file       bhy_klio_defs.h
 * @date       2025-08-20
-* @version    v1.0.0
+* @version    v1.2.0
 *
 */
 
@@ -46,15 +46,16 @@ extern "C" {
 
 #include <stdint.h>
 
-#define BHY_SENSOR_ID_KLIO      UINT8_C(112)
-#define BHY_SENSOR_ID_KLIO_LOG  UINT8_C(127)
+#define BHY_SENSOR_ID_KLIO          UINT8_C(112)
+#define BHY_SENSOR_ID_KLIO_GENERIC  UINT8_C(117)
+#define BHY_SENSOR_ID_KLIO_LOG      UINT8_C(127)
 
 #ifndef BHY_KLIO_PAGE
-#define BHY_KLIO_PAGE           UINT16_C(9)
+#define BHY_KLIO_PAGE               UINT16_C(9)
 #endif
-#define BHY_KLIO_PARAM(id)      (((BHY_KLIO_PAGE) << 8) | (id))
+#define BHY_KLIO_PARAM(id)          (((BHY_KLIO_PAGE) << 8) | (id))
 
-#define MAX_DATA_SIZE           244
+#define MAX_DATA_SIZE               244
 
 /*!
  * @enum bhy_klio_param

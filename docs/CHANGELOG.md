@@ -1,5 +1,43 @@
 # Changelog
 
+# v1.2.0
+- Feature Added:
+1. Added support SIC matrix
+2. Removed mtp-tools
+3. Added LICENSE
+4. Updated README.md
+5. Updated BMP pressure sensor name
+6. Removed decompressor tool, replaced by udf tool
+7. Fixed IAQ schema
+8. Fixed streaming LED indication
+9. Fixed getwearactvcnfg, setwearactvcnfg commands
+10. Added binary files for MCU_APP30 and MCU_APP31
+
+# v1.1.0
+- Feature Added:
+1. Added support for Hear3x
+2. Added new pressure sensor IDs (150, 157) and related support
+3. Increased SPI clock speed for higher speed data access.
+
+- Bug Fixed:
+1. Updated schema to UDF v1.2.
+2. Overwrite default BLE name.
+3. Improved data throughput by buffering with auto-flush.
+4. Fixed the hex buffer duplication of sensor ID.
+5. Fixed a build warning
+6. Fixed to send the hex stream as a single line
+7. Removed unused step counter parser callback and replaced with scalar u32.
+8. Changed activity recognition name to be generic.
+9. Changed hex streaming protocol to include the dedicated ID for timestamp as per UDF standards
+10. Added Head gesture parsing
+11. Fixed a bug for parse format of pressure sensor.
+12. Fixed a bug in gas resistance datatype.
+13. Added additional checks for invalid schema.
+14. Added missing Step counter axis name
+15. Fixed syssetwkffctrl command
+
+
+
 # v1.0.0
 - Feature Added:
 1. Support cyclic KLIO for BHI385

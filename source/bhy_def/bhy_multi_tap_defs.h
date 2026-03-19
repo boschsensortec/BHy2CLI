@@ -32,7 +32,7 @@
 *
 * @file       bhy_multi_tap_defs.h
 * @date       2025-08-20
-* @version    v1.0.0
+* @version    v1.2.0
 *
 */
 

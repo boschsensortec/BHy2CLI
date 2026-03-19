@@ -59,7 +59,7 @@ extern bool cmd_in_process;
 write_file wfile;
 
 #ifndef PC
-#if (defined(MCU_APP30) || defined(MCU_APP31))
+#if (defined(MCU_APP30) || defined(MCU_APP31) || defined(MCU_HEAR3X))
 
 /**
 * @brief Function to get size of file
@@ -250,7 +250,7 @@ int8_t rm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     return CLI_OK;
 }
 
-#if (defined(MCU_APP30) || defined(MCU_APP31))
+#if (defined(MCU_APP30) || defined(MCU_APP31) || defined(MCU_HEAR3X))
 
 /**
 * @brief Function to print help for ls command
@@ -450,7 +450,7 @@ int8_t cls_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
 
     PRINT("\033c\033[2J");
-#if (defined(MCU_APP30) || defined(MCU_APP31))
+#if (defined(MCU_APP30) || defined(MCU_APP31) || defined(MCU_HEAR3X))
     fflush(bt_w);
 #endif
 
@@ -586,7 +586,7 @@ void wrfile_loop_callabck(bool echo_data)
 
 }
 
-#if (defined(MCU_APP30) || defined(MCU_APP31))
+#if (defined(MCU_APP30) || defined(MCU_APP31) || defined(MCU_HEAR3X))
 
 /**
 * @brief Function to get size of file

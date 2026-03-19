@@ -12,7 +12,7 @@
 ## Compatibility
 | Items      | BHy2CLI | FW     | BSX   |BHI SensorAPI | COINES SDK   | Supported Boards | Supported Sensors |
 | :---:      | :---:   | :----: | :----: | :----:        | :----:      | :----: | :----:  |
-| version    | 1.0.0   | 1.1.18<br>1.0.0.4 | IR84.3<br>1.3.2 | 2.2.0<br>1.0.0         | 2.10        | APP30<br>APP31   | BHI360<br>BHI385     |
+| version    | 1.2.0   | 1.1.18<br>1.0.1.0 | IR84.3<br>1.3.2 | 2.2.0<br>2.1.0         | 2.12        | APP30<br>APP31<br>Hearable   | BHI360<br>BHI385     |
 
 ## Folder Structure 🗂️
 
@@ -30,7 +30,7 @@ BHy2CLI:
     +---README.md
 ```
 
-* bin: Contains BHy2CLI executable files
+* bin: Contains BHy2CLI and udf executable files
 * docs: Contains release documents (User_Guide, CHANGELOG.md, Compatibility.txt, ...)
 * scripts: Contains batch files to clean, generate and download BHy2CLI executables/binaries 
 * source: Holds the BHy2CLI source files.
@@ -102,16 +102,17 @@ Release package helps to generate executables and binaries of BHy2CLI , which ca
 2. For TARGET PC, run .\scripts\build.bat
 3. For TARGET MCU_APP30, run .\scripts\build_app30.bat
 4. For TARGET MCU_APP31, run .\scripts\build_app31.bat
+5. For TARGET MCU_HEAR3X, run .\scripts\build_hear3x.bat
 ```
 #### Release folder structure :
 		 - BHI3-firmwares/BHI360 : Holds BHI360 firmwares
 		 - firmware              : Holds bootloader, coines_bridge and MTP firmwares for APP3.0 and APP3.1
-		 - MCU                   : Holds APP3.0 and APP3.1 BHy2CLI binaries (I2C, SPI) and batch files to write BHI360 firmwares (present in BHI3-firmwares/BHI360) to External FLASH
-		 - PC                    : Holds executables for BHy2CLI (I2C, SPI) and decompressor
+		 - MCU                   : Holds APP3.0, APP3.1 or Hearable BHy2CLI binaries (I2C, SPI) and batch files to write BHI360 firmwares (present in BHI3-firmwares/BHI360) to External FLASH
+		 - PC                    : Holds executables for BHy2CLI (I2C, SPI)
 			 - Executables are present in,
 				 - PC/bin/x86 for 32-bit compiler
 				 - PC/bin/x64 for 64-bit compiler
-		 - tools                 : Holds app_switch and usb-dfu files required to flash coines_bridge firmware (for TARGET PC) and to write BHI360 firmwares to External FLASH (for TARGET MCU_APP30 and MCU_APP31)
+		 - tools                 : Holds app_switch and usb-dfu files required to flash coines_bridge firmware (for TARGET PC) and to write BHI360 firmwares to External FLASH (for TARGET MCU_APP30, MCU_APP31, Hearable)
 
 ## Execute BHy2CLI Application🏃‍♂️
 
@@ -121,12 +122,11 @@ Release package helps to generate executables and binaries of BHy2CLI , which ca
 
 > ⚠️ **Note**
 >
-> If the TARGET is MCU_APP30 or MCU_APP31, please copy the Firmware into Application board memory.
+> If the TARGET is MCU_APP30, MCU_APP31 or Hearable device, please copy the Firmware into Application board memory or Hearable board memory.
 ```
-1. Switch application board to MTP mode.
+1. Switch application boar, hearable board to MTP mode.
 2. Copy Firmware from Window to application board memory
 ```
-> Ensure the file name length of Firmware is not more than 39 characters, then please short its name if necessary.
 
 ## Link to COINES-SDK
 https://github.com/boschsensortec/COINES_SDK/

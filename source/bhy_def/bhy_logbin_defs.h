@@ -32,7 +32,7 @@
 *
 * @file       bhy_logbin_defs.h
 * @date       2025-08-20
-* @version    v1.0.0
+* @version    v1.2.0
 *
 */
 
@@ -48,13 +48,13 @@ extern "C" {
 #include <stddef.h>
 #include <stdio.h>
 
-#define LOGBIN_VERSION          "1.0"
+#define LOGBIN_VERSION          "1.2"
 
 #define LOGBIN_TIME_NS_SIZE     UINT8_C(8)
 #define LOGBIN_LABEL_SIZE       UINT8_C(16)
 
 #define LOGBIN_META_ID_START    UINT8_C(0xF0)
-#define LOGBIN_META_ID_TIME_NS  (LOGBIN_META_ID_START + UINT8_C(1)) /* Unsigned 64bit timestamp in nanoseconds */
+#define LOGBIN_META_ID_TIME_NS  (LOGBIN_META_ID_START + UINT8_C(0)) /* Unsigned 64bit timestamp in nanoseconds */
 #define LOGBIN_META_ID_LABEL    (LOGBIN_META_ID_START + UINT8_C(8)) /* String of 16 characters */
 
 struct bhy_logbin_dev

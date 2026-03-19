@@ -32,7 +32,7 @@
 *
 * @file       bhy_bsx_defs.h
 * @date       2025-08-20
-* @version    v1.0.0
+* @version    v1.2.0
 *
 */
 
@@ -73,6 +73,15 @@ struct BHY_PACKED bhy_bsx_algo_param_version
     uint8_t minor_bug_fix_version;
 };
 
+typedef struct
+{
+    uint8_t block_info;
+    uint8_t block_len;
+    uint16_t struct_len;
+    uint8_t distortion_correction_enable;
+    union bhy_float_conv sic[9];
+} BHY_PACKED bhy_bsx_algo_param_sic_matrix;
+
 typedef int8_t (*bhy_bsx_algo_param_get_bsx_states_func)(uint16_t param_id, bhy_bsx_algo_param_state_exg *bsx_state,
                                                          uint16_t state_len, uint32_t *actual_len, struct bhy_dev *dev);
 
@@ -82,6 +91,12 @@ typedef int8_t (*bhy_bsx_algo_param_set_bsx_states_func)(uint16_t param_id,
 
 typedef int8_t (*bhy_bsx_algo_param_get_bsx_version_func)(struct bhy_bsx_algo_param_version *bsx_ver,
                                                           struct bhy_dev *dev);
+
+typedef int8_t (*bhy_bsx_algo_param_get_bsx_sic_matrix_func)(bhy_bsx_algo_param_sic_matrix *bsx_sic_matrix,
+                                                             struct bhy_dev *dev);
+
+typedef int8_t (*bhy_bsx_algo_param_set_bsx_sic_matrix_func)(bhy_bsx_algo_param_sic_matrix *bsx_sic_matrix,
+                                                             struct bhy_dev *dev);
 
 /* End of CPP Guard */
 #ifdef __cplusplus

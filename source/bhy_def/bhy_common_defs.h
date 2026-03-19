@@ -32,7 +32,7 @@
 *
 * @file       bhy_common_defs.h
 * @date       2025-08-20
-* @version    v1.0.0
+* @version    v1.2.0
 *
 */
 
@@ -471,6 +471,7 @@ extern "C" {
 #define BHY_SENSOR_ID_ML_2                                          UINT8_C(96)  /* Machine learning 2 */
 #define BHY_SENSOR_ID_ML_3                                          UINT8_C(97)  /* Machine learning 3 */
 #define BHY_SENSOR_ID_AIR_QUALITY                                   UINT8_C(115) /* Air Quality*/
+#define BHY_SENSOR_ID_HEAD_GESTURE                                  UINT8_C(125) /* Head gesture */
 #define BHY_SENSOR_ID_TEMP                                          UINT8_C(128) /* Temperature */
 #define BHY_SENSOR_ID_BARO                                          UINT8_C(129) /* Barometer */
 #define BHY_SENSOR_ID_HUM                                           UINT8_C(130) /* Humidity */
@@ -495,6 +496,8 @@ extern "C" {
 #define BHY_SENSOR_ID_PROX                                          UINT8_C(147) /* Proximity */
 #define BHY_SENSOR_ID_LIGHT_WU                                      UINT8_C(148) /* Light wake up */
 #define BHY_SENSOR_ID_PROX_WU                                       UINT8_C(149) /* Proximity wake up */
+#define BHY_SENSOR_ID_PRESSURE                                      UINT8_C(150) /* Pressure */
+#define BHY_SENSOR_ID_PRESSURE_WU                                   UINT8_C(157) /* Pressure wake up */
 
 /*! Physical sensor IDs*/
 #define BHY_PHYS_SENSOR_ID_ACCELEROMETER                            UINT8_C(1)
@@ -521,6 +524,7 @@ extern "C" {
 #define BHY_PHYS_SENSOR_ID_PHYS_NO_MOTION                           UINT8_C(55)
 #define BHY_PHYS_SENSOR_ID_WRIST_GESTURE_DETECT                     UINT8_C(56)
 #define BHY_PHYS_SENSOR_ID_WRIST_WEAR_WAKEUP                        UINT8_C(57)
+#define BHY_PHYS_SENSOR_ID_BMP_PRESSURE                             UINT8_C(61)
 
 /*! System data IDs */
 #define BHY_IS_SYS_ID(sid)                                          ((sid) >= 224)

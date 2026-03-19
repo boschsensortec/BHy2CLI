@@ -32,7 +32,7 @@
 *
 * @file       bhy_defs.h
 * @date       2025-08-20
-* @version    v1.0.0
+* @version    v1.2.0
 *
 */
 
@@ -75,6 +75,8 @@ bhy_bsec_param_get_sample_rate_func bhy_bsec_param_get_sample_rate = NULL;
 bhy_bsx_algo_param_get_bsx_states_func bhy_bsx_algo_param_get_bsx_states = NULL;
 bhy_bsx_algo_param_set_bsx_states_func bhy_bsx_algo_param_set_bsx_states = NULL;
 bhy_bsx_algo_param_get_bsx_version_func bhy_bsx_algo_param_get_bsx_version = NULL;
+bhy_bsx_algo_param_get_bsx_sic_matrix_func bhy_bsx_algo_param_get_bsx_sic_matrix = NULL;
+bhy_bsx_algo_param_set_bsx_sic_matrix_func bhy_bsx_algo_param_set_bsx_sic_matrix = NULL;
 bhy_event_data_parse_quaternion_func bhy_event_data_parse_quaternion = NULL;
 bhy_event_data_parse_orientation_func bhy_event_data_parse_orientation = NULL;
 bhy_event_data_parse_xyz_func bhy_event_data_parse_xyz = NULL;
@@ -223,7 +225,6 @@ bhy_parse_u24_as_float_func bhy_parse_u24_as_float = NULL;
 /*bhy_parse_proximity_func bhy_parse_proximity = NULL; */
 bhy_parse_scalar_u8_func bhy_parse_scalar_u8 = NULL;
 bhy_parse_generic_func bhy_parse_generic = NULL;
-bhy_parse_device_ori_func bhy_parse_device_ori = NULL;
 
 /*bhy_parse_gps_func bhy_parse_gps = NULL; */
 bhy_parse_debug_message_func bhy_parse_debug_message = NULL;
@@ -231,7 +232,6 @@ bhy_parse_debug_message_func bhy_parse_debug_message = NULL;
 /*bhy_parse_acc_gyro_func bhy_parse_acc_gyro = NULL; */
 bhy_parse_multitap_func bhy_parse_multitap = NULL;
 bhy_parse_wrist_gesture_detect_func bhy_parse_wrist_gesture_detect = NULL;
-bhy_parse_step_counter_data_func bhy_parse_step_counter_data = NULL;
 bhy_parse_wrist_wear_wakeup_data_func bhy_parse_wrist_wear_wakeup_data = NULL;
 bhy_parse_air_quality_func bhy_parse_air_quality = NULL;
 bhy_parse_hmc_func bhy_parse_hmc = NULL;
@@ -266,14 +266,6 @@ bhy_klio_param_reset_func bhy_klio_param_reset = NULL;
 
 bhy_get_klio_info_func bhy_get_klio_info = NULL;
 bhy_set_klio_info_func bhy_set_klio_info = NULL;
-
-/*     //bhy_swim_param_algo_callback = NULL; */
-bhy_swim_param_get_config_func bhy_swim_param_get_config = NULL;
-bhy_swim_param_set_config_func bhy_swim_param_set_config = NULL;
-bhy_swim_param_get_version_func bhy_swim_param_get_version = NULL;
-bhy_swim_param_set_logging_func bhy_swim_param_set_logging = NULL;
-bhy_parse_swim_func bhy_parse_swim = NULL;
-bhy_get_swim_data_func bhy_get_swim_data = NULL;
 
 static const SensorAPIEntry *sensor_api_table = NULL;
 
@@ -367,6 +359,10 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
         "bhy_bsx_algo_param_set_bsx_states");
     bhy_bsx_algo_param_get_bsx_version = (bhy_bsx_algo_param_get_bsx_version_func)cli_load_api(
         "bhy_bsx_algo_param_get_bsx_version");
+    bhy_bsx_algo_param_get_bsx_sic_matrix = (bhy_bsx_algo_param_get_bsx_sic_matrix_func)cli_load_api(
+        "bhy_bsx_algo_param_get_bsx_sic_matrix");
+    bhy_bsx_algo_param_set_bsx_sic_matrix = (bhy_bsx_algo_param_set_bsx_sic_matrix_func)cli_load_api(
+        "bhy_bsx_algo_param_set_bsx_sic_matrix");
     bhy_event_data_parse_quaternion = (bhy_event_data_parse_quaternion_func)cli_load_api(
         "bhy_event_data_parse_quaternion");
     bhy_event_data_parse_orientation = (bhy_event_data_parse_orientation_func)cli_load_api(
@@ -635,7 +631,6 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
     /*bhy_parse_proximity_func bhy_parse_proximity = NULL; */
     bhy_parse_scalar_u8 = (bhy_parse_scalar_u8_func)cli_load_api("bhy_parse_scalar_u8");
     bhy_parse_generic = (bhy_parse_generic_func)cli_load_api("bhy_parse_generic");
-    bhy_parse_device_ori = (bhy_parse_device_ori_func)cli_load_api("bhy_parse_device_ori");
 
     /*bhy_parse_gps_func bhy_parse_gps = NULL; */
     bhy_parse_debug_message = (bhy_parse_debug_message_func)cli_load_api("bhy_parse_debug_message");
@@ -644,7 +639,6 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
     bhy_parse_multitap = (bhy_parse_multitap_func)cli_load_api("bhy_parse_multitap");
     bhy_parse_wrist_gesture_detect =
         (bhy_parse_wrist_gesture_detect_func)cli_load_api("bhy_parse_wrist_gesture_detect");
-    bhy_parse_step_counter_data = (bhy_parse_step_counter_data_func)cli_load_api("bhy_parse_step_counter_data");
     bhy_parse_wrist_wear_wakeup_data = (bhy_parse_wrist_wear_wakeup_data_func)cli_load_api(
         "bhy_parse_wrist_wear_wakeup_data");
     bhy_parse_air_quality = (bhy_parse_air_quality_func)cli_load_api("bhy_parse_air_quality");
@@ -683,14 +677,6 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
     bhy_klio_param_reset = (bhy_klio_param_reset_func)cli_load_api("bhy_klio_param_reset");
     bhy_get_klio_info = (bhy_get_klio_info_func)cli_load_api("bhy_get_klio_info");
     bhy_set_klio_info = (bhy_set_klio_info_func)cli_load_api("bhy_set_klio_info");
-
-    /*     //bhy_swim_param_algo_callback = NULL; */
-    bhy_swim_param_get_config = (bhy_swim_param_get_config_func)cli_load_api("bhy_swim_param_get_config");
-    bhy_swim_param_set_config = (bhy_swim_param_set_config_func)cli_load_api("bhy_swim_param_set_config");
-    bhy_swim_param_get_version = (bhy_swim_param_get_version_func)cli_load_api("bhy_swim_param_get_version");
-    bhy_swim_param_set_logging = (bhy_swim_param_set_logging_func)cli_load_api("bhy_swim_param_set_logging");
-    bhy_parse_swim = (bhy_parse_swim_func)cli_load_api("bhy_parse_swim");
-    bhy_get_swim_data = (bhy_get_swim_data_func)cli_load_api("bhy_get_swim_data");
 
     return BHY_OK;
 }

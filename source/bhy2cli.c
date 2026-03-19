@@ -66,6 +66,8 @@ static volatile bool end_streaming = false;
 static uint8_t *argv[50] = { 0 };
 static uint8_t argc = 0;
 uint8_t inp[10240] = { 0 };
+uint8_t out[240] = { 0 };
+uint16_t out_len = 0;
 enum coines_comm_intf bhy2cli_intf = COINES_COMM_INTF_BLE;
 #endif
 static struct bhy2cli_ref cli_ref = { { { 0 } } };
@@ -220,6 +222,20 @@ void split_input_buffer(uint16_t *bytes_read)
     }
 }
 #endif
+
+static void flush_output_buffer(void)
+{
+#ifndef PC
+    if (out_len > 0)
+    {
+        (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
+        coines_write_intf(bhy2cli_intf, out, out_len);
+        out_len = 0;
+        (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
+    }
+
+#endif
+}
 
 /**************************************************/
 /*                     MAIN                       */
@@ -400,12 +416,15 @@ int main(void)
 
 #endif
 
+        flush_output_buffer();
     }
 
     close_interfaces(intf);
 
     return 0;
 }
+
+#ifndef PC
 
 /**
 * @brief Function to write verbose information
@@ -414,10 +433,17 @@ int main(void)
 */
 void verbose_write(uint8_t *buffer, uint16_t length)
 {
-#ifndef PC
-    (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_ON);
-    coines_write_intf(bhy2cli_intf, buffer, length);
-    (void)coines_set_led(COINES_LED_BLUE, COINES_LED_STATE_OFF);
+    if (buffer == NULL || length == 0)
+    {
+        return;
+    }
 
-#endif
+    if ((out_len + length) > sizeof(out))
+    {
+        flush_output_buffer();
+    }
+
+    memcpy(&out[out_len], buffer, length);
+    out_len += length;
 }
+#endif

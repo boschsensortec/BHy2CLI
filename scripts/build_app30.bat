@@ -34,9 +34,6 @@ set FIRMWARE_PATH_BHI360= .\submodules\bhi360\firmware
 set FIRMWARE_PATH_BHI385= .\submodules\bhi385\firmware
 set COINES_APP_SWITCH= .\submodules\coines\tools\app_switch
 set COINES_USB_DFU= .\submodules\coines\tools\usb-dfu
-set MTP= .\tools\mtp
-set MTP_TOOLS= .\tools\mtp\mtp-tools
-set USB_MTP= .\submodules\coines\firmware\app3.0\mtp_fw_update
 set COINES_BRIDGE_APP30= .\submodules\coines\firmware\app3.0
 
 :: Make directories for release package
@@ -49,14 +46,12 @@ mkdir .\release\firmware
 mkdir .\release\firmware\app30
 mkdir .\release\MCU
 mkdir .\release\MCU\app30
-mkdir .\release\MCU\app30\mtp-tools
 mkdir .\release\tools
 mkdir .\release\tools\app_switch
 mkdir .\release\tools\usb-dfu
 
 set MCU_COINES_BRIDGE_APP30= .\release\firmware\app30
 set MCU_BIN_PATH= .\release\MCU\app30
-set MCU_MTP_TOOLS= .\release\MCU\app30\mtp-tools
 set MCU_COINES_APP_SWITCH= .\release\tools\app_switch
 set MCU_COINES_USB_DFU= .\release\tools\usb-dfu
 set MCU_DOCS=.\release\docs
@@ -94,20 +89,6 @@ echo D|xcopy /y %COINES_APP_SWITCH%\*.exe %MCU_COINES_APP_SWITCH%
 echo D|xcopy /y %COINES_APP_SWITCH%\*.md %MCU_COINES_APP_SWITCH%
 echo D|xcopy /y %COINES_USB_DFU% %MCU_COINES_USB_DFU%
 
-@echo ---------------------------------------------------------- 
-@echo                   Updating MTP tools
-@echo ----------------------------------------------------------
-
-xcopy /y %MTP_TOOLS% %MCU_MTP_TOOLS%
-if exist "release\BHI3-firmwares\BHI360" (
-  xcopy /y %MTP%\app30_bhi360*.bat %MCU_BIN_PATH%
-)
-if exist "release\BHI3-firmwares\BHI385" (
-  xcopy /y %MTP%\app30_bhi385*.bat %MCU_BIN_PATH%
-)
-xcopy /y %MTP%\app30_format_flash.bat %MCU_BIN_PATH%
-xcopy /y %USB_MTP%\usb_mtp_WinUSB_RAM.bin %MCU_BIN_PATH%
-xcopy /y %USB_MTP%\usb_mtp.pkg %MCU_BIN_PATH%
 
 @echo ---------------------------------------------------------- 
 @echo                     Update Documents

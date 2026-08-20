@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_defs.h
-* @date       2025-08-20
-* @version    v1.2.0
+* @date       2026-08-06
+* @version    v1.3.0
 *
 */
 
@@ -62,21 +62,21 @@ bhy_get_and_process_fifo_func bhy_get_and_process_fifo = NULL;
 bhy_register_fifo_parse_callback_func bhy_register_fifo_parse_callback = NULL;
 bhy_set_host_intf_ctrl_func bhy_set_host_intf_ctrl = NULL;
 bhy_get_host_intf_ctrl_func bhy_get_host_intf_ctrl = NULL;
+
+/* Activity */
 bhy_activity_param_set_hearable_config_func bhy_activity_param_set_hearable_config = NULL;
 bhy_activity_param_get_hearable_config_func bhy_activity_param_get_hearable_config = NULL;
 bhy_activity_param_set_wearable_config_func bhy_activity_param_set_wearable_config = NULL;
 bhy_activity_param_get_wearable_config_func bhy_activity_param_get_wearable_config = NULL;
-bhy_bsec_param_set_algo_state_func bhy_bsec_param_set_algo_state = NULL;
-bhy_bsec_param_get_algo_state_func bhy_bsec_param_get_algo_state = NULL;
-bhy_bsec_param_set_temp_offset_func bhy_bsec_param_set_temp_offset = NULL;
-bhy_bsec_param_get_temp_offset_func bhy_bsec_param_get_temp_offset = NULL;
-bhy_bsec_param_set_sample_rate_func bhy_bsec_param_set_sample_rate = NULL;
-bhy_bsec_param_get_sample_rate_func bhy_bsec_param_get_sample_rate = NULL;
+
+/* BSX */
 bhy_bsx_algo_param_get_bsx_states_func bhy_bsx_algo_param_get_bsx_states = NULL;
 bhy_bsx_algo_param_set_bsx_states_func bhy_bsx_algo_param_set_bsx_states = NULL;
 bhy_bsx_algo_param_get_bsx_version_func bhy_bsx_algo_param_get_bsx_version = NULL;
 bhy_bsx_algo_param_get_bsx_sic_matrix_func bhy_bsx_algo_param_get_bsx_sic_matrix = NULL;
 bhy_bsx_algo_param_set_bsx_sic_matrix_func bhy_bsx_algo_param_set_bsx_sic_matrix = NULL;
+
+/* Event Data */
 bhy_event_data_parse_quaternion_func bhy_event_data_parse_quaternion = NULL;
 bhy_event_data_parse_orientation_func bhy_event_data_parse_orientation = NULL;
 bhy_event_data_parse_xyz_func bhy_event_data_parse_xyz = NULL;
@@ -85,28 +85,50 @@ bhy_event_data_head_orientation_eul_parsing_func bhy_event_data_head_orientation
 bhy_event_data_multi_tap_parsing_func bhy_event_data_multi_tap_parsing = NULL;
 bhy_event_data_wrist_gesture_detect_parsing_func bhy_event_data_wrist_gesture_detect_parsing = NULL;
 bhy_event_data_parse_air_quality_func bhy_event_data_parse_air_quality = NULL;
-bhy_head_orientation_param_trigger_hmc_calibration_func bhy_head_orientation_param_trigger_hmc_calibration = NULL;
-bhy_head_orientation_param_set_hmc_configuration_func bhy_head_orientation_param_set_hmc_configuration = NULL;
-bhy_head_orientation_param_get_hmc_configuration_func bhy_head_orientation_param_get_hmc_configuration = NULL;
-bhy_head_orientation_param_set_default_hmc_cfg_func bhy_head_orientation_param_set_default_hmc_cfg = NULL;
-bhy_head_orientation_param_get_hmc_version_func bhy_head_orientation_param_get_hmc_version = NULL;
-bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg_func bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg = NULL;
-bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg_func bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg = NULL;
-bhy_head_orientation_param_set_hmc_mode_vector_x_func bhy_head_orientation_param_set_hmc_mode_vector_x = NULL;
-bhy_head_orientation_param_get_hmc_mode_vector_x_func bhy_head_orientation_param_get_hmc_mode_vector_x = NULL;
-bhy_head_orientation_param_set_quat_init_head_corr_func bhy_head_orientation_param_set_quat_init_head_corr = NULL;
-bhy_head_orientation_param_get_quat_init_head_corr_func bhy_head_orientation_param_get_quat_init_head_corr = NULL;
-bhy_head_orientation_param_get_ho_version_func bhy_head_orientation_param_get_ho_version = NULL;
-bhy_head_orientation_param_set_eul_init_head_corr_func bhy_head_orientation_param_set_eul_init_head_corr = NULL;
-bhy_head_orientation_param_get_eul_init_head_corr_func bhy_head_orientation_param_get_eul_init_head_corr = NULL;
+
+/* Head Feature */
+bhy_head_feature_param_trigger_hmc_calibration_func bhy_head_feature_param_trigger_hmc_calibration = NULL;
+bhy_head_feature_param_set_hmc_configuration_func bhy_head_feature_param_set_hmc_configuration = NULL;
+bhy_head_feature_param_get_hmc_configuration_func bhy_head_feature_param_get_hmc_configuration = NULL;
+bhy_head_feature_param_set_default_hmc_cfg_func bhy_head_feature_param_set_default_hmc_cfg = NULL;
+bhy_head_feature_param_get_hmc_version_func bhy_head_feature_param_get_hmc_version = NULL;
+bhy_head_feature_param_set_hmc_quat_cal_cor_cfg_func bhy_head_feature_param_set_hmc_quat_cal_cor_cfg = NULL;
+bhy_head_feature_param_get_hmc_quat_cal_cor_cfg_func bhy_head_feature_param_get_hmc_quat_cal_cor_cfg = NULL;
+bhy_head_feature_param_set_hmc_mode_vector_x_func bhy_head_feature_param_set_hmc_mode_vector_x = NULL;
+bhy_head_feature_param_get_hmc_mode_vector_x_func bhy_head_feature_param_get_hmc_mode_vector_x = NULL;
+bhy_head_feature_param_set_quat_init_head_corr_func bhy_head_feature_param_set_quat_init_head_corr = NULL;
+bhy_head_feature_param_get_quat_init_head_corr_func bhy_head_feature_param_get_quat_init_head_corr = NULL;
+bhy_head_feature_param_get_ho_version_func bhy_head_feature_param_get_ho_version = NULL;
+bhy_head_feature_param_set_ndof_init_head_corr_func bhy_head_feature_param_set_ndof_init_head_corr = NULL;
+bhy_head_feature_param_get_ndof_init_head_corr_func bhy_head_feature_param_get_ndof_init_head_corr = NULL;
+bhy_head_feature_param_hgd_get_algo_version_func bhy_head_feature_param_hgd_get_algo_version = NULL;
+bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_func
+    bhy_head_feature_param_hgd_get_time_duration_of_one_gesture = NULL;
+bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_func
+    bhy_head_feature_param_hgd_set_time_duration_of_one_gesture = NULL;
+bhy_head_feature_param_hgd_set_to_default_func bhy_head_feature_param_hgd_set_to_default = NULL;
+bhy_head_feature_param_hgd_get_thres_primary_motion_angular_rate_func
+    bhy_head_feature_param_hgd_get_thres_primary_motion_angular_rate = NULL;
+bhy_head_feature_param_hgd_set_thres_primary_motion_angular_rate_func
+    bhy_head_feature_param_hgd_set_thres_primary_motion_angular_rate = NULL;
+bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_tilt_func
+    bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_tilt = NULL;
+bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_tilt_func
+    bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_tilt = NULL;
+
+/* Logbin */
 bhy_logbin_start_meta_func bhy_logbin_start_meta = NULL;
 bhy_logbin_add_meta_func bhy_logbin_add_meta = NULL;
 bhy_logbin_end_meta_func bhy_logbin_end_meta = NULL;
 bhy_logbin_add_data_func bhy_logbin_add_data = NULL;
+
+/* Multi Tap */
 bhy_multi_tap_param_set_config_func bhy_multi_tap_param_set_config = NULL;
 bhy_multi_tap_param_get_config_func bhy_multi_tap_param_get_config = NULL;
 bhy_multi_tap_param_detector_set_config_func bhy_multi_tap_param_detector_set_config = NULL;
 bhy_multi_tap_param_detector_get_config_func bhy_multi_tap_param_detector_get_config = NULL;
+
+/* Physical Sensor Control */
 bhy_phy_sensor_ctrl_param_accel_set_foc_calibration_func bhy_phy_sensor_ctrl_param_accel_set_foc_calibration = NULL;
 bhy_phy_sensor_ctrl_param_accel_get_foc_calibration_func bhy_phy_sensor_ctrl_param_accel_get_foc_calibration = NULL;
 bhy_phy_sensor_ctrl_param_accel_set_power_mode_func bhy_phy_sensor_ctrl_param_accel_set_power_mode = NULL;
@@ -138,14 +160,23 @@ bhy_phy_sensor_ctrl_param_set_any_motion_config_func bhy_phy_sensor_ctrl_param_s
 bhy_phy_sensor_ctrl_param_get_any_motion_config_func bhy_phy_sensor_ctrl_param_get_any_motion_config = NULL;
 bhy_phy_sensor_ctrl_param_set_no_motion_config_func bhy_phy_sensor_ctrl_param_set_no_motion_config = NULL;
 bhy_phy_sensor_ctrl_param_get_no_motion_config_func bhy_phy_sensor_ctrl_param_get_no_motion_config = NULL;
-bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg_func bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg = NULL;
-bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg_func bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg = NULL;
 bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg_func bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg = NULL;
 bhy_phy_sensor_ctrl_param_baro_get_press_type_1_cfg_func bhy_phy_sensor_ctrl_param_baro_get_press_type_1_cfg = NULL;
 bhy_phy_sensor_ctrl_param_baro_set_press_type_2_cfg_func bhy_phy_sensor_ctrl_param_baro_set_press_type_2_cfg = NULL;
 bhy_phy_sensor_ctrl_param_baro_get_press_type_2_cfg_func bhy_phy_sensor_ctrl_param_baro_get_press_type_2_cfg = NULL;
 bhy_phy_sensor_ctrl_param_set_step_counter_config_func bhy_phy_sensor_ctrl_param_set_step_counter_config = NULL;
 bhy_phy_sensor_ctrl_param_get_step_counter_config_func bhy_phy_sensor_ctrl_param_get_step_counter_config = NULL;
+bhy_phy_sensor_ctrl_param_gyro_set_manual_sensitivity_comp_func
+    bhy_phy_sensor_ctrl_param_gyro_set_manual_sensitivity_comp = NULL;
+bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp_func
+    bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp = NULL;
+
+/*Generic features */
+bhy_generic_features_param_reset_wrist_gesture_cfg_func bhy_generic_features_param_reset_wrist_gesture_cfg = NULL;
+bhy_generic_features_param_set_wrist_gesture_cfg_func bhy_generic_features_param_set_wrist_gesture_cfg = NULL;
+bhy_generic_features_param_get_wrist_gesture_cfg_func bhy_generic_features_param_get_wrist_gesture_cfg = NULL;
+
+/* System Parameter */
 bhy_system_param_set_meta_event_control_func bhy_system_param_set_meta_event_control = NULL;
 bhy_system_param_get_meta_event_control_func bhy_system_param_get_meta_event_control = NULL;
 bhy_system_param_set_wakeup_fifo_control_func bhy_system_param_set_wakeup_fifo_control = NULL;
@@ -157,9 +188,12 @@ bhy_system_param_get_virtual_sensor_present_func bhy_system_param_get_virtual_se
 bhy_system_param_get_physical_sensor_present_func bhy_system_param_get_physical_sensor_present = NULL;
 bhy_system_param_get_physical_sensor_info_func bhy_system_param_get_physical_sensor_info = NULL;
 bhy_system_param_set_physical_sensor_info_func bhy_system_param_set_physical_sensor_info = NULL;
+
+/* Virtual Sensor Configuration */
 bhy_virtual_sensor_conf_param_set_cfg_func bhy_virtual_sensor_conf_param_set_cfg = NULL;
 bhy_virtual_sensor_conf_param_get_cfg_func bhy_virtual_sensor_conf_param_get_cfg = NULL;
 bhy_virtual_sensor_info_param_get_info_func bhy_virtual_sensor_info_param_get_info = NULL;
+
 bhy_get_regs_func bhy_get_regs = NULL;
 bhy_set_regs_func bhy_set_regs = NULL;
 bhy_get_product_id_func bhy_get_product_id = NULL;
@@ -219,18 +253,12 @@ bhy_parse_scalar_u32_func bhy_parse_scalar_u32 = NULL;
 bhy_parse_scalar_event_func bhy_parse_scalar_event = NULL;
 bhy_parse_activity_func bhy_parse_activity = NULL;
 
-/*bhy_parse_u16_as_float_func bhy_parse_u16_as_float = NULL; */
 bhy_parse_u24_as_float_func bhy_parse_u24_as_float = NULL;
-
-/*bhy_parse_proximity_func bhy_parse_proximity = NULL; */
 bhy_parse_scalar_u8_func bhy_parse_scalar_u8 = NULL;
 bhy_parse_generic_func bhy_parse_generic = NULL;
-
-/*bhy_parse_gps_func bhy_parse_gps = NULL; */
 bhy_parse_debug_message_func bhy_parse_debug_message = NULL;
-
-/*bhy_parse_acc_gyro_func bhy_parse_acc_gyro = NULL; */
 bhy_parse_multitap_func bhy_parse_multitap = NULL;
+bhy_parse_free_fall_data_func bhy_parse_free_fall_data = NULL;
 bhy_parse_wrist_gesture_detect_func bhy_parse_wrist_gesture_detect = NULL;
 bhy_parse_wrist_wear_wakeup_data_func bhy_parse_wrist_wear_wakeup_data = NULL;
 bhy_parse_air_quality_func bhy_parse_air_quality = NULL;
@@ -248,6 +276,7 @@ bhy_parse_humidity_func bhy_parse_humidity = NULL;
 bhy_parse_pressure_func bhy_parse_pressure = NULL;
 bhy_parse_altitude_func bhy_parse_altitude = NULL;
 
+/* Klio */
 bhy_parse_klio_func bhy_parse_klio = NULL;
 bhy_parse_klio_log_func bhy_parse_klio_log = NULL;
 bhy_klio_param_read_reset_driver_status_func bhy_klio_param_read_reset_driver_status = NULL;
@@ -335,6 +364,8 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
         "bhy_register_fifo_parse_callback");
     bhy_set_host_intf_ctrl = (bhy_set_host_intf_ctrl_func)cli_load_api("bhy_set_host_intf_ctrl");
     bhy_get_host_intf_ctrl = (bhy_get_host_intf_ctrl_func)cli_load_api("bhy_get_host_intf_ctrl");
+
+    /* Activity param */
     bhy_activity_param_set_hearable_config = (bhy_activity_param_set_hearable_config_func)cli_load_api(
         "bhy_activity_param_set_hearable_config");
     bhy_activity_param_get_hearable_config = (bhy_activity_param_get_hearable_config_func)cli_load_api(
@@ -343,16 +374,8 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
         "bhy_activity_param_set_wearable_config");
     bhy_activity_param_get_wearable_config = (bhy_activity_param_get_wearable_config_func)cli_load_api(
         "bhy_activity_param_get_wearable_config");
-    bhy_bsec_param_set_algo_state = (bhy_bsec_param_set_algo_state_func)cli_load_api("bhy_bsec_param_set_algo_state");
-    bhy_bsec_param_get_algo_state = (bhy_bsec_param_get_algo_state_func)cli_load_api("bhy_bsec_param_get_algo_state");
-    bhy_bsec_param_set_temp_offset =
-        (bhy_bsec_param_set_temp_offset_func)cli_load_api("bhy_bsec_param_set_temp_offset");
-    bhy_bsec_param_get_temp_offset =
-        (bhy_bsec_param_get_temp_offset_func)cli_load_api("bhy_bsec_param_get_temp_offset");
-    bhy_bsec_param_set_sample_rate =
-        (bhy_bsec_param_set_sample_rate_func)cli_load_api("bhy_bsec_param_set_sample_rate");
-    bhy_bsec_param_get_sample_rate =
-        (bhy_bsec_param_get_sample_rate_func)cli_load_api("bhy_bsec_param_get_sample_rate");
+
+    /* BSX */
     bhy_bsx_algo_param_get_bsx_states = (bhy_bsx_algo_param_get_bsx_states_func)cli_load_api(
         "bhy_bsx_algo_param_get_bsx_states");
     bhy_bsx_algo_param_set_bsx_states = (bhy_bsx_algo_param_set_bsx_states_func)cli_load_api(
@@ -363,6 +386,8 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
         "bhy_bsx_algo_param_get_bsx_sic_matrix");
     bhy_bsx_algo_param_set_bsx_sic_matrix = (bhy_bsx_algo_param_set_bsx_sic_matrix_func)cli_load_api(
         "bhy_bsx_algo_param_set_bsx_sic_matrix");
+
+    /* Event data */
     bhy_event_data_parse_quaternion = (bhy_event_data_parse_quaternion_func)cli_load_api(
         "bhy_event_data_parse_quaternion");
     bhy_event_data_parse_orientation = (bhy_event_data_parse_orientation_func)cli_load_api(
@@ -378,49 +403,79 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
         "bhy_event_data_wrist_gesture_detect_parsing");
     bhy_event_data_parse_air_quality = (bhy_event_data_parse_air_quality_func)cli_load_api(
         "bhy_event_data_parse_air_quality");
-    bhy_head_orientation_param_trigger_hmc_calibration =
-        (bhy_head_orientation_param_trigger_hmc_calibration_func)cli_load_api(
-            "bhy_head_orientation_param_trigger_hmc_calibration");
-    bhy_head_orientation_param_set_hmc_configuration =
-        (bhy_head_orientation_param_set_hmc_configuration_func)cli_load_api(
-            "bhy_head_orientation_param_set_hmc_configuration");
-    bhy_head_orientation_param_get_hmc_configuration =
-        (bhy_head_orientation_param_get_hmc_configuration_func)cli_load_api(
-            "bhy_head_orientation_param_get_hmc_configuration");
-    bhy_head_orientation_param_set_default_hmc_cfg = (bhy_head_orientation_param_set_default_hmc_cfg_func)cli_load_api(
-        "bhy_head_orientation_param_set_default_hmc_cfg");
-    bhy_head_orientation_param_get_hmc_version = (bhy_head_orientation_param_get_hmc_version_func)cli_load_api(
-        "bhy_head_orientation_param_get_hmc_version");
-    bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg =
-        (bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg_func)cli_load_api(
-            "bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg");
-    bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg =
-        (bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg_func)cli_load_api(
-            "bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg");
-    bhy_head_orientation_param_set_hmc_mode_vector_x =
-        (bhy_head_orientation_param_set_hmc_mode_vector_x_func)cli_load_api(
-            "bhy_head_orientation_param_set_hmc_mode_vector_x");
-    bhy_head_orientation_param_get_hmc_mode_vector_x =
-        (bhy_head_orientation_param_get_hmc_mode_vector_x_func)cli_load_api(
-            "bhy_head_orientation_param_get_hmc_mode_vector_x");
-    bhy_head_orientation_param_set_quat_init_head_corr =
-        (bhy_head_orientation_param_set_quat_init_head_corr_func)cli_load_api(
-            "bhy_head_orientation_param_set_quat_init_head_corr");
-    bhy_head_orientation_param_get_quat_init_head_corr =
-        (bhy_head_orientation_param_get_quat_init_head_corr_func)cli_load_api(
-            "bhy_head_orientation_param_get_quat_init_head_corr");
-    bhy_head_orientation_param_get_ho_version = (bhy_head_orientation_param_get_ho_version_func)cli_load_api(
-        "bhy_head_orientation_param_get_ho_version");
-    bhy_head_orientation_param_set_eul_init_head_corr =
-        (bhy_head_orientation_param_set_eul_init_head_corr_func)cli_load_api(
-            "bhy_head_orientation_param_set_eul_init_head_corr");
-    bhy_head_orientation_param_get_eul_init_head_corr =
-        (bhy_head_orientation_param_get_eul_init_head_corr_func)cli_load_api(
-            "bhy_head_orientation_param_get_eul_init_head_corr");
+
+    /* Head feature */
+    bhy_head_feature_param_trigger_hmc_calibration = (bhy_head_feature_param_trigger_hmc_calibration_func)cli_load_api(
+        "bhy_head_feature_param_trigger_hmc_calibration");
+    bhy_head_feature_param_set_hmc_configuration = (bhy_head_feature_param_set_hmc_configuration_func)cli_load_api(
+        "bhy_head_feature_param_set_hmc_configuration");
+    bhy_head_feature_param_get_hmc_configuration = (bhy_head_feature_param_get_hmc_configuration_func)cli_load_api(
+        "bhy_head_feature_param_get_hmc_configuration");
+    bhy_head_feature_param_set_default_hmc_cfg = (bhy_head_feature_param_set_default_hmc_cfg_func)cli_load_api(
+        "bhy_head_feature_param_set_default_hmc_cfg");
+    bhy_head_feature_param_get_hmc_version = (bhy_head_feature_param_get_hmc_version_func)cli_load_api(
+        "bhy_head_feature_param_get_hmc_version");
+    bhy_head_feature_param_set_hmc_quat_cal_cor_cfg =
+        (bhy_head_feature_param_set_hmc_quat_cal_cor_cfg_func)cli_load_api(
+            "bhy_head_feature_param_set_hmc_quat_cal_cor_cfg");
+    bhy_head_feature_param_get_hmc_quat_cal_cor_cfg =
+        (bhy_head_feature_param_get_hmc_quat_cal_cor_cfg_func)cli_load_api(
+            "bhy_head_feature_param_get_hmc_quat_cal_cor_cfg");
+    bhy_head_feature_param_set_hmc_mode_vector_x = (bhy_head_feature_param_set_hmc_mode_vector_x_func)cli_load_api(
+        "bhy_head_feature_param_set_hmc_mode_vector_x");
+    bhy_head_feature_param_get_hmc_mode_vector_x = (bhy_head_feature_param_get_hmc_mode_vector_x_func)cli_load_api(
+        "bhy_head_feature_param_get_hmc_mode_vector_x");
+    bhy_head_feature_param_set_quat_init_head_corr = (bhy_head_feature_param_set_quat_init_head_corr_func)cli_load_api(
+        "bhy_head_feature_param_set_quat_init_head_corr");
+    bhy_head_feature_param_get_quat_init_head_corr = (bhy_head_feature_param_get_quat_init_head_corr_func)cli_load_api(
+        "bhy_head_feature_param_get_quat_init_head_corr");
+    bhy_head_feature_param_get_ho_version = (bhy_head_feature_param_get_ho_version_func)cli_load_api(
+        "bhy_head_feature_param_get_ho_version");
+    bhy_head_feature_param_set_ndof_init_head_corr = (bhy_head_feature_param_set_ndof_init_head_corr_func)cli_load_api(
+        "bhy_head_feature_param_set_ndof_init_head_corr");
+    bhy_head_feature_param_get_ndof_init_head_corr = (bhy_head_feature_param_get_ndof_init_head_corr_func)cli_load_api(
+        "bhy_head_feature_param_get_ndof_init_head_corr");
+    bhy_head_feature_param_hgd_get_algo_version = (bhy_head_feature_param_hgd_get_algo_version_func)cli_load_api(
+        "bhy_head_feature_param_hgd_get_algo_version");
+    bhy_head_feature_param_hgd_get_time_duration_of_one_gesture =
+        (bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_func)cli_load_api(
+            "bhy_head_feature_param_hgd_get_time_duration_of_one_gesture");
+    bhy_head_feature_param_hgd_set_time_duration_of_one_gesture =
+        (bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_func)cli_load_api(
+            "bhy_head_feature_param_hgd_set_time_duration_of_one_gesture");
+    bhy_head_feature_param_hgd_set_to_default = (bhy_head_feature_param_hgd_set_to_default_func)cli_load_api(
+        "bhy_head_feature_param_hgd_set_to_default");
+    bhy_head_feature_param_hgd_get_thres_primary_motion_angular_rate =
+        (bhy_head_feature_param_hgd_get_thres_primary_motion_angular_rate_func)cli_load_api(
+            "bhy_head_feature_param_hgd_get_thres_primary_motion_angular_rate");
+    bhy_head_feature_param_hgd_set_thres_primary_motion_angular_rate =
+        (bhy_head_feature_param_hgd_set_thres_primary_motion_angular_rate_func)cli_load_api(
+            "bhy_head_feature_param_hgd_set_thres_primary_motion_angular_rate");
+    bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_tilt =
+        (bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_tilt_func)cli_load_api(
+            "bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_tilt");
+    bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_tilt =
+        (bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_tilt_func)cli_load_api(
+            "bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_tilt");
+
+    /* Generic features */
+    bhy_generic_features_param_set_wrist_gesture_cfg =
+        (bhy_generic_features_param_set_wrist_gesture_cfg_func)cli_load_api(
+            "bhy_generic_features_param_set_wrist_gesture_cfg");
+    bhy_generic_features_param_get_wrist_gesture_cfg =
+        (bhy_generic_features_param_get_wrist_gesture_cfg_func)cli_load_api(
+            "bhy_generic_features_param_get_wrist_gesture_cfg");
+    bhy_generic_features_param_reset_wrist_gesture_cfg =
+        (bhy_generic_features_param_reset_wrist_gesture_cfg_func)cli_load_api(
+            "bhy_generic_features_param_reset_wrist_gesture_cfg");
+
+    /* Logbin */
     bhy_logbin_start_meta = (bhy_logbin_start_meta_func)cli_load_api("bhy_logbin_start_meta");
     bhy_logbin_add_meta = (bhy_logbin_add_meta_func)cli_load_api("bhy_logbin_add_meta");
     bhy_logbin_end_meta = (bhy_logbin_end_meta_func)cli_load_api("bhy_logbin_end_meta");
     bhy_logbin_add_data = (bhy_logbin_add_data_func)cli_load_api("bhy_logbin_add_data");
+
+    /* Multi Tap */
     bhy_multi_tap_param_set_config =
         (bhy_multi_tap_param_set_config_func)cli_load_api("bhy_multi_tap_param_set_config");
     bhy_multi_tap_param_get_config =
@@ -429,6 +484,8 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
         "bhy_multi_tap_param_detector_set_config");
     bhy_multi_tap_param_detector_get_config = (bhy_multi_tap_param_detector_get_config_func)cli_load_api(
         "bhy_multi_tap_param_detector_get_config");
+
+    /* Physical Sensor Control */
     bhy_phy_sensor_ctrl_param_accel_set_foc_calibration =
         (bhy_phy_sensor_ctrl_param_accel_set_foc_calibration_func)cli_load_api(
             "bhy_phy_sensor_ctrl_param_accel_set_foc_calibration");
@@ -510,12 +567,6 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
         "bhy_phy_sensor_ctrl_param_set_no_motion_config");
     bhy_phy_sensor_ctrl_param_get_no_motion_config = (bhy_phy_sensor_ctrl_param_get_no_motion_config_func)cli_load_api(
         "bhy_phy_sensor_ctrl_param_get_no_motion_config");
-    bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg =
-        (bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg_func)cli_load_api(
-            "bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg");
-    bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg =
-        (bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg_func)cli_load_api(
-            "bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg");
     bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg =
         (bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg_func)cli_load_api(
             "bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg");
@@ -534,6 +585,14 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
     bhy_phy_sensor_ctrl_param_get_step_counter_config =
         (bhy_phy_sensor_ctrl_param_get_step_counter_config_func)cli_load_api(
             "bhy_phy_sensor_ctrl_param_get_step_counter_config");
+    bhy_phy_sensor_ctrl_param_gyro_set_manual_sensitivity_comp =
+        (bhy_phy_sensor_ctrl_param_gyro_set_manual_sensitivity_comp_func)cli_load_api(
+            "bhy_phy_sensor_ctrl_param_gyro_set_manual_sensitivity_comp");
+    bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp =
+        (bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp_func)cli_load_api(
+            "bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp");
+
+    /* System param */
     bhy_system_param_set_meta_event_control = (bhy_system_param_set_meta_event_control_func)cli_load_api(
         "bhy_system_param_set_meta_event_control");
     bhy_system_param_get_meta_event_control = (bhy_system_param_get_meta_event_control_func)cli_load_api(
@@ -556,12 +615,15 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
         "bhy_system_param_get_physical_sensor_info");
     bhy_system_param_set_physical_sensor_info = (bhy_system_param_set_physical_sensor_info_func)cli_load_api(
         "bhy_system_param_set_physical_sensor_info");
+
+    /* Virtual sensor configuration */
     bhy_virtual_sensor_conf_param_set_cfg = (bhy_virtual_sensor_conf_param_set_cfg_func)cli_load_api(
         "bhy_virtual_sensor_conf_param_set_cfg");
     bhy_virtual_sensor_conf_param_get_cfg = (bhy_virtual_sensor_conf_param_get_cfg_func)cli_load_api(
         "bhy_virtual_sensor_conf_param_get_cfg");
     bhy_virtual_sensor_info_param_get_info = (bhy_virtual_sensor_info_param_get_info_func)cli_load_api(
         "bhy_virtual_sensor_info_param_get_info");
+
     bhy_get_regs = (bhy_get_regs_func)cli_load_api("bhy_get_regs");
     bhy_set_regs = (bhy_set_regs_func)cli_load_api("bhy_set_regs");
     bhy_get_product_id = (bhy_get_product_id_func)cli_load_api("bhy_get_product_id");
@@ -624,29 +686,22 @@ uint8_t cli_load_sensor_api_entry(uint8_t chip_id)
     bhy_parse_scalar_u32 = (bhy_parse_scalar_u32_func)cli_load_api("bhy_parse_scalar_u32");
     bhy_parse_scalar_event = (bhy_parse_scalar_event_func)cli_load_api("bhy_parse_scalar_event");
     bhy_parse_activity = (bhy_parse_activity_func)cli_load_api("bhy_parse_activity");
-
-    /*bhy_parse_u16_as_float_func bhy_parse_u16_as_float = NULL; */
     bhy_parse_u24_as_float = (bhy_parse_u24_as_float_func)cli_load_api("bhy_parse_u24_as_float");
 
-    /*bhy_parse_proximity_func bhy_parse_proximity = NULL; */
     bhy_parse_scalar_u8 = (bhy_parse_scalar_u8_func)cli_load_api("bhy_parse_scalar_u8");
     bhy_parse_generic = (bhy_parse_generic_func)cli_load_api("bhy_parse_generic");
-
-    /*bhy_parse_gps_func bhy_parse_gps = NULL; */
     bhy_parse_debug_message = (bhy_parse_debug_message_func)cli_load_api("bhy_parse_debug_message");
 
-    /*bhy_parse_acc_gyro = (bhy_parse_acc_gyro_func)cli_load_api("bhy_parse_acc_gyro"); */
     bhy_parse_multitap = (bhy_parse_multitap_func)cli_load_api("bhy_parse_multitap");
     bhy_parse_wrist_gesture_detect =
         (bhy_parse_wrist_gesture_detect_func)cli_load_api("bhy_parse_wrist_gesture_detect");
     bhy_parse_wrist_wear_wakeup_data = (bhy_parse_wrist_wear_wakeup_data_func)cli_load_api(
         "bhy_parse_wrist_wear_wakeup_data");
+    bhy_parse_free_fall_data = (bhy_parse_free_fall_data_func)cli_load_api("bhy_parse_free_fall_data");
     bhy_parse_air_quality = (bhy_parse_air_quality_func)cli_load_api("bhy_parse_air_quality");
     bhy_parse_hmc = (bhy_parse_hmc_func)cli_load_api("bhy_parse_hmc");
     bhy_parse_oc = (bhy_parse_oc_func)cli_load_api("bhy_parse_oc");
     bhy_parse_ec = (bhy_parse_ec_func)cli_load_api("bhy_parse_ec");
-
-    /*bhy_add_accuracy_to_sensor_data_func bhy_add_accuracy_to_sensor_data = NULL; */
     bhy_set_downsampling_flag = (bhy_set_downsampling_flag_func)cli_load_api("bhy_set_downsampling_flag");
     bhy_get_downsampling_flag = (bhy_get_downsampling_flag_func)cli_load_api("bhy_get_downsampling_flag");
     bhy_set_downsampling_odr = (bhy_set_downsampling_odr_func)cli_load_api("bhy_set_downsampling_odr");

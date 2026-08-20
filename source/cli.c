@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -150,15 +150,24 @@ int8_t cli_run(uint8_t argc, uint8_t * const argv[], const cli_dev_t *dev)
 * @param[in] ref : Reference to command line
 * @param[in] dev : Device instance
 */
-int8_t cli_help(void *ref, const cli_dev_t *dev)
+int8_t cli_help(void *ref, const cli_dev_t *dev, char *cmd_type)
 {
     uint8_t cmd_i;
     int8_t ret = CLI_OK;
 
     for (cmd_i = 0; cmd_i < dev->n_cmds; cmd_i++)
     {
+        if (cmd_type == NULL && dev->table[cmd_i].help_callback)
+        {
+            ret = dev->table[cmd_i].help_callback(ref);
+
+            if (ret != CLI_OK)
+            {
+                break;
+            }
+        }
         /* Avoid Null pointer calls */
-        if (dev->table[cmd_i].help_callback)
+        else if (dev->table[cmd_i].help_callback && strcmp(dev->table[cmd_i].type, cmd_type) == 0)
         {
             ret = dev->table[cmd_i].help_callback(ref);
 

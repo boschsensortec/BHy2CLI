@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -67,6 +67,7 @@ typedef struct
     uint8_t n_args;
     cli_callback_t callback;
     cli_help_callback_t help_callback;
+    char *type;
 } cli_callback_table_t;
 
 typedef struct
@@ -90,7 +91,7 @@ int8_t cli_run(uint8_t argc, uint8_t * const argv[], const cli_dev_t *dev);
 * @param[in] ref : Reference to command line
 * @param[in] dev : Device instance
 */
-int8_t cli_help(void *ref, const cli_dev_t *dev);
+int8_t cli_help(void *ref, const cli_dev_t *dev, char *cmd_type);
 
 /* End of CPP Guard */
 #ifdef __cplusplus

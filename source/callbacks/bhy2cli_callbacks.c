@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -36,7 +36,7 @@
  */
 
 #define BHY2CLI_VER_MAJOR       "1"
-#define BHY2CLI_VER_MINOR       "2"
+#define BHY2CLI_VER_MINOR       "3"
 #define BHY2CLI_VER_BUGFIX      "0"
 
 #ifdef __STDC_ALLOC_LIB__
@@ -157,176 +157,227 @@ uint8_t file_exists(const char *file_name)
 #endif
 
 static cli_callback_table_t bhy2cli_callbacks[] = {
-    { 0, "", 0, NULL, NULL }, /* Empty characters creates a new line */
-    { 'h', "help", 0, help_callback, help_help }, /* Print all available commands */
-    { 0, "version", 0, version_callback, version_help }, /* Prints the HW, SW versions and build date*/
-    { 'v', "verb", 1, verbose_callback, verb_help }, /* Change verbose of received outputs */
-    { 'b', "ramb", 1, ramb_callback, ramb_help }, /* Reset, Load firmware to RAM and boot */
-    { 'n', "reset", 0, reset_callback, reset_help }, /* Trigger a soft reset to the sensor */
-    { 'a', "addse", 1, addse_callback, addse_help }, /* Add a custom sensor */
-    { 'g', "boot", 1, boot_callback, boot_help }, /* Boot from RAM */
-    { 'c', "actse", 1, actse_callback, actse_help }, /* Activate/De-activate a sensor */
-    { 0, "schema", 0, schema_callback, schema_help }, /* Get schema information of the loaded sensors */
-    { 0, "hexse", 1, hexse_callback, hexse_help }, /* Stream sensor data in hex */
-    { 0, "dactse", 0, dactse_callback, dactse_help }, /* Deactivate all the active sensors */
-    { 0, "lsactse", 0, lsactse_callback, lsactse_help }, /* List all the active sensors */
-    { 0, "dmode", 1, dmode_callback, dmode_help }, /* Switch to Data Injection mode */
-    { 0, "dinject", 1, dinject_callback, dinject_help }, /* Compute virtual sensor output from raw IMU data */
-    { 'r', "rd", 1, rd_callback, rd_help }, /* Read registers */
-    { 'u', "ram", 1, ram_callback, ram_help }, /* Upload firmware to RAM */
-    { 'w', "wr", 1, wr_callback, wr_help }, /* Write registers */
-    { 'i', "info", 0, info_callback, info_help }, /* Get information of the state of the device and loaded sensors */
-    { 's', "rdp", 1, rdp_callback, rdp_help }, /* Read a parameter */
-    { 't', "wrp", 1, wrp_callback, wrp_help }, /* Write a parameter */
-    { 'p', "physeninfo", 1, physeninfo_callback, physeninfo_help }, /* Read Physical Sensor Information */
+    { 0, "", 0, NULL, NULL, "base_cmd" }, /* Empty characters creates a new line */
+    { 'h', "help", 0, help_callback, help_help, "base_cmd" }, /* Print all available commands */
+    { 0, "version", 0, version_callback, version_help, "base_cmd" }, /* Prints the HW, SW versions and build date*/
+    { 'v', "verb", 1, verbose_callback, verb_help, "" }, /* Change verbose of received outputs */
+    { 'b', "ramb", 1, ramb_callback, ramb_help, "base_cmd" }, /* Reset, Load firmware to RAM and boot */
+    { 'n', "reset", 0, reset_callback, reset_help, "base_cmd" }, /* Trigger a soft reset to the sensor */
+    { 'a', "addse", 1, addse_callback, addse_help, "base_cmd" }, /* Add a custom sensor */
+    { 'g', "boot", 1, boot_callback, boot_help, "base_cmd" }, /* Boot from RAM */
+    { 'c', "actse", 1, actse_callback, actse_help, "base_cmd" }, /* Activate/De-activate a sensor */
+    { 0, "schema", 0, schema_callback, schema_help, "base_cmd" }, /* Get schema information of the loaded sensors */
+    { 0, "hexse", 1, hexse_callback, hexse_help, "base_cmd" }, /* Stream sensor data in hex */
+    { 0, "dactse", 0, dactse_callback, dactse_help, "base_cmd" }, /* Deactivate all the active sensors */
+    { 0, "lsactse", 0, lsactse_callback, lsactse_help, "base_cmd" }, /* List all the active sensors */
+    { 0, "dmode", 1, dmode_callback, dmode_help, "base_cmd" }, /* Switch to Data Injection mode */
+    { 0, "dinject", 1, dinject_callback, dinject_help, "base_cmd" }, /* Compute virtual sensor output from raw IMU data
+                                                                      * */
+    { 'r', "rd", 1, rd_callback, rd_help, "base_cmd" }, /* Read registers */
+    { 'u', "ram", 1, ram_callback, ram_help, "base_cmd" }, /* Upload firmware to RAM */
+    { 'w', "wr", 1, wr_callback, wr_help, "base_cmd" }, /* Write registers */
+    { 'i', "info", 0, info_callback, info_help, "base_cmd" }, /* Get information of the state of the device and loaded
+                                                               * sensors */
+    { 's', "rdp", 1, rdp_callback, rdp_help, "base_cmd" }, /* Read a parameter */
+    { 't', "wrp", 1, wrp_callback, wrp_help, "base_cmd" }, /* Write a parameter */
+    { 'p', "physeninfo", 1, physeninfo_callback, physeninfo_help, "sys_cmd" }, /* Read Physical Sensor Information */
 #ifndef PC
-    { 'm', "postm", 1, pm_callback, pm_help }, /* Get Post Mortem Data */
+    { 'm', "postm", 1, pm_callback, pm_help, "base_cmd" }, /* Get Post Mortem Data */
 #endif
-    { 0, "logse", 1, logse_callback, logse_help }, /* Log sensor data in binary */
-    { 0, "attlog", 1, attlog_callback, attlog_help }, /* Attach a log file for logging */
-    { 0, "detlog", 1, detlog_callback, detlog_help }, /* Detach a log file for logging */
-    { 0, "setvirtsenconf", 3, setvirtsenconf_callback, setvirtsenconf_help }, /* Setting virtual sensor configuration */
-    { 0, "getvirtsenconf", 1, getvirtsenconf_callback, getvirtsenconf_help }, /* Getting virtual sensor configuration */
-    { 0, "kstatus", 0, kstatus_callback, kstatus_help }, /* Get Klio status */
-    { 0, "ksetstate", 4, ksetstate_callback, ksetstate_help }, /* Set state of Klio */
-    { 0, "kgetstate", 0, kgetstate_callback, kgetstate_help }, /* Get state of Klio */
-    { 0, "kreset", 0, kreset_callback, kreset_help }, /* Reset all Klio state */
-    { 0, "kldpatt", 2, kldpatt_callback, kldpatt_help }, /* Load Klio pattern for recognition */
-    { 0, "kenpatt", 1, kenpatt_callback, kenpatt_help }, /* Enable Klio pattern */
-    { 0, "kdispatt", 1, kdispatt_callback, kdispatt_help }, /* Disable Klio pattern */
-    { 0, "kdisapatt", 1, kdisapatt_callback, kdisapatt_help }, /* Disable Klio adaptive pattern */
-    { 0, "kswpatt", 1, kswpatt_callback, kswpatt_help }, /* Switch Klio pattern between left/right hand */
-    { 0, "kautldpatt", 2, kautldpatt_callback, kautldpatt_help }, /* Auto-load Klio patterns */
-    { 0, "kgetparam", 1, kgetparam_callback, kgetparam_help }, /* Get Klio parameters */
-    { 0, "ksetparam", 2, ksetparam_callback, ksetparam_help }, /* Set Klio parameters */
-    { 0, "kgetpattparam", 2, kgetpattparam_callback, kgetpattparam_help }, /* Get Klio pattern parameters */
-    { 0, "ksetpattparam", 3, ksetpattparam_callback, ksetpattparam_help }, /* Set Klio pattern parameters */
-    { 0, "ksimscore", 2, ksimscore_callback, ksimscore_help }, /* Get Klio Similarity score */
-    { 0, "kmsimscore", 2, kmsimscore_callback, kmsimscore_help }, /* Get Multiple Klio Similarity score */
-    { 0, "getorientmatrix", 0, getorientmatrix_callback, getorientmatrix_help }, /* Get the orientation matrix */
-    { 0, "setorientmatrix", 1, setorientmatrix_callback, setorientmatrix_help }, /* Set the orientation sensor matrix */
-    { 0, "mtapen", 1, mtapen_callback, mtapen_help }, /* Enable/Disable Multi Tap Sensor */
-    { 0, "mtapinfo", 0, mtapinfo_callback, mtapinfo_help }, /* Get Multi Tap Sensor Info */
-    { 0, "mtapsetcnfg", 3, mtapsetcnfg_callback, mtapsetcnfg_help }, /* Set the Multi Tap Configuration */
-    { 0, "mtapgetcnfg", 0, mtapgetcnfg_callback, mtapgetcnfg_help }, /* Get the Multi Tap Configuration */
-    { 0, "accsetfoc", 3, accsetfoc_callback, accsetfoc_help }, /* Set the Accelerometer Fast Offset Calibration */
-    { 0, "accgetfoc", 0, accgetfoc_callback, accgetfoc_help }, /* Get the Accelerometer Fast Offset Calibration */
-    { 0, "accsetpwm", 1, accsetpwm_callback, accsetpwm_help }, /* Set the Accelerometer Power Mode */
-    { 0, "accgetpwm", 0, accgetpwm_callback, accgetpwm_help }, /* Get the Accelerometer Power Mode */
-    { 0, "accsetar", 6, accsetar_callback, accsetar_help }, /* Set the Accelerometer axis remapping */
-    { 0, "accgetar", 0, accgetar_callback, accgetar_help }, /* Set the Accelerometer axis remapping */
-    { 0, "acctrignvm", 0, acctrignvm_callback, acctrignvm_help }, /* Trigger a NVM writing for Accelerometer */
-    { 0, "accgetnvm", 0, accgetnvm_callback, accgetnvm_help }, /* Get NVM writing status for Accelerometer */
-    { 0, "gyrosetfoc", 3, gyrosetfoc_callback, gyrosetfoc_help }, /* Set the Gyroscope Fast Offset Calibration */
-    { 0, "gyrogetfoc", 0, gyrogetfoc_callback, gyrogetfoc_help }, /* Get the Gyroscope Fast Offset Calibration */
-    { 0, "gyrosetois", 1, gyrosetois_callback, gyrosetois_help }, /* Set the Gyroscope OIS Mode*/
-    { 0, "gyrogetois", 0, gyrogetois_callback, gyrogetois_help }, /* Get the Gyroscope OIS Mode*/
-    { 0, "gyrosetfs", 1, gyrosetfs_callback, gyrosetfs_help }, /* Set the Gyroscope Fast Startup Mode */
-    { 0, "gyrogetfs", 0, gyrogetfs_callback, gyrogetfs_help }, /* Get the Gyroscope Fast Startup Mode*/
-    { 0, "gyrosetcrt", 0, gyrosetcrt_callback, gyrosetcrt_help }, /* Set the Gyroscope CRT state*/
-    { 0, "gyrogetcrt", 0, gyrogetcrt_callback, gyrogetcrt_help }, /* Get the Gyroscope CRT status*/
-    { 0, "gyrosetpwm", 1, gyrosetpwm_callback, gyrosetpwm_help }, /* Set the Gyroscope Power Mode */
-    { 0, "gyrogetpwm", 0, gyrogetpwm_callback, gyrogetpwm_help }, /* Get the Gyroscope Power Mode */
-    { 0, "gyrosettat", 1, gyrosettat_callback, gyrosettat_help }, /* Set the Gyroscope Timer Auto Trim state*/
-    { 0, "gyrogettat", 0, gyrogettat_callback, gyrogettat_help }, /* Get the Gyroscope Timer Auto Trim status*/
-    { 0, "gyrotrignvm", 0, gyrotrignvm_callback, gyrotrignvm_help }, /* Trigger a NVM writing for Gyroscope */
-    { 0, "gyrogetnvm", 0, gyrogetnvm_callback, gyrogetnvm_help }, /* Get NVM writing status for Gyroscope */
-    { 0, "magsetpwm", 1, magsetpwm_callback, magsetpwm_help }, /* Set the Magnetometer Power Mode */
-    { 0, "maggetpwm", 0, maggetpwm_callback, maggetpwm_help }, /* Get the Magnetometer Power Mode */
-    { 0, "wwwsetcnfg", 8, wwwsetcnfg_callback, wwwsetcnfg_help }, /* Set the Wrist Wear Wakeup Configuration */
-    { 0, "wwwgetcnfg", 0, wwwgetcnfg_callback, wwwgetcnfg_help }, /* Get the Wrist Wear Wakeup Configuration */
-    { 0, "amsetcnfg", 1, amsetcnfg_callback, amsetcnfg_help }, /* Set the Any Motion Configuration */
-    { 0, "amgetcnfg", 0, amgetcnfg_callback, amgetcnfg_help }, /* Get the Any Motion Configuration */
-    { 0, "nmsetcnfg", 1, nmsetcnfg_callback, nmsetcnfg_help }, /* Set the No Motion Configuration */
-    { 0, "nmgetcnfg", 0, nmgetcnfg_callback, nmgetcnfg_help }, /* Get the No Motion Configuration */
-    { 0, "wgdsetcnfg", 10, wgdsetcnfg_callback, wgdsetcnfg_help }, /* Set the Wrist Gesture Detection Configuration */
-    { 0, "wgdgetcnfg", 0, wgdgetcnfg_callback, wgdgetcnfg_help }, /* Get the Wrist Gesture Detection Configuration */
-    { 0, "baro1setcnfg", 3, baro1setcnfg_callback, baro1setcnfg_help }, /* Set the Barometer pressure type 1
+    { 0, "logse", 1, logse_callback, logse_help, "base_cmd" }, /* Log sensor data in binary */
+    { 0, "attlog", 1, attlog_callback, attlog_help, "base_cmd" }, /* Attach a log file for logging */
+    { 0, "detlog", 1, detlog_callback, detlog_help, "base_cmd" }, /* Detach a log file for logging */
+    { 0, "setvirtsenconf", 3, setvirtsenconf_callback, setvirtsenconf_help, "virt_cmd" }, /* Setting virtual sensor
+                                                                                           * configuration */
+    { 0, "getvirtsenconf", 1, getvirtsenconf_callback, getvirtsenconf_help, "virt_cmd" }, /* Getting virtual sensor
+                                                                                           * configuration */
+    { 0, "kstatus", 0, kstatus_callback, kstatus_help, "klio_cmd" }, /* Get Klio status */
+    { 0, "ksetstate", 4, ksetstate_callback, ksetstate_help, "klio_cmd" }, /* Set state of Klio */
+    { 0, "kgetstate", 0, kgetstate_callback, kgetstate_help, "klio_cmd" }, /* Get state of Klio */
+    { 0, "kreset", 0, kreset_callback, kreset_help, "klio_cmd" }, /* Reset all Klio state */
+    { 0, "kldpatt", 2, kldpatt_callback, kldpatt_help, "klio_cmd" }, /* Load Klio pattern for recognition */
+    { 0, "kenpatt", 1, kenpatt_callback, kenpatt_help, "klio_cmd" }, /* Enable Klio pattern */
+    { 0, "kdispatt", 1, kdispatt_callback, kdispatt_help, "klio_cmd" }, /* Disable Klio pattern */
+    { 0, "kdisapatt", 1, kdisapatt_callback, kdisapatt_help, "klio_cmd" }, /* Disable Klio adaptive pattern */
+    { 0, "kswpatt", 1, kswpatt_callback, kswpatt_help, "klio_cmd" }, /* Switch Klio pattern between left/right hand */
+    { 0, "kautldpatt", 2, kautldpatt_callback, kautldpatt_help, "klio_cmd" }, /* Auto-load Klio patterns */
+    { 0, "kgetparam", 1, kgetparam_callback, kgetparam_help, "klio_cmd" }, /* Get Klio parameters */
+    { 0, "ksetparam", 2, ksetparam_callback, ksetparam_help, "klio_cmd" }, /* Set Klio parameters */
+    { 0, "kgetpattparam", 2, kgetpattparam_callback, kgetpattparam_help, "klio_cmd" }, /* Get Klio pattern parameters */
+    { 0, "ksetpattparam", 3, ksetpattparam_callback, ksetpattparam_help, "klio_cmd" }, /* Set Klio pattern parameters */
+    { 0, "ksimscore", 2, ksimscore_callback, ksimscore_help, "klio_cmd" }, /* Get Klio Similarity score */
+    { 0, "kmsimscore", 2, kmsimscore_callback, kmsimscore_help, "klio_cmd" }, /* Get Multiple Klio Similarity score */
+    { 0, "getorientmatrix", 0, getorientmatrix_callback, getorientmatrix_help, "sys_cmd" }, /* Get the orientation
+                                                                                             * matrix */
+    { 0, "setorientmatrix", 10, setorientmatrix_callback, setorientmatrix_help, "sys_cmd" }, /* Set the orientation
+                                                                                             * sensor matrix */
+    { 0, "mtapen", 1, mtapen_callback, mtapen_help, "mtap_cmd" }, /* Enable/Disable Multi Tap Sensor */
+    { 0, "mtapinfo", 0, mtapinfo_callback, mtapinfo_help, "mtap_cmd" }, /* Get Multi Tap Sensor Info */
+    { 0, "mtapsetcnfg", 3, mtapsetcnfg_callback, mtapsetcnfg_help, "mtap_cmd" }, /* Set the Multi Tap Configuration */
+    { 0, "mtapgetcnfg", 0, mtapgetcnfg_callback, mtapgetcnfg_help, "mtap_cmd" }, /* Get the Multi Tap Configuration */
+    { 0, "accsetfoc", 3, accsetfoc_callback, accsetfoc_help, "phy_ctrl_cmd" }, /* Set the Accelerometer Fast Offset
+                                                                                * Calibration */
+    { 0, "accgetfoc", 0, accgetfoc_callback, accgetfoc_help, "phy_ctrl_cmd" }, /* Get the Accelerometer Fast Offset
+                                                                                * Calibration */
+    { 0, "accsetpwm", 1, accsetpwm_callback, accsetpwm_help, "phy_ctrl_cmd" }, /* Set the Accelerometer Power Mode */
+    { 0, "accgetpwm", 0, accgetpwm_callback, accgetpwm_help, "phy_ctrl_cmd" }, /* Get the Accelerometer Power Mode */
+    { 0, "accsetar", 6, accsetar_callback, accsetar_help, "phy_ctrl_cmd" }, /* Set the Accelerometer axis remapping */
+    { 0, "accgetar", 0, accgetar_callback, accgetar_help, "phy_ctrl_cmd" }, /* Set the Accelerometer axis remapping */
+    { 0, "acctrignvm", 0, acctrignvm_callback, acctrignvm_help, "phy_ctrl_cmd" }, /* Trigger a NVM writing for
+                                                                                   * Accelerometer */
+    { 0, "accgetnvm", 0, accgetnvm_callback, accgetnvm_help, "phy_ctrl_cmd" }, /* Get NVM writing status for
+                                                                                * Accelerometer */
+    { 0, "gyrosetfoc", 3, gyrosetfoc_callback, gyrosetfoc_help, "phy_ctrl_cmd" }, /* Set the Gyroscope Fast Offset
+                                                                                   * Calibration */
+    { 0, "gyrogetfoc", 0, gyrogetfoc_callback, gyrogetfoc_help, "phy_ctrl_cmd" }, /* Get the Gyroscope Fast Offset
+                                                                                   * Calibration */
+    { 0, "gyrosetois", 1, gyrosetois_callback, gyrosetois_help, "phy_ctrl_cmd" }, /* Set the Gyroscope OIS Mode*/
+    { 0, "gyrogetois", 0, gyrogetois_callback, gyrogetois_help, "phy_ctrl_cmd" }, /* Get the Gyroscope OIS Mode*/
+    { 0, "gyrosetfs", 1, gyrosetfs_callback, gyrosetfs_help, "phy_ctrl_cmd" }, /* Set the Gyroscope Fast Startup Mode */
+    { 0, "gyrogetfs", 0, gyrogetfs_callback, gyrogetfs_help, "phy_ctrl_cmd" }, /* Get the Gyroscope Fast Startup Mode*/
+    { 0, "gyrosetcrt", 0, gyrosetcrt_callback, gyrosetcrt_help, "phy_ctrl_cmd" }, /* Set the Gyroscope CRT state*/
+    { 0, "gyrogetcrt", 0, gyrogetcrt_callback, gyrogetcrt_help, "phy_ctrl_cmd" }, /* Get the Gyroscope CRT status*/
+    { 0, "gyrosetpwm", 1, gyrosetpwm_callback, gyrosetpwm_help, "phy_ctrl_cmd" }, /* Set the Gyroscope Power Mode */
+    { 0, "gyrogetpwm", 0, gyrogetpwm_callback, gyrogetpwm_help, "phy_ctrl_cmd" }, /* Get the Gyroscope Power Mode */
+    { 0, "gyrosettat", 1, gyrosettat_callback, gyrosettat_help, "phy_ctrl_cmd" }, /* Set the Gyroscope Timer Auto Trim
+                                                                                   * state*/
+    { 0, "gyrogettat", 0, gyrogettat_callback, gyrogettat_help, "phy_ctrl_cmd" }, /* Get the Gyroscope Timer Auto Trim
+                                                                                   * status*/
+    { 0, "gyrotrignvm", 0, gyrotrignvm_callback, gyrotrignvm_help, "phy_ctrl_cmd" }, /* Trigger a NVM writing for
+                                                                                      * Gyroscope */
+    { 0, "gyrogetnvm", 0, gyrogetnvm_callback, gyrogetnvm_help, "phy_ctrl_cmd" }, /* Get NVM writing status for
+                                                                                   * Gyroscope */
+    { 0, "gyrosetmansencomp", 3, gyrosetmansencomp_callback, gyrosetmansencomp_help, "phy_ctrl_cmd" }, /* Set the Gyroscope Manual
+                                                                                        * Sensitivity Compensation */
+    { 0, "gyrogetmansencomp", 0, gyrogetmansencomp_callback, gyrogetmansencomp_help, "phy_ctrl_cmd" }, /* Get the Gyroscope Manual
+                                                                                        * Sensitivity Compensation */
+    { 0, "magsetpwm", 1, magsetpwm_callback, magsetpwm_help, "phy_ctrl_cmd" }, /* Set the Magnetometer Power Mode */
+    { 0, "maggetpwm", 0, maggetpwm_callback, maggetpwm_help, "phy_ctrl_cmd" }, /* Get the Magnetometer Power Mode */
+    { 0, "wwwsetcnfg", 13, wwwsetcnfg_callback, wwwsetcnfg_help, "phy_ctrl_cmd" }, /* Set the Wrist Wear Wakeup
+                                                                                   * Configuration */
+    { 0, "wwwgetcnfg", 0, wwwgetcnfg_callback, wwwgetcnfg_help, "phy_ctrl_cmd" }, /* Get the Wrist Wear Wakeup
+                                                                                   * Configuration */
+    { 0, "amsetcnfg", 1, amsetcnfg_callback, amsetcnfg_help, "phy_ctrl_cmd" }, /* Set the Any Motion Configuration */
+    { 0, "amgetcnfg", 0, amgetcnfg_callback, amgetcnfg_help, "phy_ctrl_cmd" }, /* Get the Any Motion Configuration */
+    { 0, "nmsetcnfg", 1, nmsetcnfg_callback, nmsetcnfg_help, "phy_ctrl_cmd" }, /* Set the No Motion Configuration */
+    { 0, "nmgetcnfg", 0, nmgetcnfg_callback, nmgetcnfg_help, "phy_ctrl_cmd" }, /* Get the No Motion Configuration */
+    { 0, "wgdsetcnfg", 10, wgdsetcnfg_callback, wgdsetcnfg_help, "gen_cmd" }, /* Set the Wrist Gesture Detection
+                                                                                    * Configuration */
+    { 0, "wgdgetcnfg", 0, wgdgetcnfg_callback, wgdgetcnfg_help, "gen_cmd" }, /* Get the Wrist Gesture Detection
+                                                                                   * Configuration */
+    { 0, "wgdresetcnfg", 0, wgdresetcnfg_callback, wgdresetcnfg_help, "gen_cmd" }, /* Reset the Wrist Gesture Detection
+                                                                                   * Configuration */
+    { 0, "baro1setcnfg", 3, baro1setcnfg_callback, baro1setcnfg_help, "phy_ctrl_cmd" }, /* Set the Barometer pressure type 1
                                                                          * Configuration */
-    { 0, "baro1getcnfg", 0, baro1getcnfg_callback, baro1getcnfg_help }, /* Get the Barometer pressure type 1
+    { 0, "baro1getcnfg", 0, baro1getcnfg_callback, baro1getcnfg_help, "phy_ctrl_cmd" }, /* Get the Barometer pressure type 1
                                                                          * Configuration */
-    { 0, "baro2setcnfg", 5, baro2setcnfg_callback, baro2setcnfg_help }, /* Set the Barometer pressure type 2
+    { 0, "baro2setcnfg", 5, baro2setcnfg_callback, baro2setcnfg_help, "phy_ctrl_cmd" }, /* Set the Barometer pressure type 2
                                                                          * Configuration */
-    { 0, "baro2getcnfg", 0, baro2getcnfg_callback, baro2getcnfg_help }, /* Get the Barometer pressure type 2
+    { 0, "baro2getcnfg", 0, baro2getcnfg_callback, baro2getcnfg_help, "phy_ctrl_cmd" }, /* Get the Barometer pressure type 2
                                                                          * Configuration */
-    { 0, "scsetcnfg", 27, scsetcnfg_callback, scsetcnfg_help }, /* Set the Step Counter Configuration */
-    { 0, "scgetcnfg", 0, scgetcnfg_callback, scgetcnfg_help }, /* Get the Step Counter Configuration */
-    { 0, "hmctrig", 0, hmctrig_callback, hmctrig_help }, /* Trigger Head Misalignment Calibration */
-    { 0, "hmcsetcnfg", 4, hmcsetcnfg_callback, hmcsetcnfg_help }, /* Set Head Misalignment Configuration */
-    { 0, "hmcgetcnfg", 0, hmcgetcnfg_callback, hmcgetcnfg_help }, /* Get Head Misalignment Configuration */
-    { 0, "hmcsetdefcnfg", 0, hmcsetdefcnfg_callback, hmcsetdefcnfg_help }, /* Set Default Head Misalignment
+    { 0, "scsetcnfg", 25, scsetcnfg_callback, scsetcnfg_help, "phy_ctrl_cmd" }, /* Set the Step Counter Configuration */
+    { 0, "scgetcnfg", 0, scgetcnfg_callback, scgetcnfg_help, "phy_ctrl_cmd" }, /* Get the Step Counter Configuration */
+    { 0, "hmctrig", 0, hmctrig_callback, hmctrig_help, "hf_cmd" }, /* Trigger Head Misalignment Calibration */
+    { 0, "hmcsetcnfg", 4, hmcsetcnfg_callback, hmcsetcnfg_help, "hf_cmd" }, /* Set Head Misalignment Configuration */
+    { 0, "hmcgetcnfg", 0, hmcgetcnfg_callback, hmcgetcnfg_help, "hf_cmd" }, /* Get Head Misalignment Configuration */
+    { 0, "hmcsetdefcnfg", 0, hmcsetdefcnfg_callback, hmcsetdefcnfg_help, "hf_cmd" }, /* Set Default Head Misalignment
                                                                             * Configuration */
-    { 0, "hmcver", 0, hmcver_callback, hmcver_help }, /* Get Head Misalignment Calibrator Version */
-    { 0, "hmcsetcalcorrq", 4, hmcsetcalcorrq_callback, hmcsetcalcorrq_help }, /* Set Head Misalignment Quaternion
+    { 0, "hmcver", 0, hmcver_callback, hmcver_help, "hf_cmd" }, /* Get Head Misalignment Calibrator Version */
+    { 0, "hmcsetcalcorrq", 4, hmcsetcalcorrq_callback, hmcsetcalcorrq_help, "hf_cmd" }, /* Set Head Misalignment Quaternion
                                                                                * Calibration Correction */
-    { 0, "hmcgetcalcorrq", 0, hmcgetcalcorrq_callback, hmcgetcalcorrq_help }, /* Get Head Misalignment Quaternion
+    { 0, "hmcgetcalcorrq", 0, hmcgetcalcorrq_callback, hmcgetcalcorrq_help, "hf_cmd" }, /* Get Head Misalignment Quaternion
                                                                                * Calibration Correction */
-    { 0, "hmcsetmode", 4, hmcsetmode_callback, hmcsetmode_help }, /* Set Misalignment Mode and Vector X value */
-    { 0, "hmcgetmode", 0, hmcgetmode_callback, hmcgetmode_help }, /* Get Misalignment Mode and Vector X value */
-    { 0, "hosetheadcorrq", 1, hosetheadcorrq_callback, hosetheadcorrq_help }, /* Get Head Orientation
+    { 0, "hmcsetmode", 4, hmcsetmode_callback, hmcsetmode_help, "hf_cmd" }, /* Set Misalignment Mode and Vector X value
+                                                                             * */
+    { 0, "hmcgetmode", 0, hmcgetmode_callback, hmcgetmode_help, "hf_cmd" }, /* Get Misalignment Mode and Vector X value
+                                                                             * */
+    { 0, "hosetheadcorrimu", 1, hosetheadcorrimu_callback, hosetheadcorrimu_help, "hf_cmd" }, /* Get Head Orientation
                                                                                         * Quaternion Initial Head
                                                                                         * Correction */
-    { 0, "hogetheadcorrq", 0, hogetheadcorrq_callback, hogetheadcorrq_help }, /* Get Head Orientation
+    { 0, "hogetheadcorrimu", 0, hogetheadcorrimu_callback, hogetheadcorrimu_help, "hf_cmd" }, /* Get Head Orientation
                                                                                         * Quaternion Initial Head
                                                                                         * Correction */
-    { 0, "hover", 0, hover_callback, hover_help }, /* Get Head Orientation Version */
-    { 0, "hosetheadcorre", 1, hosetheadcorre_callback, hosetheadcorre_help }, /* Get Head Orientation Euler
+    { 0, "hover", 0, hover_callback, hover_help, "hf_cmd" }, /* Get Head Orientation Version */
+    { 0, "hosetheadcorrndof", 1, hosetheadcorrndof_callback, hosetheadcorrndof_help, "hf_cmd" }, /* Set Head Orientation Ndof
                                                                                      * Initial Head Correction */
-    { 0, "hogetheadcorre", 0, hogetheadcorre_callback, hogetheadcorre_help }, /* Get Head Orientation Euler Initial Head
+    { 0, "hogetheadcorrndof", 0, hogetheadcorrndof_callback, hogetheadcorrndof_help, "hf_cmd" }, /* Get Head Orientation Ndof Initial Head
                                                                                * Correction */
-    { 0, "foc", 1, foc_callback, foc_help }, /* Set FOC configuration */
-    { 0, "chipid", 0, getchipid_callback, getchipid_help }, /* Gets chip id of the sensor */
-    { 0, "syssetphyseninfo", 2, syssetphyseninfo_callback, syssetphyseninfo_help }, /* Set system param physical sensor
+    { 0, "hgdgetver", 0, hgdgetver_callback, hgdgetver_help, "hf_cmd" }, /* Get Head Gesture Detection version */
+    { 0, "hgdgettimeges", 0, hgdgettimeges_callback, hgdgettimeges_help, "hf_cmd" }, /* Get Head Gesture Detection time
+                                                                                      * duration of one gesture */
+    { 0, "hgdsettimeges", 1, hgdsettimeges_callback, hgdsettimeges_help, "hf_cmd" }, /* Set Head Gesture Detection time
+                                                                                      * duration of one gesture */
+    { 0, "hgdsetdefault", 1, hgdsetdefault_callback, hgdsetdefault_help, "hf_cmd" }, /* Set Head Gesture Detection to
+                                                                                      * default settings */
+    { 0, "hgdgetthresangrat", 0, hgdgetthresangrat_callback, hgdgetthresangrat_help, "hf_cmd" }, /* Get Head Gesture
+                                                                                                  * Detection angular
+                                                                                                  * rate threshold */
+    { 0, "hgdsetthresangrat", 1, hgdsetthresangrat_callback, hgdsetthresangrat_help, "hf_cmd" }, /* Set Head Gesture
+                                                                                                  * Detection angular
+                                                                                                  * rate threshold */
+    { 0, "hgdgettimegestilt", 0, hgdgettimegestilt_callback, hgdgettimegestilt_help, "hf_cmd" }, /* Get Head Gesture
+                                                                                                  * Detection time
+                                                                                                  * duration of tilt
+                                                                                                  * gesture */
+    { 0, "hgdsettimegestilt", 1, hgdsettimegestilt_callback, hgdsettimegestilt_help, "hf_cmd" }, /* Set Head Gesture
+                                                                                                  * Detection time
+                                                                                                  * duration of tilt
+                                                                                                  * gesture */
+    { 0, "foc", 1, foc_callback, foc_help, "base_cmd" }, /* Set FOC configuration */
+    { 0, "chipid", 0, getchipid_callback, getchipid_help, "base_cmd" }, /* Gets chip id of the sensor */
+    { 0, "syssetphyseninfo", 2, syssetphyseninfo_callback, syssetphyseninfo_help, "sys_cmd" }, /* Set system param physical sensor
                                                                                      * info */
-    { 0, "sysgetphysenlist", 0, sysgetphysenlist_callback, sysgetphysenlist_help }, /* Get list of physical sensor */
-    { 0, "sysgetvirsenlist", 0, sysgetvirtsenlist_callback, sysgetvirtsenlist_help }, /* Get list of physical sensor */
-    { 0, "sysgettimestamps", 0, sysgettimestamps_callback, sysgettimestamps_help }, /* Get system timestamps */
-    { 0, "sysgetfwversion", 0, sysgetfwversion_callback, sysgetfwversion_help }, /* Get system firmware version */
-    { 0, "sysgetfifoctrl", 0, sysgetfifoctrl_callback, sysgetfifoctrl_help }, /* Get fifo control */
-    { 0, "syssetwkffctrl", 1, syssetwkffctrl_callback, syssetwkffctrl_help }, /* Set watermark for wake-up fifo control
+    { 0, "sysgetphysenlist", 0, sysgetphysenlist_callback, sysgetphysenlist_help, "sys_cmd" }, /* Get list of physical
+                                                                                                * sensor */
+    { 0, "sysgetvirsenlist", 0, sysgetvirtsenlist_callback, sysgetvirtsenlist_help, "sys_cmd" }, /* Get list of physical
+                                                                                                  * sensor */
+    { 0, "sysgettimestamps", 0, sysgettimestamps_callback, sysgettimestamps_help, "sys_cmd" }, /* Get system timestamps
+                                                                                                * */
+    { 0, "sysgetfwversion", 0, sysgetfwversion_callback, sysgetfwversion_help, "sys_cmd" }, /* Get system firmware
+                                                                                             * version */
+    { 0, "sysgetfifoctrl", 0, sysgetfifoctrl_callback, sysgetfifoctrl_help, "sys_cmd" }, /* Get fifo control */
+    { 0, "syssetwkffctrl", 1, syssetwkffctrl_callback, syssetwkffctrl_help, "sys_cmd" }, /* Set watermark for wake-up fifo control
                                                                                * */
-    { 0, "syssetnwkffctrl", 1, syssetnwkffctrl_callback, syssetnwkffctrl_help }, /* Set watermark for nonwake-up fifo
+    { 0, "syssetnwkffctrl", 1, syssetnwkffctrl_callback, syssetnwkffctrl_help, "sys_cmd" }, /* Set watermark for nonwake-up fifo
                                                                                   * control */
-    { 0, "sysgetmectrl", 1, sysgetmectrl_callback, sysgetmectrl_help }, /* Get meta event control  for
+    { 0, "sysgetmectrl", 1, sysgetmectrl_callback, sysgetmectrl_help, "sys_cmd" }, /* Get meta event control  for
                                                                          * wake-up/nonwake-up fifo control */
-    { 0, "syssetmectrl", 3, syssetmectrl_callback, syssetmectrl_help }, /* Set meta event control  for
+    { 0, "syssetmectrl", 3, syssetmectrl_callback, syssetmectrl_help, "sys_cmd" }, /* Set meta event control  for
                                                                          * wake-up/nonwake-up fifo control */
-    { 0, "bsecsetalstate", 163, bsecsetalstate_callback, bsecsetalstate_help }, /* Sets BSEC algorithm state */
-    { 0, "bsecgetalstate", 0, bsecgetalstate_callback, bsecgetalstate_help }, /* Gets BSEC algorithm state */
-    { 0, "bsecsettempoff", 1, bsecsettempoff_callback, bsecsettempoff_help }, /* Sets BSEC temperature offset */
-    { 0, "bsecgettempoff", 0, bsecgettempoff_callback, bsecgettempoff_help }, /* Gets BSEC temperature offset */
-    { 0, "bsecsetsamrate", 1, bsecsetsamrate_callback, bsecsetsamrate_help }, /* Sets BSEC sample rate */
-    { 0, "bsecgetsamrate", 0, bsecgetsamrate_callback, bsecgetsamrate_help }, /* Gets BSEC sample rate */
-    { 0, "sethearactvcnfg", 6, sethearactvcnfg_callback, sethearactvcnfg_help },
-    { 0, "gethearactvcnfg", 0, gethearactvcnfg_callback, gethearactvcnfg_help },
-    { 0, "setwearactvcnfg", 5, setwearactvcnfg_callback, setwearactvcnfg_help },
-    { 0, "getwearactvcnfg", 0, getwearactvcnfg_callback, getwearactvcnfg_help },
-    { 0, "virtseinfo", 1, virtseinfo_callback, virtseinfo_help }, /* Gets virtual sensor information
+    { 0, "sethearactvcnfg", 6, sethearactvcnfg_callback, sethearactvcnfg_help, "act_cmd" },
+    { 0, "gethearactvcnfg", 0, gethearactvcnfg_callback, gethearactvcnfg_help, "act_cmd" },
+    { 0, "setwearactvcnfg", 5, setwearactvcnfg_callback, setwearactvcnfg_help, "act_cmd" },
+    { 0, "getwearactvcnfg", 0, getwearactvcnfg_callback, getwearactvcnfg_help, "act_cmd" },
+    { 0, "virtseinfo", 1, virtseinfo_callback, virtseinfo_help, "virt_cmd" }, /* Gets virtual sensor information
                                                                                   * parameters */
-    { 0, "setbsxparam", 1, setbsxparam_callback, setbsxparam_help }, /* Set bsx algo calibration
+    { 0, "setbsxparam", 1, setbsxparam_callback, setbsxparam_help, "bsx_cmd" }, /* Set bsx algo calibration
                                                                                         * states */
-    { 0, "getbsxparam", 1, getbsxparam_callback, getbsxparam_help }, /* Get bsx algo calibration
+    { 0, "getbsxparam", 1, getbsxparam_callback, getbsxparam_help, "bsx_cmd" }, /* Get bsx algo calibration
                                                                                         * states */
-    { 0, "getbsxver", 0, getbsxver_callback, getbsxver_help }, /* Get bsx version */
-    { 0, "getbsxsicmatrix", 0, getbsxsicmatrix_callback, getbsxsicmatrix_help }, /* Get bsx algo SIC matrix */
-    { 0, "setbsxsicmatrix", 9, setbsxsicmatrix_callback, setbsxsicmatrix_help }, /* Set bsx algo SIC matrix */
-    { 0, "phyrangeconf", 2, phyrangeconf_callback, phyrangeconf_help }, /* Set physical range configuration */
-    { 0, "logandstream", 1, logandstream_callback, logandstream_help }, /* Set logging and streaming together */
-    { 0, "staticcalib", 0, staticcalib_callback, staticcalib_help }, /* Execute Accel/Gyro FOC, Gyro CRT */
-    { 0, "getstaticcalib", 1, getstaticcalib_callback, getstaticcalib_help }, /* Get accel/gyro foc and gyro CRT, store
+    { 0, "getbsxver", 0, getbsxver_callback, getbsxver_help, "bsx_cmd" }, /* Get bsx version */
+    { 0, "getbsxsicmatrix", 0, getbsxsicmatrix_callback, getbsxsicmatrix_help, "bsx_cmd" }, /* Get bsx algo SIC matrix
+                                                                                             * */
+    { 0, "setbsxsicmatrix", 9, setbsxsicmatrix_callback, setbsxsicmatrix_help, "bsx_cmd" }, /* Set bsx algo SIC matrix
+                                                                                             * */
+    { 0, "phyrangeconf", 2, phyrangeconf_callback, phyrangeconf_help, "base_cmd" }, /* Set physical range configuration
+                                                                                     * */
+    { 0, "logandstream", 1, logandstream_callback, logandstream_help, "base_cmd" }, /* Set logging and streaming
+                                                                                     * together */
+    { 0, "staticcalib", 0, staticcalib_callback, staticcalib_help, "base_cmd" }, /* Execute Accel/Gyro FOC, Gyro CRT */
+    { 0, "getstaticcalib", 1, getstaticcalib_callback, getstaticcalib_help, "base_cmd" }, /* Get accel/gyro foc and gyro CRT, store
                                                                                * in file */
-    { 0, "setstaticcalib", 1, setstaticcalib_callback, setstaticcalib_help }, /* Take value from file, set accel/gyro
+    { 0, "setstaticcalib", 1, setstaticcalib_callback, setstaticcalib_help, "base_cmd" }, /* Take value from file, set accel/gyro
                                                                                * foc and gyro CRT */
 #ifndef PC
-    { 0, "echo", 1, echo_callback, echo_help }, /* Toggle the echo setting */
-    { 0, "heart", 1, heartbeat_callback, heartbeat_help }, /* Toggle the heartbeat message setting */
-    { 0, "mklog", 1, mklog_callback, mklog_help }, /* Make a log file */
-    { 0, "rm", 1, rm_callback, rm_help }, /* Remove a file */
-    { 0, "ls", 0, ls_callback, ls_help }, /* List files */
-    { 0, "wrfile", 2, wrfile_callback, wrfile_help }, /* Write content to a file */
-    { 0, "rdfile", 1, rdfile_callback, rdfile_help }, /* Read content from a file */
-    { 0, "slabel", 1, slabel_callback, slabel_help }, /* Write a binary label into the log file */
-    { 0, "cls", 0, cls_callback, cls_help }, /* Clear screen */
+    { 0, "echo", 1, echo_callback, echo_help, "base_cmd" }, /* Toggle the echo setting */
+    { 0, "heart", 1, heartbeat_callback, heartbeat_help, "base_cmd" }, /* Toggle the heartbeat message setting */
+    { 0, "mklog", 1, mklog_callback, mklog_help, "base_cmd" }, /* Make a log file */
+    { 0, "rm", 1, rm_callback, rm_help, "base_cmd" }, /* Remove a file */
+    { 0, "ls", 0, ls_callback, ls_help, "base_cmd" }, /* List files */
+    { 0, "wrfile", 2, wrfile_callback, wrfile_help, "base_cmd" }, /* Write content to a file */
+    { 0, "rdfile", 1, rdfile_callback, rdfile_help, "base_cmd" }, /* Read content from a file */
+    { 0, "slabel", 1, slabel_callback, slabel_help, "base_cmd" }, /* Write a binary label into the log file */
+    { 0, "cls", 0, cls_callback, cls_help, "base_cmd" }, /* Clear screen */
 #endif
 };
 
@@ -920,6 +971,10 @@ bhy_fifo_parse_callback_t bhy2cli_get_misc_callback(uint8_t sensor_id)
     else if (sensor_id == BHY_SENSOR_ID_MULTI_TAP)
     {
         LOAD_DYNAMIC_SENSOR_API(bhy_parse_multitap, "bhy_parse_multitap", callback);
+    }
+    else if (sensor_id == BHY_SENSOR_ID_FREE_FALL)
+    {
+        LOAD_DYNAMIC_SENSOR_API(bhy_parse_free_fall_data, "bhy_parse_free_fall_data", callback);
     }
     else if (sensor_id == BHY_SENSOR_ID_AIR_QUALITY)
     {
@@ -1827,9 +1882,21 @@ int8_t help_help(void *ref)
     PRINT("<port>: optional input parameter, trigger keyword\r\n");
     PRINT(
         "<port_name>: optional input parameter, use it when want to support running multiple applications in parallel\r\n");
+
     PRINT("Options:\r\n");
-    PRINT("  -h OR help\r\n");
+    PRINT("  -h [<options>] OR help [<options>]\r\n");
     PRINT("        = Print this usage message\r\n");
+    PRINT("     <options>: optional input parameter, use it to specify the options\r\n");
+    PRINT("         act_cmd         - List of activity param command\r\n");
+    PRINT("         base_cmd        - List of basic command\r\n");
+    PRINT("         bsx_cmd         - List of BSX param command\r\n");
+    PRINT("         gen_cmd         - List of generic features command\r\n");
+    PRINT("         hf_cmd          - List of head feature command\r\n");
+    PRINT("         klio_cmd        - List of klio param command\r\n");
+    PRINT("         mtap_cmd        - List of multitap param command\r\n");
+    PRINT("         phy_ctrl_cmd    - List of physical sensor control param command\r\n");
+    PRINT("         sys_cmd         - List of system param command\r\n");
+    PRINT("         virt_cmd        - List of virtual sensor param command\r\n");
 
     return CLI_OK;
 }
@@ -1847,8 +1914,8 @@ int8_t help_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
     INFO("Executing %s\r\n", argv[0]);
-
-    (void)cli_help(ref, &(cli_ref->cli_dev));
+    char *cmd_type = (char *)argv[1];
+    (void)cli_help(ref, &(cli_ref->cli_dev), cmd_type);
 
     PRINT("\r\n\r\n");
 
@@ -2685,7 +2752,7 @@ int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
     uint8_t label[LOGBIN_LABEL_SIZE] = { 0 };
     int8_t rslt;
-    uint64_t timestamp_ns;
+    struct bhy_system_param_timestamp ts;
 
     if (cli_ref->parse_table.logdev.logfile != NULL)
     {
@@ -2699,10 +2766,18 @@ int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         }
 
         INFO("Executing %s %s %s\r\n", argv[0], argv[1], label);
-        CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_hw_timestamp_ns,
-                                    "bhy_get_hw_timestamp_ns",
+
+        for (uint8_t idx = 0; idx < 10; idx++)
+        {
+            /* Process fifo data before executing slabel command */
+            CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_and_process_fifo, "bhy_get_and_process_fifo", fifo_buffer,
+                                         sizeof(fifo_buffer), &cli_ref->bhy);
+        }
+
+        CALL_OUT_DYNAMIC_SENSOR_API(bhy_system_param_get_timestamps,
+                                    "bhy_system_param_get_timestamps",
                                     rslt,
-                                    &timestamp_ns,
+                                    &ts,
                                     &cli_ref->bhy);
         if (rslt != BHY_OK)
         {
@@ -2711,8 +2786,10 @@ int8_t slabel_callback(uint8_t argc, uint8_t * const argv[], void *ref)
             return rslt;
         }
 
+        ts.event_ts *= 15625; /* Timestamp is now in nanoseconds */
+
         /* System IDs start at 224 */
-        log_data(LOGBIN_META_ID_LABEL, timestamp_ns, LOGBIN_LABEL_SIZE, label, &cli_ref->parse_table.logdev);
+        log_data(LOGBIN_META_ID_LABEL, ts.event_ts, LOGBIN_LABEL_SIZE, label, &cli_ref->parse_table.logdev);
     }
     else
     {
@@ -2747,7 +2824,7 @@ int8_t setorientmatrix_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  setorientmatrix <orientation_matrix>\r\n");
+    PRINT("  setorientmatrix <phy_sensor_id> <orientation_matrix>\r\n");
     PRINT("    \t= Set the orientation of Physical sensor\r\n");
 
     return CLI_OK;
@@ -2764,9 +2841,9 @@ int8_t getorientmatrix_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    struct bhy_system_param_orient_matrix orient_matrix;
+    struct bhy_system_param_orient_matrix orient_matrix = { 0 };
     uint8_t loop;
-    int8_t rslt;
+    int8_t rslt = BHY_OK;
 
     INFO("Executing %s\r\n", argv[0]);
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_get_orientation_matrix,
@@ -2830,44 +2907,33 @@ int8_t setorientmatrix_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    struct bhy_system_param_orient_matrix orient_matrix = { { 0 } };
-    uint8_t loop = 0;
-    char delimiter[] = ",";
-    char *axes = (char *)argv[1];
-    char *token = strtok(axes, delimiter);
     int8_t rslt;
 
-    while ((token != NULL))
-    {
-        orient_matrix.c[loop] = (int8_t) atoi(token);
-        token = strtok(NULL, delimiter);
-        loop++;
-    }
+    struct bhy_system_param_orient_matrix orient_matrix = { { 0 } };
+
+    uint8_t phy_sensor_id = (int8_t) atoi((char *)argv[1]);
+
+    orient_matrix.c[0] = (int8_t) atoi((char *)argv[2]);
+    orient_matrix.c[1] = (int8_t) atoi((char *)argv[3]);
+    orient_matrix.c[2] = (int8_t) atoi((char *)argv[4]);
+    orient_matrix.c[3] = (int8_t) atoi((char *)argv[5]);
+    orient_matrix.c[4] = (int8_t) atoi((char *)argv[6]);
+    orient_matrix.c[5] = (int8_t) atoi((char *)argv[7]);
+    orient_matrix.c[6] = (int8_t) atoi((char *)argv[8]);
+    orient_matrix.c[7] = (int8_t) atoi((char *)argv[9]);
+    orient_matrix.c[8] = (int8_t) atoi((char *)argv[10]);
 
     INFO("Executing %s %s\r\n", argv[0], argv[1]);
 
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_system_param_set_physical_sensor_info,
                                 "bhy_system_param_set_physical_sensor_info",
                                 rslt,
-                                BHY_PHYS_SENSOR_ID_ACCELEROMETER,
+                                phy_sensor_id,
                                 &orient_matrix,
                                 &cli_ref->bhy);
     if (rslt != BHY_OK)
     {
-        ERROR("Failed to set the orientation matrix for the Accelerometer\r\n");
-
-        return rslt;
-    }
-
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_system_param_set_physical_sensor_info,
-                                "bhy_system_param_set_physical_sensor_info",
-                                rslt,
-                                BHY_PHYS_SENSOR_ID_GYROSCOPE,
-                                &orient_matrix,
-                                &cli_ref->bhy);
-    if (rslt != BHY_OK)
-    {
-        ERROR("Failed to set the orientation matrix for the Gyroscope\r\n");
+        ERROR("Failed to set the orientation matrix for the Physical Sensor\r\n");
 
         return rslt;
     }
@@ -2965,6 +3031,7 @@ static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy)
     int8_t rslt = BHY_OK;
     uint8_t boot_status;
     uint32_t start_time_ms;
+    uint32_t bytes_read;
 
 #ifdef PC
     uint8_t progress = 0, new_progress = 0;
@@ -3024,7 +3091,14 @@ static bool upload_to_ram(const char *filepath, struct bhy_dev *bhy)
                 }
             }
 
-            (void)fread(firmware_chunk, 1, incr, fw_file);
+            bytes_read = fread(firmware_chunk, 1, incr, fw_file);
+            if (bytes_read != incr)
+            {
+                ERROR("Error reading firmware file. Read %lu bytes instead of %lu bytes\r\n", bytes_read, incr);
+
+                return false;
+            }
+
             CALL_OUT_DYNAMIC_SENSOR_API(bhy_upload_firmware_to_ram_partly,
                                         "bhy_upload_firmware_to_ram_partly",
                                         rslt,
@@ -7075,6 +7149,101 @@ int8_t gyrogetnvm_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 }
 
 /**
+ * @brief Function to implement callback for gyrosetmansencomp command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ */
+int8_t gyrosetmansencomp_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    int8_t rslt;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+    bhy_phy_sensor_ctrl_param_gyro_manual_sensitivity_comp config = { 0 };
+
+    config.gain_update_x = (uint16_t)string_to_int((char *)argv[1]);
+    config.gain_update_y = (uint16_t)string_to_int((char *)argv[2]);
+    config.gain_update_z = (uint16_t)string_to_int((char *)argv[3]);
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_set_manual_sensitivity_comp,
+                                "bhy_phy_sensor_ctrl_param_gyro_set_manual_sensitivity_comp",
+                                rslt,
+                                &config,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Gyroscope set manual sensitivity compensation failed\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Setting Gyroscope Manual Sensitivity Compensation sucessfully\r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for gyrosetmansencomp command
+ * @param[in] ref  : Reference to command line
+ */
+int8_t gyrosetmansencomp_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  gyrosetmansencomp <x_value> <y_value> <z_value> \r\n");
+    PRINT("    \t =Set the Gyroscope Manual Sensitivity Compensation state\r\n");
+    PRINT("    \t -<x_value> : Manual Sensitivity Compensation configuration for X axis\r\n");
+    PRINT("    \t -<y_value> : Manual Sensitivity Compensation configuration for Y axis\r\n");
+    PRINT("    \t -<z_value> : Manual Sensitivity Compensation configuration for Z axis\r\n");
+    PRINT("    \t -e.g gyrosetmansencomp 0x500 0x500 0x0\r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to implement callback for gyrogetmansencomp command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ */
+int8_t gyrogetmansencomp_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    int8_t rslt;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+    bhy_phy_sensor_ctrl_param_gyro_manual_sensitivity_comp config = { 0 };
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp,
+                                "bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp",
+                                rslt,
+                                &config,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp failed\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Getting Gyroscope Manual Sensitivity Compensation: 0x%x 0x%x 0x%x\r\n",
+          config.gain_update_x,
+          config.gain_update_y,
+          config.gain_update_z);
+
+    return CLI_OK;
+}
+
+int8_t gyrogetmansencomp_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  gyrogetmansencomp \r\n");
+    PRINT("    \t =Get the Gyroscope Manual Sensitivity Compensation state\r\n");
+
+    return CLI_OK;
+}
+
+/**
 * @brief Function to print help for magsetpwm command
 * @param[in] ref  : Reference to command line
 * @return API error codes
@@ -7181,7 +7350,7 @@ int8_t wwwsetcnfg_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  wwwsetcnfg <maf> <manf> <alr> <all> <apd> <apu> <mdm> <mdq>\r\n");
+    PRINT("  wwwsetcnfg <maf> <manf> <alr> <all> <apd> <apu> <mdm> <mdq> <alrd> <alld> <apdd> <apud> <maczd>\r\n");
     PRINT("    \t =Set the Wrist Wear Wakeup Configuration\r\n");
     PRINT("    \t -<maf> : min_angle_focus (u16), range 1024 to 1774\r\n");
     PRINT("    \t -<manf> : min_angle_non_focus(u16), range 1448 to 1856\r\n");
@@ -7191,6 +7360,11 @@ int8_t wwwsetcnfg_help(void *ref)
     PRINT("    \t -<apu> : angle_portrait_up(u8), range 222 to 247\r\n");
     PRINT("    \t -<mdm> : min_dur_moved (u8), range 1 to 10s, in steps of 20ms\r\n");
     PRINT("    \t -<mdq> : min_dur_quite(u8), range 1 to 10s, in steps of 20ms\r\n");
+    PRINT("    \t -<alrd> : angle_landscape_right_drop (u8), range 0 to 255\r\n");
+    PRINT("    \t -<alld> : angle_landscape_left_drop (u8), range 0 to 255\r\n");
+    PRINT("    \t -<apdd> : angle_portrait_down_drop (u8), range 0 to 255\r\n");
+    PRINT("    \t -<apud> : angle_portrait_up_drop (u8), range 0 to 255\r\n");
+    PRINT("    \t -<maczd> : mac_acc_z_drop (u8), range 0 to 255\r\n");
 
     return CLI_OK;
 }
@@ -7216,6 +7390,11 @@ int8_t wwwsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     config.angle_portrait_up = (uint8_t)atoi((char *)argv[6]);
     config.min_dur_moved = (uint8_t)atoi((char *)argv[7]);
     config.min_dur_quite = (uint8_t)atoi((char *)argv[8]);
+    config.angle_landscape_right_drop = (uint8_t)atoi((char *)argv[9]);
+    config.angle_landscape_left_drop = (uint8_t)atoi((char *)argv[10]);
+    config.angle_portrait_down_drop = (uint8_t)atoi((char *)argv[11]);
+    config.angle_portrait_up_drop = (uint8_t)atoi((char *)argv[12]);
+    config.mac_acc_z_drop = (uint8_t)atoi((char *)argv[13]);
 
     PRINT("Set the Wrist Wear Wakeup Configuration\r\n");
     PRINT("    \t -min_angle_focus : %d\r\n", config.min_angle_focus);
@@ -7226,6 +7405,11 @@ int8_t wwwsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -angle_portrait_up : %d\r\n", config.angle_portrait_up);
     PRINT("    \t -min_dur_moved : %d\r\n", config.min_dur_moved);
     PRINT("    \t -min_dur_quite : %d\r\n", config.min_dur_quite);
+    PRINT("    \t -angle_landscape_right_drop : %d\r\n", config.angle_landscape_right_drop);
+    PRINT("    \t -angle_landscape_left_drop : %d\r\n", config.angle_landscape_left_drop);
+    PRINT("    \t -angle_portrait_down_drop : %d\r\n", config.angle_portrait_down_drop);
+    PRINT("    \t -angle_portrait_up_drop : %d\r\n", config.angle_portrait_up_drop);
+    PRINT("    \t -mac_acc_z_drop : %d\r\n", config.mac_acc_z_drop);
 
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_wrist_wear_wakeup_cfg,
                                 "bhy_phy_sensor_ctrl_param_set_wrist_wear_wakeup_cfg",
@@ -7292,6 +7476,11 @@ int8_t wwwgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -angle_portrait_up : %d\r\n", config.angle_portrait_up);
     PRINT("    \t -min_dur_moved : %d\r\n", config.min_dur_moved);
     PRINT("    \t -min_dur_quite : %d\r\n", config.min_dur_quite);
+    PRINT("    \t -angle_landscape_right_drop : %d\r\n", config.angle_landscape_right_drop);
+    PRINT("    \t -angle_landscape_left_drop : %d\r\n", config.angle_landscape_left_drop);
+    PRINT("    \t -angle_portrait_down_drop : %d\r\n", config.angle_portrait_down_drop);
+    PRINT("    \t -angle_portrait_up_drop : %d\r\n", config.angle_portrait_up_drop);
+    PRINT("    \t -mac_acc_z_drop : %d\r\n", config.mac_acc_z_drop);
 
     return CLI_OK;
 }
@@ -7540,7 +7729,7 @@ int8_t wgdsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argc;
     int8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-    bhy_phy_sensor_ctrl_param_wrist_gesture_detector config = { 0 };
+    bhy_generic_features_param_wrist_gesture_detector config = { 0 };
 
     config.min_flick_peak_y_thres = (uint16_t)string_to_int((char *)argv[1]);
     config.min_flick_peak_z_thres = (uint16_t)string_to_int((char *)argv[2]);
@@ -7565,8 +7754,8 @@ int8_t wgdsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -max_duration_jiggle_peaks : 0x%04x\r\n", config.max_duration_jiggle_peaks);
     PRINT("    \t -device_pos : 0x%02x\r\n", config.device_pos);
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg,
-                                "bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_generic_features_param_set_wrist_gesture_cfg,
+                                "bhy_generic_features_param_set_wrist_gesture_cfg",
                                 rslt,
                                 &config,
                                 &cli_ref->bhy);
@@ -7607,10 +7796,10 @@ int8_t wgdgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     (void)argv;
     int8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-    bhy_phy_sensor_ctrl_param_wrist_gesture_detector config = { 0 };
+    bhy_generic_features_param_wrist_gesture_detector config = { 0 };
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg,
-                                "bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_generic_features_param_get_wrist_gesture_cfg,
+                                "bhy_generic_features_param_get_wrist_gesture_cfg",
                                 rslt,
                                 &config,
                                 &cli_ref->bhy);
@@ -7621,7 +7810,7 @@ int8_t wgdgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         return rslt;
     }
 
-    PRINT("Wrist Wear Wakeup Configuration:\r\n");
+    PRINT("Wrist Gesture Detector Configuration:\r\n");
     PRINT("    \t -min_flick_peak_y_thres : 0x%04x\r\n", config.min_flick_peak_y_thres);
     PRINT("    \t -min_flick_peak_z_thres : 0x%04x\r\n", config.min_flick_peak_z_thres);
     PRINT("    \t -gravity_bounds_x_pos : 0x%04x\r\n", config.gravity_bounds_x_pos);
@@ -7632,6 +7821,51 @@ int8_t wgdgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -lp_mean_filter_coeff : 0x%04x\r\n", config.lp_mean_filter_coeff);
     PRINT("    \t -max_duration_jiggle_peaks : 0x%04x\r\n", config.max_duration_jiggle_peaks);
     PRINT("    \t -device_pos : 0x%02x\r\n", config.device_pos);
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for wgdresetcnfg command
+ * @param[in] argc: Number of arguments in command line
+ * @param[in] argv: Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t wgdresetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    (void)argv;
+    int8_t rslt;
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_generic_features_param_reset_wrist_gesture_cfg,
+                                "bhy_generic_features_param_reset_wrist_gesture_cfg",
+                                rslt,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to reset Wrist Gesture Detector Configuration !\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Reset the Wrist Gesture Detector Configuration\r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for wgdresetcnfg command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t wgdresetcnfg_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  wgdresetcnfg \r\n");
+    PRINT("    \t =Reset the Wrist Gesture Detector Configuration\r\n");
 
     return CLI_OK;
 }
@@ -7879,11 +8113,11 @@ int8_t scsetcnfg_help(void *ref)
     PRINT("    \t -<sbs> : step_buffer_size (u16)\r\n");
     PRINT("    \t -<mvd> : mean_val_decay (u16)\r\n");
     PRINT("    \t -<msd> : mean_step_dur (u16)\r\n");
-    PRINT("    \t -<fcb2> : filter_coeff_b2 (u16)\r\n");
-    PRINT("    \t -<fcb1> : filter_coeff_b1 (u16)\r\n");
-    PRINT("    \t -<fcb0> : filter_coeff_b0 (u16)\r\n");
-    PRINT("    \t -<fca2> : filter_coeff_a2 (u16)\r\n");
-    PRINT("    \t -<fca1> : filter_coeff_a1 (u16)\r\n");
+    PRINT("    \t -<fcb2> : filter_coeff_b2 (i16)\r\n");
+    PRINT("    \t -<fcb1> : filter_coeff_b1 (i16)\r\n");
+    PRINT("    \t -<fcb0> : filter_coeff_b0 (i16)\r\n");
+    PRINT("    \t -<fca2> : filter_coeff_a2 (i16)\r\n");
+    PRINT("    \t -<fca1> : filter_coeff_a1 (i16)\r\n");
     PRINT("    \t -<fce> : filter_cascade_enabled (u16)\r\n");
     PRINT("    \t -<pdmw> : peak_duration_min_walking (u16)\r\n");
     PRINT("    \t -<pdmr> : peak_duration_min_running (u16)\r\n");
@@ -7897,8 +8131,6 @@ int8_t scsetcnfg_help(void *ref)
     PRINT("    \t -<sdt> : step_dur_thres (u16)\r\n");
     PRINT("    \t -<empp> : en_mcr_pp (u16)\r\n");
     PRINT("    \t -<mt> : mcr_thres (u16)\r\n");
-    PRINT("    \t -<sc26> : sc_26 (u16)\r\n");
-    PRINT("    \t -<sc27> : sc_27 (u16)\r\n");
 
     return CLI_OK;
 }
@@ -7923,11 +8155,11 @@ int8_t scsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     config.step_buffer_size = (uint16_t)string_to_int((char *)argv[5]);
     config.mean_val_decay = (uint16_t)string_to_int((char *)argv[6]);
     config.mean_step_dur = (uint16_t)string_to_int((char *)argv[7]);
-    config.filter_coeff_b2 = (uint16_t)string_to_int((char *)argv[8]);
-    config.filter_coeff_b1 = (uint16_t)string_to_int((char *)argv[9]);
-    config.filter_coeff_b0 = (uint16_t)string_to_int((char *)argv[10]);
-    config.filter_coeff_a2 = (uint16_t)string_to_int((char *)argv[11]);
-    config.filter_coeff_a1 = (uint16_t)string_to_int((char *)argv[12]);
+    config.filter_coeff_b2 = (int16_t)string_to_int((char *)argv[8]);
+    config.filter_coeff_b1 = (int16_t)string_to_int((char *)argv[9]);
+    config.filter_coeff_b0 = (int16_t)string_to_int((char *)argv[10]);
+    config.filter_coeff_a2 = (int16_t)string_to_int((char *)argv[11]);
+    config.filter_coeff_a1 = (int16_t)string_to_int((char *)argv[12]);
     config.filter_cascade_enabled = (uint16_t)string_to_int((char *)argv[13]);
     config.peak_duration_min_walking = (uint16_t)string_to_int((char *)argv[14]);
     config.peak_duration_min_running = (uint16_t)string_to_int((char *)argv[15]);
@@ -7941,8 +8173,6 @@ int8_t scsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     config.step_dur_thres = (uint16_t)string_to_int((char *)argv[23]);
     config.en_mcr_pp = (uint16_t)string_to_int((char *)argv[24]);
     config.mcr_thres = (uint16_t)string_to_int((char *)argv[25]);
-    config.sc_26 = (uint16_t)string_to_int((char *)argv[26]);
-    config.sc_27 = (uint16_t)string_to_int((char *)argv[27]);
 
     PRINT("Set the Step Counter Configuration\r\n");
     PRINT("    \t-env_min_dist_up: %u\r\n", config.env_min_dist_up);
@@ -7952,11 +8182,11 @@ int8_t scsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t-step_buffer_size: %u\r\n", config.step_buffer_size);
     PRINT("    \t-mean_val_decay: %u\r\n", config.mean_val_decay);
     PRINT("    \t-mean_step_dur: %u\r\n", config.mean_step_dur);
-    PRINT("    \t-filter_coeff_b2: %u\r\n", config.filter_coeff_b2);
-    PRINT("    \t-filter_coeff_b1: %u\r\n", config.filter_coeff_b1);
-    PRINT("    \t-filter_coeff_b0: %u\r\n", config.filter_coeff_b0);
-    PRINT("    \t-filter_coeff_a2: %u\r\n", config.filter_coeff_a2);
-    PRINT("    \t-filter_coeff_a1: %u\r\n", config.filter_coeff_a1);
+    PRINT("    \t-filter_coeff_b2: %d\r\n", config.filter_coeff_b2);
+    PRINT("    \t-filter_coeff_b1: %d\r\n", config.filter_coeff_b1);
+    PRINT("    \t-filter_coeff_b0: %d\r\n", config.filter_coeff_b0);
+    PRINT("    \t-filter_coeff_a2: %d\r\n", config.filter_coeff_a2);
+    PRINT("    \t-filter_coeff_a1: %d\r\n", config.filter_coeff_a1);
     PRINT("    \t-filter_cascade_enabled: %u\r\n", config.filter_cascade_enabled);
     PRINT("    \t-peak_duration_min_walking: %u\r\n", config.peak_duration_min_walking);
     PRINT("    \t-peak_duration_min_running: %u\r\n", config.peak_duration_min_running);
@@ -7970,8 +8200,6 @@ int8_t scsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t-step_dur_thres: %u\r\n", config.step_dur_thres);
     PRINT("    \t-en_mcr_pp: %u\r\n", config.en_mcr_pp);
     PRINT("    \t-mcr_thres: %u\r\n", config.mcr_thres);
-    PRINT("    \t-sc_26: %u\r\n", config.sc_26);
-    PRINT("    \t-sc_27: %u\r\n", config.sc_27);
 
     CALL_OUT_DYNAMIC_SENSOR_API(bhy_phy_sensor_ctrl_param_set_step_counter_config,
                                 "bhy_phy_sensor_ctrl_param_set_step_counter_config",
@@ -8037,11 +8265,11 @@ int8_t scgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t-step_buffer_size: %u\r\n", config.step_buffer_size);
     PRINT("    \t-mean_val_decay: %u\r\n", config.mean_val_decay);
     PRINT("    \t-mean_step_dur: %u\r\n", config.mean_step_dur);
-    PRINT("    \t-filter_coeff_b2: %u\r\n", config.filter_coeff_b2);
-    PRINT("    \t-filter_coeff_b1: %u\r\n", config.filter_coeff_b1);
-    PRINT("    \t-filter_coeff_b0: %u\r\n", config.filter_coeff_b0);
-    PRINT("    \t-filter_coeff_a2: %u\r\n", config.filter_coeff_a2);
-    PRINT("    \t-filter_coeff_a1: %u\r\n", config.filter_coeff_a1);
+    PRINT("    \t-filter_coeff_b2: %d\r\n", config.filter_coeff_b2);
+    PRINT("    \t-filter_coeff_b1: %d\r\n", config.filter_coeff_b1);
+    PRINT("    \t-filter_coeff_b0: %d\r\n", config.filter_coeff_b0);
+    PRINT("    \t-filter_coeff_a2: %d\r\n", config.filter_coeff_a2);
+    PRINT("    \t-filter_coeff_a1: %d\r\n", config.filter_coeff_a1);
     PRINT("    \t-filter_cascade_enabled: %u\r\n", config.filter_cascade_enabled);
     PRINT("    \t-peak_duration_min_walking: %u\r\n", config.peak_duration_min_walking);
     PRINT("    \t-peak_duration_min_running: %u\r\n", config.peak_duration_min_running);
@@ -8055,8 +8283,6 @@ int8_t scgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t-step_dur_thres: %u\r\n", config.step_dur_thres);
     PRINT("    \t-en_mcr_pp: %u\r\n", config.en_mcr_pp);
     PRINT("    \t-mcr_thres: %u\r\n", config.mcr_thres);
-    PRINT("    \t-sc_26: %u\r\n", config.sc_26);
-    PRINT("    \t-sc_27: %u\r\n", config.sc_27);
 
     return CLI_OK;
 }
@@ -8125,8 +8351,8 @@ int8_t hmctrig_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     PRINT("Trigger HMC calibration\r\n");
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_trigger_hmc_calibration,
-                                "bhy_head_orientation_param_trigger_hmc_calibration",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_trigger_hmc_calibration,
+                                "bhy_head_feature_param_trigger_hmc_calibration",
                                 rslt,
                                 &cli_ref->bhy);
     if (rslt != BHY_OK)
@@ -8142,24 +8368,24 @@ int8_t hmctrig_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         {
             CALL_VOID_DYNAMIC_SENSOR_API(bhy_get_and_process_fifo, "bhy_get_and_process_fifo", fifo_buffer,
                                          sizeof(fifo_buffer), &cli_ref->bhy);
-            if (sensor_details->accuracy == 1)
+            if (sensor_details->id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG && sensor_details->accuracy == 1)
             {
                 PRINT("Please keep your head still \r\n");
             }
-            else if (sensor_details->accuracy == 2)
+            else if (sensor_details->id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG && sensor_details->accuracy == 2)
             {
                 PRINT("Please do nod movement \r\n");
             }
-            else if (sensor_details->accuracy == 3)
+            else if (sensor_details->id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG && sensor_details->accuracy == 3)
             {
                 PRINT("Calibration successfully \r\n");
                 break;
             }
-            else if (sensor_details->accuracy == 0)
+            else if (sensor_details->id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG && sensor_details->accuracy == 0)
             {
                 PRINT("Calibration failed! Restart calibration!!!\r\n");
-                CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_orientation_param_trigger_hmc_calibration,
-                                             "bhy_head_orientation_param_trigger_hmc_calibration",
+                CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_feature_param_trigger_hmc_calibration,
+                                             "bhy_head_feature_param_trigger_hmc_calibration",
                                              &cli_ref->bhy);
                 try_count++;
                 if (try_count == 5)
@@ -8177,7 +8403,7 @@ int8_t hmctrig_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     CALL_VOID_DYNAMIC_SENSOR_API(bhy_clear_fifo, "bhy_clear_fifo", 0xFF, &cli_ref->bhy); /* Read and Flush Wakeup
                                                                                               * and Non-Wakeup FIFO */
-
+    memset(sensor_details, 0, sizeof(struct bhy_parse_sensor_details)); /* Clear the sensor details after calibration */
     return CLI_OK;
 
 }
@@ -8219,15 +8445,15 @@ int8_t hmcsetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     int8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    bhy_head_orientation_param_misalignment_config hmc_config = { 0 };
+    bhy_head_feature_param_misalignment_config hmc_config = { 0 };
 
     hmc_config.still_phase_max_dur = (uint8_t)string_to_int((char *)argv[1]);
     hmc_config.still_phase_min_dur = (uint8_t)string_to_int((char *)argv[2]);
     hmc_config.still_phase_max_samples = (uint8_t)string_to_int((char *)argv[3]);
     hmc_config.acc_diff_threshold = (int32_t)string_to_int((char *)argv[4]);
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_hmc_configuration,
-                                "bhy_head_orientation_param_set_hmc_configuration",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_set_hmc_configuration,
+                                "bhy_head_feature_param_set_hmc_configuration",
                                 rslt,
                                 &hmc_config,
                                 &cli_ref->bhy);
@@ -8272,10 +8498,10 @@ int8_t hmcgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     int8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    bhy_head_orientation_param_misalignment_config hmc_config = { 0 };
+    bhy_head_feature_param_misalignment_config hmc_config = { 0 };
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_hmc_configuration,
-                                "bhy_head_orientation_param_get_hmc_configuration",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_get_hmc_configuration,
+                                "bhy_head_feature_param_get_hmc_configuration",
                                 rslt,
                                 &hmc_config,
                                 &cli_ref->bhy);
@@ -8324,8 +8550,8 @@ int8_t hmcsetdefcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     INFO("Executing %s\r\n", argv[0]);
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_default_hmc_cfg,
-                                "bhy_head_orientation_param_set_default_hmc_cfg",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_set_default_hmc_cfg,
+                                "bhy_head_feature_param_set_default_hmc_cfg",
                                 rslt,
                                 &cli_ref->bhy);
     if (rslt != BHY_OK)
@@ -8368,12 +8594,12 @@ int8_t hmcver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     int8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    bhy_head_orientation_param_ver hmc_version;
+    bhy_head_feature_param_ver hmc_version;
 
     INFO("Executing %\r\n", argv[0]);
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_hmc_version,
-                                "bhy_head_orientation_param_get_hmc_version",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_get_hmc_version,
+                                "bhy_head_feature_param_get_hmc_version",
                                 rslt,
                                 &hmc_version,
                                 &cli_ref->bhy);
@@ -8430,7 +8656,7 @@ int8_t hmcsetcalcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    bhy_head_orientation_param_misalignment_quat_corr hmc_quat_corr = { 0 };
+    bhy_head_feature_param_misalignment_quat_corr hmc_quat_corr = { 0 };
 
     INFO("Executing %s\r\n", argv[0]);
 
@@ -8439,8 +8665,8 @@ int8_t hmcsetcalcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     hmc_quat_corr.quaternion_z.f_val = string_to_float((char *)argv[3]);
     hmc_quat_corr.quaternion_w.f_val = string_to_float((char *)argv[4]);
     hmc_quat_corr.accuracy.f_val = 0.0f;
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg,
-                                "bhy_head_orientation_param_set_hmc_quat_cal_cor_cfg",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_set_hmc_quat_cal_cor_cfg,
+                                "bhy_head_feature_param_set_hmc_quat_cal_cor_cfg",
                                 rslt,
                                 &hmc_quat_corr,
                                 &cli_ref->bhy);
@@ -8485,10 +8711,10 @@ int8_t hmcgetcalcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     int8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    bhy_head_orientation_param_misalignment_quat_corr hmc_quat_corr = { 0 };
+    bhy_head_feature_param_misalignment_quat_corr hmc_quat_corr = { 0 };
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg,
-                                "bhy_head_orientation_param_get_hmc_quat_cal_cor_cfg",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_get_hmc_quat_cal_cor_cfg,
+                                "bhy_head_feature_param_get_hmc_quat_cal_cor_cfg",
                                 rslt,
                                 &hmc_quat_corr,
                                 &cli_ref->bhy);
@@ -8557,8 +8783,8 @@ int8_t hmcsetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         return CLI_E_INVALID_PARAM;
     }
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_hmc_mode_vector_x,
-                                "bhy_head_orientation_param_set_hmc_mode_vector_x",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_set_hmc_mode_vector_x,
+                                "bhy_head_feature_param_set_hmc_mode_vector_x",
                                 rslt,
                                 &hmc_mode_vect_x,
                                 &cli_ref->bhy);
@@ -8609,8 +8835,8 @@ int8_t hmcgetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     bhy_head_misalignment_mode_vector_x hmc_mode_vect_x = { 0 };
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_hmc_mode_vector_x,
-                                "bhy_head_orientation_param_get_hmc_mode_vector_x",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_get_hmc_mode_vector_x,
+                                "bhy_head_feature_param_get_hmc_mode_vector_x",
                                 rslt,
                                 &hmc_mode_vect_x,
                                 &cli_ref->bhy);
@@ -8632,15 +8858,15 @@ int8_t hmcgetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 }
 
 /**
-* @brief Function to print help for hosetheadcorrq command
+* @brief Function to print help for hosetheadcorrimu command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t hosetheadcorrq_help(void *ref)
+int8_t hosetheadcorrimu_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  hosetheadcorrq\r\n");
+    PRINT("  hosetheadcorrimu\r\n");
     PRINT("    \t= Set Initial Heading Correction, only for IMU Head Orientation Quaternion\r\n");
     PRINT("    \t -1/0 : Enable/Disable Initial Heading Correction [Quaternion] \r\n");
 
@@ -8648,12 +8874,12 @@ int8_t hosetheadcorrq_help(void *ref)
 }
 
 /**
-* @brief Function to implement callback for hosetheadcorrq command
+* @brief Function to implement callback for hosetheadcorrimu command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t hosetheadcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+int8_t hosetheadcorrimu_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
     int8_t rslt;
@@ -8664,47 +8890,47 @@ int8_t hosetheadcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     INFO("Executing %s\r\n", argv[0]);
 
     ho_quat_head_corr_state[0] = (uint8_t)string_to_int((char *)argv[1]);
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_quat_init_head_corr,
-                                "bhy_head_orientation_param_set_quat_init_head_corr",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_set_quat_init_head_corr,
+                                "bhy_head_feature_param_set_quat_init_head_corr",
                                 rslt,
                                 ho_quat_head_corr_state,
                                 &cli_ref->bhy);
     if (rslt != BHY_OK)
     {
-        ERROR("Failed to set Quaternion Initial Heading Correction status!\r\n");
+        ERROR("Failed to set IMU Initial Heading Correction status!\r\n");
 
         return rslt;
     }
 
-    PRINT("Quaternion Initial Heading Correction %s\r\n",
+    PRINT("IMU Initial Heading Correction %s\r\n",
           (ho_quat_head_corr_state[0] ==
-           BHY_HEAD_ORIENTATION_PARAM_QUAT_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
+           BHY_HEAD_FEATURE_PARAM_QUAT_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
 
     return CLI_OK;
 }
 
 /**
-* @brief Function to print help for hogetheadcorrq command
+* @brief Function to print help for hogetheadcorrimu command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t hogetheadcorrq_help(void *ref)
+int8_t hogetheadcorrimu_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  hogetheadcorrq \r\n");
+    PRINT("  hogetheadcorrimu \r\n");
     PRINT("    \t= Get Initial Heading Correction, only for IMU Head Orientation Quaternion\r\n");
 
     return CLI_OK;
 }
 
 /**
-* @brief Function to implement callback for hogetheadcorrq command
+* @brief Function to implement callback for hogetheadcorrimu command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t hogetheadcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+int8_t hogetheadcorrimu_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
     (void)argv;
@@ -8713,22 +8939,22 @@ int8_t hogetheadcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     uint8_t ho_quat_head_corr_state[4] = { 0 };
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_quat_init_head_corr,
-                                "bhy_head_orientation_param_get_quat_init_head_corr",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_get_quat_init_head_corr,
+                                "bhy_head_feature_param_get_quat_init_head_corr",
                                 rslt,
                                 ho_quat_head_corr_state,
                                 &cli_ref->bhy);
 
     if (rslt != BHY_OK)
     {
-        ERROR("Failed to get Quaternion Initial Heading Correction status!\r\n");
+        ERROR("Failed to get IMU Initial Heading Correction status!\r\n");
 
         return rslt;
     }
 
-    PRINT("Quaternion Initial Heading Correction Status : %s\r\n",
+    PRINT("IMU Initial Heading Correction Status : %s\r\n",
           (ho_quat_head_corr_state[0] ==
-           BHY_HEAD_ORIENTATION_PARAM_QUAT_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
+           BHY_HEAD_FEATURE_PARAM_QUAT_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
 
     return CLI_OK;
 
@@ -8761,12 +8987,12 @@ int8_t hover_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     int8_t rslt;
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    bhy_head_orientation_param_ver ho_version;
+    bhy_head_feature_param_ver ho_version;
 
     INFO("Executing %\r\n", argv[0]);
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_ho_version,
-                                "bhy_head_orientation_param_get_ho_version",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_get_ho_version,
+                                "bhy_head_feature_param_get_ho_version",
                                 rslt,
                                 &ho_version,
                                 &cli_ref->bhy);
@@ -8784,28 +9010,28 @@ int8_t hover_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 }
 
 /**
-* @brief Function to print help for hosetheadcorre command
+* @brief Function to print help for hosetheadcorrndof command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t hosetheadcorre_help(void *ref)
+int8_t hosetheadcorrndof_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  hosetheadcorre\r\n");
-    PRINT("    \t= Set Initial Heading Correction, only for IMU Head Orientation Euler\r\n");
-    PRINT("    \t -1/0 : Enable/Disable Initial Heading Correction [Euler] \r\n");
+    PRINT("  hosetheadcorrndof\r\n");
+    PRINT("    \t= Set NDOF Initial Heading Correction\r\n");
+    PRINT("    \t -1/0 : Enable/Disable Initial Heading Correction [NDOF] \r\n");
 
     return CLI_OK;
 }
 
 /**
-* @brief Function to implement callback for hosetheadcorre command
+* @brief Function to implement callback for hosetheadcorrndof command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t hosetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+int8_t hosetheadcorrndof_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
     int8_t rslt;
@@ -8816,8 +9042,8 @@ int8_t hosetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     INFO("Executing %s\r\n", argv[0]);
 
     ho_eul_head_corr_state[0] = (uint8_t)string_to_int((char *)argv[1]);
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_set_eul_init_head_corr,
-                                "bhy_head_orientation_param_set_eul_init_head_corr",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_set_ndof_init_head_corr,
+                                "bhy_head_feature_param_set_ndof_init_head_corr",
                                 rslt,
                                 ho_eul_head_corr_state,
                                 &cli_ref->bhy);
@@ -8828,36 +9054,35 @@ int8_t hosetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref)
         return rslt;
     }
 
-    PRINT("Euler Initial Heading Correction %s\r\n",
-          (ho_eul_head_corr_state[0] ==
-           BHY_HEAD_ORIENTATION_PARAM_EUL_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
+    PRINT("NDOF Initial Heading Correction %s\r\n",
+          (ho_eul_head_corr_state[0] == BHY_HEAD_FEATURE_PARAM_NDOF_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
 
     return CLI_OK;
 
 }
 
 /**
-* @brief Function to print help for hogetheadcorre command
+* @brief Function to print help for hogetheadcorrndof command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t hogetheadcorre_help(void *ref)
+int8_t hogetheadcorrndof_help(void *ref)
 {
     (void)ref;
 
-    PRINT("  hogetheadcorre \r\n");
-    PRINT("    \t= Get Initial Heading Correction, only for IMU Head Orientation Euler\r\n");
+    PRINT("  hogetheadcorrndof \r\n");
+    PRINT("    \t= Get NDOF Initial Heading Correction\r\n");
 
     return CLI_OK;
 }
 
 /**
-* @brief Function to implement callback for hogetheadcorre command
+* @brief Function to implement callback for hogetheadcorrndof command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t hogetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+int8_t hogetheadcorrndof_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
     (void)argv;
@@ -8867,24 +9092,419 @@ int8_t hogetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 
     uint8_t ho_eul_head_corr_state[4] = { 0 };
 
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_orientation_param_get_eul_init_head_corr,
-                                "bhy_head_orientation_param_get_eul_init_head_corr",
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_get_ndof_init_head_corr,
+                                "bhy_head_feature_param_get_ndof_init_head_corr",
                                 rslt,
                                 ho_eul_head_corr_state,
                                 &cli_ref->bhy);
     if (rslt != BHY_OK)
     {
-        ERROR("Failed to get Euler Initial Heading Correction status!\r\n");
+        ERROR("Failed to get NDOF Initial Heading Correction status!\r\n");
 
         return rslt;
     }
 
-    PRINT("Euler Initial Heading Correction Status : %s\r\n",
-          (ho_eul_head_corr_state[0] ==
-           BHY_HEAD_ORIENTATION_PARAM_EUL_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
+    PRINT("NDOF Initial Heading Correction Status : %s\r\n",
+          (ho_eul_head_corr_state[0] == BHY_HEAD_FEATURE_PARAM_NDOF_INITIAL_HEAD_CORR_ENABLE) ? "Enabled" : "Disabled");
 
     return CLI_OK;
 
+}
+
+/**
+ * @brief Function to print help for hgdgetver command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgetver_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    (void)argv;
+    int8_t rslt;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    bhy_head_gesture_algo_version_t hgd_version = { 0 };
+
+    INFO("Executing %s\r\n", argv[0]);
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_hgd_get_algo_version,
+                                "bhy_head_feature_param_hgd_get_algo_version",
+                                rslt,
+                                &hgd_version,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to get Head Gesture Detection version!\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Head Gesture Detection version: %u.%u.%u\r\n\r\n",
+          hgd_version.major_version,
+          hgd_version.minor_version,
+          hgd_version.major_bug_fix);
+
+    return CLI_OK;
+}
+
+int8_t hgdgetver_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  hgdgetver \r\n");
+    PRINT("    \t= Get the Head Gesture Detection version.\r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to implement callback for hgdgettimeges command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgettimeges_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    (void)argv;
+    int8_t rslt;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    bhy_hgd_time_duration_of_one_gesture_t time_one_gesture = { 0 };
+
+    INFO("Executing %s\r\n", argv[0]);
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_hgd_get_time_duration_of_one_gesture,
+                                "bhy_head_feature_param_hgd_get_time_duration_of_one_gesture",
+                                rslt,
+                                &time_one_gesture,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to get Head Gesture Detection time for one gesture!\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Head Gesture Detection time for one gesture: %f s\r\n\r\n",
+          time_one_gesture.time_duration_of_one_gesture.f_val);
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for hgdgettimeges command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgettimeges_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  hgdgettimeges \r\n");
+    PRINT("    \t= Get the Head Gesture Detection time for one gesture.\r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to implement callback for hgdsettimeges command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ */
+int8_t hgdsettimeges_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    int8_t rslt = BHY_OK;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    bhy_hgd_time_duration_of_one_gesture_t time_one_gesture = { 0 };
+
+    INFO("Executing %s\r\n", argv[0]);
+
+    time_one_gesture.time_duration_of_one_gesture.f_val = string_to_float((char *)argv[1]);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_hgd_set_time_duration_of_one_gesture,
+                                "bhy_head_feature_param_hgd_set_time_duration_of_one_gesture",
+                                rslt,
+                                &time_one_gesture,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to set Head Gesture Detection time for one gesture!\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Head Gesture Detection time for one gesture set to: %f s\r\n\r\n",
+          time_one_gesture.time_duration_of_one_gesture.f_val);
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for hgdsettimeges command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsettimeges_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  hgdsettimeges <time_duration_of_one_gesture> \r\n");
+    PRINT("    \t= Set the Head Gesture Detection time for one gesture.\r\n");
+    PRINT("    \t <time_duration_of_one_gesture> : time duration of one gesture, (float), range from 0.2s to 0.35s \r\n");
+    PRINT("    \t eg. hgdsettimeges 0.2 \r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to implement callback for hgdsetdefault command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsetdefault_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    INFO("Executing %s\r\n", argv[0]);
+
+    uint8_t hgd_default = (uint8_t)string_to_int((char *)argv[1]);
+    CALL_VOID_DYNAMIC_SENSOR_API(bhy_head_feature_param_hgd_set_to_default,
+                                 "bhy_head_feature_param_hgd_set_to_default",
+                                 hgd_default,
+                                 &cli_ref->bhy);
+
+    PRINT("Head Gesture Detection default configuration set successfully\r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for hgdsetdefault command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsetdefault_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  hgdsetdefault <hgd_default> \r\n");
+    PRINT("    \t= Set the Head Gesture Detection default configuration.\r\n");
+    PRINT("    \t <hgd_default> : 1 to set to default, 0 to not set to default \r\n");
+    PRINT("    \t eg. hgdsetdefault 1 \r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to implement callback for hgdgetthresangrat command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ */
+int8_t hgdgetthresangrat_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    (void)argv;
+    int8_t rslt;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    uint8_t ang_rate_threshold = 0;
+
+    INFO("Executing %s\r\n", argv[0]);
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_hgd_get_thres_primary_motion_angular_rate,
+                                "bhy_head_feature_param_hgd_get_thres_primary_motion_angular_rate",
+                                rslt,
+                                &ang_rate_threshold,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to get Head Gesture Detection angular rate threshold!\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Head Gesture Detection angular rate threshold: %u dps\r\n", ang_rate_threshold);
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for hgdgetthresangrat command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgetthresangrat_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  hgdgetthresangrat \r\n");
+    PRINT("    \t= Get the Head Gesture Detection angular rate threshold.\r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to implement callback for hgdsetthresangrat command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsetthresangrat_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    int8_t rslt = BHY_OK;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    uint8_t ang_rate_threshold = 0;
+
+    INFO("Executing %s\r\n", argv[0]);
+
+    ang_rate_threshold = (uint8_t)string_to_int((char *)argv[1]);
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_hgd_set_thres_primary_motion_angular_rate,
+                                "bhy_head_feature_param_hgd_set_thres_primary_motion_angular_rate",
+                                rslt,
+                                ang_rate_threshold,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to set Head Gesture Detection angular rate threshold!\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Head Gesture Detection angular rate threshold set to: %u dps\r\n", ang_rate_threshold);
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for hgdsetthresangrat command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsetthresangrat_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  hgdsetthresangrat <ang_rate_threshold> \r\n");
+    PRINT("    \t= Set the Head Gesture Detection angular rate threshold.\r\n");
+    PRINT("    \t <ang_rate_threshold> : angular rate threshold, (uint8_t), range from 65 to 70 dps \r\n");
+    PRINT("    \t eg. hgdsetthresangrat 68 \r\n");
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to implement callback for hgdgettimegestilt command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgettimegestilt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    (void)argv;
+    int8_t rslt;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    union bhy_float_conv time_one_tilt_gesture = { 0 };
+
+    INFO("Executing %s\r\n", argv[0]);
+
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_tilt,
+                                "bhy_head_feature_param_hgd_get_time_duration_of_one_gesture_tilt",
+                                rslt,
+                                &time_one_tilt_gesture,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to get Head Gesture Detection time for one tilt gesture!\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Head Gesture Detection time for one tilt gesture: %f s\r\n\r\n", time_one_tilt_gesture.f_val);
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for hgdgettimegestilt command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgettimegestilt_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  hgdgettimegestilt \r\n");
+    PRINT("    \t= Get the Head Gesture Detection time for one tilt gesture.\r\n");
+
+    return CLI_OK;
+}
+
+int8_t hgdsettimegestilt_callback(uint8_t argc, uint8_t * const argv[], void *ref)
+{
+    (void)argc;
+    int8_t rslt;
+
+    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
+
+    union bhy_float_conv time_one_tilt_gesture = { 0 };
+
+    INFO("Executing %s\r\n", argv[0]);
+
+    time_one_tilt_gesture.f_val = string_to_float((char *)argv[1]);
+    CALL_OUT_DYNAMIC_SENSOR_API(bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_tilt,
+                                "bhy_head_feature_param_hgd_set_time_duration_of_one_gesture_tilt",
+                                rslt,
+                                &time_one_tilt_gesture,
+                                &cli_ref->bhy);
+    if (rslt != BHY_OK)
+    {
+        ERROR("Failed to set Head Gesture Detection time for one tilt gesture!\r\n");
+
+        return rslt;
+    }
+
+    PRINT("Head Gesture Detection time for one tilt gesture set to: %f s\r\n\r\n", time_one_tilt_gesture.f_val);
+
+    return CLI_OK;
+}
+
+/**
+ * @brief Function to print help for hgdsettimegestilt command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsettimegestilt_help(void *ref)
+{
+    (void)ref;
+
+    PRINT("  hgdsettimegestilt <time in seconds>\r\n");
+    PRINT("    \t= Set the Head Gesture Detection time for one tilt gesture, range from 0.1 to 0.3s\r\n");
+
+    return CLI_OK;
 }
 
 /**
@@ -9012,177 +9632,6 @@ int8_t syssetphyseninfo_callback(uint8_t argc, uint8_t * const argv[], void *ref
 }
 
 /**
-* @brief Function to print help for bsecsetalstate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecsetalstate_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  bsecsetalstate <algo_state[0:162]>\r\n");
-    PRINT("    \t =Sets the BSEC algorithm state \r\n");
-    PRINT("    \t <algo_state[0:162]> : BSEC algorithm state \r\n");
-    PRINT("    \t -e.g. bsecsetalstate 1 2 ... 163\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for bsecsetalstate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecsetalstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-    int8_t rslt;
-    uint8_t i;
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    bhy_bsec_param_algo_state state;
-
-    INFO("Executing %s\r\n", argv[0]);
-    PRINT("BSEC algorithm state: \r\n");
-    for (i = 1U; i < BHY_BSEC_PARAM_BSEC_ALGO_STATE_LENGTH + 1U; i++)
-    {
-        PRINT("%s ", argv[i]);
-    }
-
-    PRINT("\r\n");
-
-    for (i = 0U; i < BHY_BSEC_PARAM_BSEC_ALGO_STATE_LENGTH; i++)
-    {
-        state.algo_state[i] = (uint8_t)string_to_int((char*)argv[i + 1]);
-    }
-
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_bsec_param_set_algo_state,
-                                "bhy_bsec_param_set_algo_state",
-                                rslt,
-                                &state,
-                                &cli_ref->bhy);
-    if (rslt != BHY_OK)
-    {
-        ERROR("Setting BSEC algorithm state value Failed \r\n");
-
-        return rslt;
-    }
-
-    return CLI_OK;
-
-}
-
-/**
-* @brief Function to print help for bsecgetalstate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecgetalstate_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  bsecgetalstate\r\n");
-    PRINT("    \t =Gets the BSEC algorithm state \r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for bsecgetalstate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecgetalstate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-    int8_t rslt;
-    uint8_t i;
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    bhy_bsec_param_algo_state state;
-
-    INFO("Executing %s\r\n", argv[0]);
-
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_bsec_param_get_algo_state,
-                                "bhy_bsec_param_get_algo_state",
-                                rslt,
-                                &state,
-                                &cli_ref->bhy);
-
-    if (rslt != BHY_OK)
-    {
-        ERROR("Getting BSEC algorithm state value Failed \r\n");
-
-        return rslt;
-    }
-
-    PRINT("BSEC algorithm state: \r\n");
-    for (i = 0U; i < BHY_BSEC_PARAM_BSEC_ALGO_STATE_LENGTH; i++)
-    {
-        PRINT("%u ", state.algo_state[i]);
-    }
-
-    PRINT("\r\n");
-
-    return CLI_OK;
-
-}
-
-/**
-* @brief Function to print help for bsecsettempoff command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecsettempoff_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  bsecsettempoff <offset>\r\n");
-    PRINT("    \t =Sets the BSEC temperature offset \r\n");
-    PRINT("    \t <offset> : BSEC temperature offset \r\n");
-    PRINT("    \t -e.g. bsecsettempoff 1.0\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for bsecsettempoff command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecsettempoff_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-    int8_t rslt;
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    union bhy_float_conv offset;
-
-    INFO("Executing %s %s\r\n", argv[0], argv[1]);
-
-    offset.f_val = string_to_float((char*)argv[1]);
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_bsec_param_set_temp_offset,
-                                "bhy_bsec_param_set_temp_offset",
-                                rslt,
-                                &offset,
-                                &cli_ref->bhy);
-    if (rslt != BHY_OK)
-    {
-        ERROR("Setting BSEC temperature offset value Failed \r\n");
-
-        return rslt;
-    }
-
-    PRINT("Setting successfully BSEC temperature offset value %f\r\n", offset.f_val);
-
-    return CLI_OK;
-
-}
-
-/**
 * @brief Function to print help for syssetphyseninfo command
 * @param[in] ref  : Reference to command line
 * @return API error codes
@@ -9194,21 +9643,6 @@ int8_t syssetphyseninfo_help(void *ref)
     PRINT("  syssetphyseninfo <sensor_id> <orientation_matrix>\r\n");
     PRINT("    \t= Set the orientation of Physical sensor\r\n");
     PRINT("    \t= Eg: syssetphyseninfo 1 0,-1,0,1,0,0,0,0,1 \r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to print help for bsecgettempoff command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecgettempoff_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  bsecgettempoff\r\n");
-    PRINT("    \t =Gets the BSEC temperature offset \r\n");
 
     return CLI_OK;
 }
@@ -9334,144 +9768,6 @@ int8_t sysgetvirtsenlist_help(void *ref)
     PRINT("    \t= List of virtual sensor present\r\n");
 
     return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for bsecgettempoff command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecgettempoff_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-    int8_t rslt;
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    union bhy_float_conv offset;
-
-    INFO("Executing %s\r\n", argv[0]);
-
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_bsec_param_get_temp_offset,
-                                "bhy_bsec_param_get_temp_offset",
-                                rslt,
-                                &offset,
-                                &cli_ref->bhy);
-    if (rslt != BHY_OK)
-    {
-        ERROR("Getting BSEC temperature offset Failed \r\n");
-
-        return rslt;
-    }
-
-    PRINT("BSEC temperature offset: %f\r\n", offset.f_val);
-
-    return CLI_OK;
-
-}
-
-/**
-* @brief Function to print help for bsecsetsamrate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecsetsamrate_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  bsecsetsamrate <sample_rate>\r\n");
-    PRINT("    \t =Sets the BSEC sample rate \r\n");
-    PRINT("    \t <sample_rate> : BSEC sample rate. Valid value: 0, 1, 2 \r\n");
-    PRINT("    \t -e.g. bsecsetsamrate 0\r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for bsecsetsamrate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecsetsamrate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-    int8_t rslt;
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    bhy_bsec_param_sample_rate sample_rate;
-
-    INFO("Executing %s %s\r\n", argv[0], argv[1]);
-
-    sample_rate.sample_rate_index = (bhy_bsec_param_sample_rate_index)string_to_int((char*)argv[1]);
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_bsec_param_set_sample_rate,
-                                "bhy_bsec_param_set_sample_rate",
-                                rslt,
-                                &sample_rate,
-                                &cli_ref->bhy);
-    if (rslt != BHY_OK)
-    {
-        ERROR("Setting BSEC sample rate Failed \r\n");
-
-        return rslt;
-    }
-
-    PRINT("BSEC sample rate is set successfully with value %u\r\n", sample_rate.sample_rate_index);
-
-    return CLI_OK;
-
-}
-
-/**
-* @brief Function to print help for bsecgetsamrate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecgetsamrate_help(void *ref)
-{
-    (void)ref;
-
-    PRINT("  bsecgetsamrate\r\n");
-    PRINT("    \t =Gets the BSEC sample rate \r\n");
-
-    return CLI_OK;
-}
-
-/**
-* @brief Function to implement callback for bsecgetsamrate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecgetsamrate_callback(uint8_t argc, uint8_t * const argv[], void *ref)
-{
-    (void)argc;
-    int8_t rslt;
-    struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
-
-    bhy_bsec_param_sample_rate sample_rate;
-    char* sample_rate_act[] =
-    { "BSEC_PARAM_SAMPLE_RATE_CONT", "BSEC_PARAM_SAMPLE_RATE_LP", "BSEC_PARAM_SAMPLE_RATE_ULP" };
-
-    INFO("Executing %s\r\n", argv[0]);
-
-    CALL_OUT_DYNAMIC_SENSOR_API(bhy_bsec_param_get_sample_rate,
-                                "bhy_bsec_param_get_sample_rate",
-                                rslt,
-                                &sample_rate,
-                                &cli_ref->bhy);
-    if (rslt != BHY_OK)
-    {
-        ERROR("Getting BSEC sample rate Failed \r\n");
-
-        return rslt;
-    }
-
-    PRINT("BSEC sample rate: %u (%s)\r\n", sample_rate.sample_rate_index,
-          sample_rate_act[sample_rate.sample_rate_index]);
-
-    return CLI_OK;
-
 }
 
 /**
@@ -11383,14 +11679,9 @@ int8_t getstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
     int8_t rslt;
-    char file_name[MAX_FILENAME_LENGTH] = { 0 };
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    /* Create a file and copy the calibration profile to the file */
-    strncpy(file_name, (char *)argv[1], strlen((char *)argv[1]));
-    file_name[strlen((char *)argv[1])] = '\0';
-
-    FILE *fp = fopen(file_name, "w");
+    FILE *fp = fopen((char *)argv[1], "w");
 
     if (fp == NULL)
     {
@@ -11439,6 +11730,7 @@ int8_t getstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -<y_offset> : %d\r\n", gyrofoc.y_offset);
     PRINT("    \t -<z_offset> : %d\r\n", gyrofoc.z_offset);
     fprintf(fp, "%d %d %d\n", gyrofoc.x_offset, gyrofoc.y_offset, gyrofoc.z_offset);
+
     PRINT("Write Gyro foc done\r\n");
 
     bhy_phy_sensor_ctrl_param_gyro_crt_data gyro_crt;
@@ -11463,6 +11755,13 @@ int8_t getstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref)
     PRINT("    \t -<z_offset> : %d\r\n", gyro_crt.z);
     PRINT("Write Gyro CRT done\r\n");
 
+    /* Ensure data is flushed and file closed so MCU filesystem commits the writes */
+    if (fp != NULL)
+    {
+        fflush(fp);
+        fclose(fp);
+    }
+
     return CLI_OK;
 
 }
@@ -11475,7 +11774,7 @@ int8_t getstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 int8_t getstaticcalib_help(void *ref)
 {
     (void)ref;
-    PRINT("  getstaticcalib\r\n");
+    PRINT("  getstaticcalib <file_name>\r\n");
     PRINT("    \t= Getting Accel/Gyro FOC and Gyro CRT offset values\r\n");
 
     return CLI_OK;
@@ -11491,14 +11790,9 @@ int8_t setstaticcalib_callback(uint8_t argc, uint8_t * const argv[], void *ref)
 {
     (void)argc;
     int8_t rslt;
-    char file_name[MAX_FILENAME_LENGTH] = { 0 };
     struct bhy2cli_ref *cli_ref = (struct bhy2cli_ref *)ref;
 
-    /* Create a file and copy the calibration profile to the file */
-    strncpy(file_name, (char *)argv[1], strlen((char *)argv[1]));
-    file_name[strlen((char *)argv[1])] = '\0';
-
-    FILE *fp = fopen(file_name, "r");
+    FILE *fp = fopen((char *)argv[1], "r");
 
     if (fp == NULL)
     {

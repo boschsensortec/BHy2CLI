@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_bsx_defs.h
-* @date       2025-08-20
-* @version    v1.2.0
+* @date       2026-08-06
+* @version    v1.3.0
 *
 */
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -148,7 +148,6 @@ void parse_file(int event_id, const struct data_inject *dinject)
 */
 int8_t dinject_timestamp_data(int event_id, const struct data_inject *dinject, struct bhy_dev *bhy)
 {
-    static uint8_t last_timestamp = 0;
     int8_t rslt = 0;
 
     switch (event_id)
@@ -177,18 +176,13 @@ int8_t dinject_timestamp_data(int event_id, const struct data_inject *dinject, s
 
         case FULL_TIMESTAMP_WU_ID:
         case FULL_TIMESTAMP_NWU_ID:
-            if (last_timestamp == 0)
+            if (len != 0)
             {
-                event_size = FULL_TIMESTAMP_EVENT_SIZE;
-            }
-            else
-            {
-                event_size = len; /*! inject previous line of data */
+                rslt = inject_data(len, bhy);
             }
 
+            event_size = FULL_TIMESTAMP_EVENT_SIZE;
             parse_file(event_id, dinject);
-            rslt = inject_data(event_size, bhy);
-            last_timestamp = !last_timestamp;
             break;
 
         case META_EVENT_WU_ID:

@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_phy_sensor_ctrl_param_defs.h
-* @date       2025-08-20
-* @version    v1.2.0
+* @date       2026-08-06
+* @version    v1.3.0
 *
 */
 
@@ -190,6 +190,13 @@ typedef struct
     uint8_t z;
 } BHY_PACKED bhy_phy_sensor_ctrl_param_gyro_crt_data;
 
+typedef struct
+{
+    uint16_t gain_update_x : 11;
+    uint16_t gain_update_y : 11;
+    uint16_t gain_update_z : 11;
+} BHY_PACKED bhy_phy_sensor_ctrl_param_gyro_manual_sensitivity_comp;
+
 /*!
  *
  * @brief bhy wrist wear wakeup control
@@ -207,6 +214,17 @@ typedef struct
     uint8_t angle_portrait_up; /* Sine of maximum allowed forward tilt angle in portrait up direction */
     uint8_t min_dur_moved; /* Minimum duration the arm should be moved while performing gesture */
     uint8_t min_dur_quite; /* Minimum duration the arm should be static between 2 consecutive gestures */
+    uint8_t angle_landscape_right_drop; /* Sine of the minimum allowed tilt angle in landscape right direction of the
+                                         * device for drop detection */
+    uint8_t angle_landscape_left_drop; /* Sine of minimum expected tilt angle in landscape left direction of the device
+                                        * for drop detection */
+    uint8_t angle_portrait_down_drop; /* Sine of minimum expected backward tilt angle in portrait down direction of the
+                                       * device for drop detection */
+    uint8_t angle_portrait_up_drop; /* Sine of minimum expected forward tilt angle in portrait up direction of the
+                                     * device for drop detection */
+    uint8_t mac_acc_z_drop; /* Cosine of minimum allowed forward tilt angle in portrait up direction of the device for
+                             * drop detection */
+    uint8_t reserved; /* Reserved for future use, should be set to 0 */
 } BHY_PACKED bhy_phy_sensor_ctrl_param_wrist_wear_wakeup;
 
 /*!
@@ -298,11 +316,11 @@ typedef struct
     uint16_t step_buffer_size; /* buffer size to step count, step can be count only buffer is full */
     uint16_t mean_val_decay; /* decay filter coefficient to mean value */
     uint16_t mean_step_dur; /* decay filter coefficient to step duration */
-    uint16_t filter_coeff_b2; /* filter coefficient to input signal */
-    uint16_t filter_coeff_b1; /* filter coefficient to input signal */
-    uint16_t filter_coeff_b0; /* filter coefficient to input signal */
-    uint16_t filter_coeff_a2; /* filter coefficient to input signal */
-    uint16_t filter_coeff_a1; /* filter coefficient to input signal */
+    int16_t filter_coeff_b2; /* filter coefficient to input signal */
+    int16_t filter_coeff_b1; /* filter coefficient to input signal */
+    int16_t filter_coeff_b0; /* filter coefficient to input signal */
+    int16_t filter_coeff_a2; /* filter coefficient to input signal */
+    int16_t filter_coeff_a1; /* filter coefficient to input signal */
     uint16_t filter_cascade_enabled; /* enable cascade filter for input signal */
     uint16_t peak_duration_min_walking; /* minimal peak duration for walking activity */
     uint16_t peak_duration_min_running; /* minimal peak duration for running activity */
@@ -317,8 +335,6 @@ typedef struct
     uint16_t step_dur_thres; /* gain threshold of mean step duration in post-processing check */
     uint16_t en_mcr_pp; /* enable post-process of mean crossings */
     uint16_t mcr_thres; /* threshold of mean crossings in post-processing check */
-    uint16_t sc_26;
-    uint16_t sc_27;
 } BHY_PACKED bhy_phy_sensor_ctrl_param_step_counter;
 
 typedef int8_t ( *bhy_phy_sensor_ctrl_param_accel_set_foc_calibration_func)(const
@@ -399,13 +415,6 @@ typedef int8_t (*bhy_phy_sensor_ctrl_param_set_no_motion_config_func)(const bhy_
 typedef int8_t (*bhy_phy_sensor_ctrl_param_get_no_motion_config_func)(bhy_phy_sensor_ctrl_param_no_motion* config,
                                                                       struct bhy_dev *dev);
 
-typedef int8_t (*bhy_phy_sensor_ctrl_param_set_wrist_gesture_cfg_func)(const
-                                                                       bhy_phy_sensor_ctrl_param_wrist_gesture_detector*
-                                                                       config, struct bhy_dev *dev);
-
-typedef int8_t (*bhy_phy_sensor_ctrl_param_get_wrist_gesture_cfg_func)(bhy_phy_sensor_ctrl_param_wrist_gesture_detector*
-                                                                       config, struct bhy_dev *dev);
-
 typedef int8_t (*bhy_phy_sensor_ctrl_param_baro_set_press_type_1_cfg_func)(const bhy_phy_sensor_ctrl_param_baro_type_1*
                                                                            config, struct bhy_dev *dev);
 
@@ -423,6 +432,13 @@ typedef int8_t (*bhy_phy_sensor_ctrl_param_set_step_counter_config_func)(const b
 
 typedef int8_t (*bhy_phy_sensor_ctrl_param_get_step_counter_config_func)(bhy_phy_sensor_ctrl_param_step_counter* config,
                                                                          struct bhy_dev *dev);
+
+typedef int8_t (*bhy_phy_sensor_ctrl_param_gyro_set_manual_sensitivity_comp_func)(const
+                                                                                  bhy_phy_sensor_ctrl_param_gyro_manual_sensitivity_comp
+                                                                                  * config, struct bhy_dev *dev);
+
+typedef int8_t (*bhy_phy_sensor_ctrl_param_gyro_get_manual_sensitivity_comp_func)(
+    bhy_phy_sensor_ctrl_param_gyro_manual_sensitivity_comp* config, struct bhy_dev *dev);
 
 /* End of CPP Guard */
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_multi_tap_defs.h
-* @date       2025-08-20
-* @version    v1.2.0
+* @date       2026-08-06
+* @version    v1.3.0
 *
 */
 
@@ -49,12 +49,16 @@ extern "C" {
 /*! Sensor ID for Multi-Tap */
 #define BHY_SENSOR_ID_MULTI_TAP                                   UINT8_C(153)
 
+#define BHY_SENSOR_ID_FREE_FALL                                   UINT8_C(144)
+
 /*! Multi-Tap Parameter Page Base Address*/
 #define BHY_MULTI_TAP_PARAM_PAGE_BASE                             UINT16_C(0xD00)
 
 /*! Multi-Tap Configuration pages */
 #define BHY_MULTI_TAP_PARAM_ENABLE_PARAM_ID                       UINT8_C(0x01)
 #define BHY_MULTI_TAP_PARAM_DETECTOR_CONFIG_PARAM_ID              UINT8_C(0x02)
+
+#define BHY_FREE_FALL_PARAM_ID                                    UINT8_C(0x03)
 
 #define BHY_MULTI_TAP_PARAM_ENABLE_LENGTH                         UINT8_C(4)
 #define BHY_MULTI_TAP_PARAM_DETECTOR_CONFIG_LENGTH                UINT8_C(6)
@@ -156,6 +160,13 @@ typedef struct
     bhy_multi_tap_param_tripletap_detector_settings ttap_setting;
 } BHY_PACKED bhy_multi_tap_param_detector;
 
+typedef struct
+{
+    uint16_t threshold;
+    uint16_t hysteresis;
+    uint16_t duration;
+} BHY_PACKED bhy_free_fall_param;
+
 typedef int8_t (*bhy_multi_tap_param_set_config_func)(const bhy_event_data_multi_tap *conf, struct bhy_dev *dev);
 
 typedef int8_t (*bhy_multi_tap_param_get_config_func)(bhy_event_data_multi_tap *conf, struct bhy_dev *dev);
@@ -164,6 +175,10 @@ typedef int8_t (*bhy_multi_tap_param_detector_set_config_func)(const bhy_multi_t
                                                                struct bhy_dev *dev);
 
 typedef int8_t (*bhy_multi_tap_param_detector_get_config_func)(bhy_multi_tap_param_detector *conf, struct bhy_dev *dev);
+
+typedef int8_t (*bhy_free_fall_param_set_config_func)(const bhy_free_fall_param *conf, struct bhy_dev *dev);
+
+typedef int8_t (*bhy_free_fall_param_get_config_func)(bhy_free_fall_param *conf, struct bhy_dev *dev);
 
 /* End of CPP Guard */
 #ifdef __cplusplus

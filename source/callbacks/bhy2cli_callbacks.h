@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -1171,6 +1171,38 @@ int8_t gyrogetnvm_help(void *ref);
 int8_t gyrogetnvm_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
+ * @brief Function to print help for gyrosetmansencomp command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t gyrosetmansencomp_help(void *ref);
+
+/**
+ * @brief Function to implement callback for gyrosetmansencomp command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t gyrosetmansencomp_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to implement callback for gyrogetmansencomp command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t gyrogetmansencomp_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for gyrogetmansencomp command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t gyrogetmansencomp_help(void *ref);
+
+/**
 * @brief Function to print help for magsetpwm command
 * @param[in] ref  : Reference to command line
 * @return API error codes
@@ -1319,6 +1351,147 @@ int8_t wgdgetcnfg_help(void *ref);
 * @param[in] ref  : Reference to command line
 */
 int8_t wgdgetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for wgdresetcnfg command
+ * @param[in] argc: Number of arguments in command line
+ * @param[in] argv: Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t wgdresetcnfg_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for wgdresetcnfg command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t wgdresetcnfg_help(void *ref);
+
+/**
+ * @brief Function to print help for hgdgetver command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgetver_help(void *ref);
+
+/**
+ * @brief Function to implement callback for hgdgetver command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ */
+int8_t hgdgetver_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to implement callback for hgdgettimeges command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgettimeges_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for hgdgettimeges command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgettimeges_help(void *ref);
+
+/**
+ * @brief Function to implement callback for hgdsettimeges command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ */
+int8_t hgdsettimeges_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for hgdsettimeges command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsettimeges_help(void *ref);
+
+/**
+ * @brief Function to implement callback for hgdsetdefault command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsetdefault_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for hgdsetdefault command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsetdefault_help(void *ref);
+
+/**
+ * @brief Function to implement callback for hgdgetthresangrat command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ */
+int8_t hgdgetthresangrat_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for hgdgetthresangrat command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgetthresangrat_help(void *ref);
+
+/**
+ * @brief Function to implement callback for hgdsetthresangrat command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsetthresangrat_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for hgdsetthresangrat command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsetthresangrat_help(void *ref);
+
+/**
+ * @brief Function to implement callback for hgdgettimegestilt command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgettimegestilt_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for hgdgettimegestilt command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdgettimegestilt_help(void *ref);
+
+/**
+ * @brief Function to implement callback for hgdsettimegestilt command
+ * @param[in] argc : Number of arguments in command line
+ * @param[in] argv : Array of pointer to arguments
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsettimegestilt_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+
+/**
+ * @brief Function to print help for hgdsettimegestilt command
+ * @param[in] ref  : Reference to command line
+ * @return API error codes
+ */
+int8_t hgdsettimegestilt_help(void *ref);
 
 /**
 * @brief Function to print help for baro1setcnfg command
@@ -1546,34 +1719,34 @@ int8_t hmcgetmode_help(void *ref);
 int8_t hmcgetmode_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to print help for hosetheadcorrq command
+* @brief Function to print help for hosetheadcorrimu command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t hosetheadcorrq_help(void *ref);
+int8_t hosetheadcorrimu_help(void *ref);
 
 /**
-* @brief Function to implement callback for hosetheadcorrq command
+* @brief Function to implement callback for hosetheadcorrimu command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t hosetheadcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+int8_t hosetheadcorrimu_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to print help for hogetheadcorrq command
+* @brief Function to print help for hogetheadcorrimu command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t hogetheadcorrq_help(void *ref);
+int8_t hogetheadcorrimu_help(void *ref);
 
 /**
-* @brief Function to implement callback for hogetheadcorrq command
+* @brief Function to implement callback for hogetheadcorrimu command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t hogetheadcorrq_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+int8_t hogetheadcorrimu_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
 * @brief Function to print help for hover command
@@ -1591,34 +1764,34 @@ int8_t hover_help(void *ref);
 int8_t hover_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to print help for hosetheadcorre command
+* @brief Function to print help for hosetheadcorrndof command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t hosetheadcorre_help(void *ref);
+int8_t hosetheadcorrndof_help(void *ref);
 
 /**
-* @brief Function to implement callback for hosetheadcorre command
+* @brief Function to implement callback for hosetheadcorrndof command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t hosetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+int8_t hosetheadcorrndof_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
-* @brief Function to print help for hogetheadcorre command
+* @brief Function to print help for hogetheadcorrndof command
 * @param[in] ref  : Reference to command line
 * @return API error codes
 */
-int8_t hogetheadcorre_help(void *ref);
+int8_t hogetheadcorrndof_help(void *ref);
 
 /**
-* @brief Function to implement callback for hogetheadcorre command
+* @brief Function to implement callback for hogetheadcorrndof command
 * @param[in] argc : Number of arguments in command line
 * @param[in] argv : Array of pointer to arguments
 * @param[in] ref  : Reference to command line
 */
-int8_t hogetheadcorre_callback(uint8_t argc, uint8_t * const argv[], void *ref);
+int8_t hogetheadcorrndof_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
 * @brief Function to print help for foc command
@@ -1799,96 +1972,6 @@ int8_t syssetmectrl_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 * @return API error codes
 */
 int8_t syssetmectrl_help(void *ref);
-
-/**
-* @brief Function to print help for bsecsetalstate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecsetalstate_help(void *ref);
-
-/**
-* @brief Function to implement callback for bsecsetalstate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecsetalstate_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for bsecgetalstate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecgetalstate_help(void *ref);
-
-/**
-* @brief Function to implement callback for bsecgetalstate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecgetalstate_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for bsecsettempoff command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecsettempoff_help(void *ref);
-
-/**
-* @brief Function to implement callback for bsecsettempoff command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecsettempoff_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for bsecgettempoff command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecgettempoff_help(void *ref);
-
-/**
-* @brief Function to implement callback for bsecgettempoff command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecgettempoff_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for bsecsetsamrate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecsetsamrate_help(void *ref);
-
-/**
-* @brief Function to implement callback for bsecsetsamrate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecsetsamrate_callback(uint8_t argc, uint8_t * const argv[], void *ref);
-
-/**
-* @brief Function to print help for bsecgetsamrate command
-* @param[in] ref  : Reference to command line
-* @return API error codes
-*/
-int8_t bsecgetsamrate_help(void *ref);
-
-/**
-* @brief Function to implement callback for bsecgetsamrate command
-* @param[in] argc : Number of arguments in command line
-* @param[in] argv : Array of pointer to arguments
-* @param[in] ref  : Reference to command line
-*/
-int8_t bsecgetsamrate_callback(uint8_t argc, uint8_t * const argv[], void *ref);
 
 /**
 * @brief Function to implement callback for sethearactvcnfg command

@@ -1,5 +1,29 @@
 # Changelog
 
+# v1.3.0
+- Feature Added:
+1. Classified the commands, make convenient for customer to list only wanted command base on kind of parameter
+2. Added new command for HGD, gyro sensitivity manual compensation
+3. Updated head orientation to head feature
+4. Added shell script to setup bhy2cli on Linux
+5. Updated command for wrist wear wakeup, step counter
+6. Updated command for wrist gesture detector by using generic features APIs
+6. Updated command for parameter  0x0C0D (heading correction for head orientation)
+7. Updated Coines from 2.12.2 to 2.12.3
+8. Updated User guide
+9. Removed un-supported BSEC
+
+-Bug fixed:
+1. Fixed setorientmatrix command
+
+# v1.2.2
+- Bug Fixed:
+1. hmctrig execute not properly at second time in MCU mode
+
+# v1.2.1
+- Bug Fixed:
+1. Process data fifo before executing slabel
+
 # v1.2.0
 - Feature Added:
 1. Added support SIC matrix

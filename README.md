@@ -12,8 +12,7 @@
 ## Compatibility
 | Items      | BHy2CLI | FW     | BSX   |BHI SensorAPI | COINES SDK   | Supported Boards | Supported Sensors |
 | :---:      | :---:   | :----: | :----: | :----:        | :----:      | :----: | :----:  |
-| version    | 1.2.0   | 1.1.18<br>1.0.1.0 | IR84.3<br>1.3.2 | 2.2.0<br>2.1.0         | 2.12        | APP30<br>APP31<br>Hearable   | BHI360<br>BHI385     |
-
+| version    | 1.3.0   | 3.2.0.1<br>1.0.1.0 | 1.3.4.0<br>1.3.2 | 2.3.1<br>2.1.0         | 2.12.3        | APP30<br>APP31<br>   | BHI360<br>BHI385     |
 ## Folder Structure 🗂️
 
 The BHy2CLI repositories follow this folder structure:
@@ -62,8 +61,7 @@ To clone BHy2CLI from Github, follow the below command
 By default, the source code and Makefile locate the BHI360 sensor API v2.2.0 under "submodules/bhi360".
 2. Update the Makefile of the CLI to include definitions and source code for the new sensor API. Follow these steps:
    - Add the location of the new sensor API:
-     ```
-     CLIxxx_API_LOCATION ?= submodules/bhixxx
+     ``     CLIxxx_API_LOCATION ?= submodules/bhixxx
      ```
    - Add the source files of the new sensor API to the build process:
      ```

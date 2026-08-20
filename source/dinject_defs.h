@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -66,11 +66,11 @@ extern "C" {
 #define ORIENTATION_INJECT_DRIVER_ID      INT8_C(81)
 #define LINEACC_INJECT_DRIVER_ID          INT8_C(82)
 
-#define TIMESTAMP_SMALL_DELTA_NWU_ID      INT8_C(245)
-#define TIMESTAMP_SMALL_DELTA_WU_ID       INT8_C(251)
+#define TIMESTAMP_SMALL_DELTA_NWU_ID      INT8_C(251)
+#define TIMESTAMP_SMALL_DELTA_WU_ID       INT8_C(245)
 
-#define TIMESTAMP_LARGE_DELTA_NWU_ID      INT8_C(246)
-#define TIMESTAMP_LARGE_DELTA_WU_ID       INT8_C(252)
+#define TIMESTAMP_LARGE_DELTA_NWU_ID      INT8_C(252)
+#define TIMESTAMP_LARGE_DELTA_WU_ID       INT8_C(246)
 
 #define FULL_TIMESTAMP_WU_ID              INT8_C(247)
 #define FULL_TIMESTAMP_NWU_ID             INT8_C(253)

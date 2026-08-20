@@ -131,3 +131,14 @@ move /y bhy2cli.exe spi_bhy2cli.exe
 
 :: Copy executable to %PC_BIN_PATH%
 xcopy /y .\*bhy2cli.exe %PC_BIN_PATH%
+
+:: Build executable for udftools for TARGET PC
+cd .\tools\udftools
+call build.bat
+
+:: Copy udftools executable to %PC_BIN_PATH%
+cd ..\..\
+xcopy /y .\tools\udftools\udf2csv.exe %PC_BIN_PATH%
+xcopy /y .\tools\udftools\udf_updater.exe %PC_BIN_PATH%
+xcopy /y .\tools\udftools\LICENSE %PC_BIN_PATH%
+xcopy /y .\tools\udftools\README.md %PC_BIN_PATH%

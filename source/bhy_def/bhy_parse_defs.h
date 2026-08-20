@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_parse.h
-* @date       2025-08-20
-* @version    v1.2.0
+* @date       2026-08-06
+* @version    v1.3.0
 *
 */
 #ifndef __BHY_PARSE_H__
@@ -92,8 +92,6 @@ typedef void (*bhy_parse_scalar_event_func)(const struct bhy_fifo_parse_data_inf
 
 typedef void (*bhy_parse_activity_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
-typedef void (*bhy_parse_u16_as_float_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
-
 typedef void (*bhy_parse_u24_as_float_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 typedef void (*bhy_parse_proximity_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
@@ -117,6 +115,8 @@ typedef void (*bhy_parse_step_counter_data_func)(const struct bhy_fifo_parse_dat
                                                  void *callback_ref);
 typedef void (*bhy_parse_wrist_wear_wakeup_data_func)(const struct bhy_fifo_parse_data_info *callback_info,
                                                       void *callback_ref);
+
+typedef void (*bhy_parse_free_fall_data_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 
 typedef void (*bhy_parse_air_quality_func)(const struct bhy_fifo_parse_data_info *callback_info, void *callback_ref);
 

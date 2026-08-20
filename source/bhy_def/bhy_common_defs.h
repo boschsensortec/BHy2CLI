@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bhy_common_defs.h
-* @date       2025-08-20
-* @version    v1.2.0
+* @date       2026-08-06
+* @version    v1.3.0
 *
 */
 
@@ -505,8 +505,7 @@ extern "C" {
 #define BHY_PHYS_SENSOR_ID_GYROSCOPE                                UINT8_C(3)
 #define BHY_PHYS_SENSOR_ID_MAGNETOMETER                             UINT8_C(5)
 #define BHY_PHYS_SENSOR_ID_TEMP_GYRO                                UINT8_C(7)
-#define BHY_PHYS_SENSOR_ID_ANY_MOTION                               UINT8_C(9)
-#define BHY_PHYS_SENSOR_ID_PRESSURE                                 UINT8_C(11)
+#define BHI360_PHYS_SENSOR_ID_BME_TEMP                              UINT8_C(11)
 #define BHY_PHYS_SENSOR_ID_POSITION                                 UINT8_C(13)
 #define BHY_PHYS_SENSOR_ID_HUMIDITY                                 UINT8_C(15)
 #define BHY_PHYS_SENSOR_ID_TEMPERATURE                              UINT8_C(17)
@@ -516,7 +515,7 @@ extern "C" {
 #define BHY_PHYS_SENSOR_ID_PHYS_STEP_DETECTOR                       UINT8_C(33)
 #define BHY_PHYS_SENSOR_ID_PHYS_SIGN_MOTION                         UINT8_C(34)
 #define BHY_PHYS_SENSOR_ID_PHYS_ANY_MOTION                          UINT8_C(35)
-#define BHY_PHYS_SENSOR_ID_EX_CAMERA_INPUT                          UINT8_C(36)
+#define BHI360_PHYS_SENSOR_ID_FEATURE_CORE                          UINT8_C(37)
 #define BHY_PHYS_SENSOR_ID_GPS                                      UINT8_C(48)
 #define BHY_PHYS_SENSOR_ID_LIGHT                                    UINT8_C(49)
 #define BHY_PHYS_SENSOR_ID_PROXIMITY                                UINT8_C(50)
@@ -524,6 +523,7 @@ extern "C" {
 #define BHY_PHYS_SENSOR_ID_PHYS_NO_MOTION                           UINT8_C(55)
 #define BHY_PHYS_SENSOR_ID_WRIST_GESTURE_DETECT                     UINT8_C(56)
 #define BHY_PHYS_SENSOR_ID_WRIST_WEAR_WAKEUP                        UINT8_C(57)
+#define BHY_PHYS_SENSOR_ID_BMP_TEMPERATURE                          UINT8_C(59)
 #define BHY_PHYS_SENSOR_ID_BMP_PRESSURE                             UINT8_C(61)
 
 /*! System data IDs */

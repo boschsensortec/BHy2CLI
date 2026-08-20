@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2026 Bosch Sensortec GmbH. All rights reserved.
  *
  * BSD-3-Clause
  *
@@ -96,6 +96,33 @@ static enum coines_multi_io_pin int_pin = BHY260_APP3X_INT_PIN;
 static enum coines_multi_io_pin reset_pin = BHY260_APP3X_RESET_PIN;
 #endif
 
+typedef struct
+{
+    int16_t key;
+    char *value;
+} bhy_str_lookup_entry;
+
+/**
+ * @brief Function to look up a string in a lookup table
+ * @param[in] table        : Pointer to lookup table
+ * @param[in] table_size   : Size of lookup table
+ * @param[in] key          : Key to look up
+ * @param[in] default_value: Default value if key is not found
+ * @return Corresponding string if found, otherwise default_value
+ */
+static char *bhy_str_lut_lookup(const bhy_str_lookup_entry *table, size_t table_size, int16_t key, char *default_value)
+{
+    for (size_t i = 0; i < table_size; i++)
+    {
+        if (table[i].key == key)
+        {
+            return table[i].value;
+        }
+    }
+
+    return default_value;
+}
+
 /**
 * @brief Function to get sensor name from Accelerometer sensor ID
 * @param[in] sensor_id  : Sensor ID
@@ -103,36 +130,15 @@ static enum coines_multi_io_pin reset_pin = BHY260_APP3X_RESET_PIN;
 */
 char *get_accel_sensor_name(uint8_t sensor_id)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry accel_sensor_lut[] = {
+        { BHY_SENSOR_ID_ACC_PASS, "Accelerometer passthrough" },
+        { BHY_SENSOR_ID_ACC_RAW, "Accelerometer uncalibrated" }, { BHY_SENSOR_ID_ACC, "Accelerometer corrected" },
+        { BHY_SENSOR_ID_ACC_BIAS, "Accelerometer offset" }, { BHY_SENSOR_ID_ACC_WU, "Accelerometer corrected wake up" },
+        { BHY_SENSOR_ID_ACC_RAW_WU, "Accelerometer uncalibrated wake up" },
+        { BHY_SENSOR_ID_ACC_BIAS_WU, "Accelerometer offset wake up" },
+    };
 
-    switch (sensor_id)
-    {
-        case BHY_SENSOR_ID_ACC_PASS:
-            ret = "Accelerometer passthrough";
-            break;
-        case BHY_SENSOR_ID_ACC_RAW:
-            ret = "Accelerometer uncalibrated";
-            break;
-        case BHY_SENSOR_ID_ACC:
-            ret = "Accelerometer corrected";
-            break;
-        case BHY_SENSOR_ID_ACC_BIAS:
-            ret = "Accelerometer offset";
-            break;
-        case BHY_SENSOR_ID_ACC_WU:
-            ret = "Accelerometer corrected wake up";
-            break;
-        case BHY_SENSOR_ID_ACC_RAW_WU:
-            ret = "Accelerometer uncalibrated wake up";
-            break;
-        case BHY_SENSOR_ID_ACC_BIAS_WU:
-            ret = "Accelerometer offset wake up";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(accel_sensor_lut, sizeof(accel_sensor_lut) / sizeof(accel_sensor_lut[0]), sensor_id, " ");
 }
 
 /**
@@ -142,36 +148,14 @@ char *get_accel_sensor_name(uint8_t sensor_id)
 */
 char *get_gyro_sensor_name(uint8_t sensor_id)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry gyro_sensor_lut[] = {
+        { BHY_SENSOR_ID_GYRO_PASS, "Gyroscope passthrough" }, { BHY_SENSOR_ID_GYRO_RAW, "Gyroscope uncalibrated" },
+        { BHY_SENSOR_ID_GYRO, "Gyroscope corrected" }, { BHY_SENSOR_ID_GYRO_BIAS, "Gyroscope offset" },
+        { BHY_SENSOR_ID_GYRO_WU, "Gyroscope wake up" }, { BHY_SENSOR_ID_GYRO_RAW_WU, "Gyroscope uncalibrated wake up" },
+        { BHY_SENSOR_ID_GYRO_BIAS_WU, "Gyroscope offset wake up" },
+    };
 
-    switch (sensor_id)
-    {
-        case BHY_SENSOR_ID_GYRO_PASS:
-            ret = "Gyroscope passthrough";
-            break;
-        case BHY_SENSOR_ID_GYRO_RAW:
-            ret = "Gyroscope uncalibrated";
-            break;
-        case BHY_SENSOR_ID_GYRO:
-            ret = "Gyroscope corrected";
-            break;
-        case BHY_SENSOR_ID_GYRO_BIAS:
-            ret = "Gyroscope offset";
-            break;
-        case BHY_SENSOR_ID_GYRO_WU:
-            ret = "Gyroscope wake up";
-            break;
-        case BHY_SENSOR_ID_GYRO_RAW_WU:
-            ret = "Gyroscope uncalibrated wake up";
-            break;
-        case BHY_SENSOR_ID_GYRO_BIAS_WU:
-            ret = "Gyroscope offset wake up";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(gyro_sensor_lut, sizeof(gyro_sensor_lut) / sizeof(gyro_sensor_lut[0]), sensor_id, " ");
 }
 
 /**
@@ -181,36 +165,15 @@ char *get_gyro_sensor_name(uint8_t sensor_id)
 */
 char *get_mag_sensor_name(uint8_t sensor_id)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry mag_sensor_lut[] = {
+        { BHY_SENSOR_ID_MAG_PASS, "Magnetometer passthrough" }, { BHY_SENSOR_ID_MAG_RAW, "Magnetometer uncalibrated" },
+        { BHY_SENSOR_ID_MAG, "Magnetometer corrected" }, { BHY_SENSOR_ID_MAG_BIAS, "Magnetometer offset" },
+        { BHY_SENSOR_ID_MAG_WU, "Magnetometer wake up" },
+        { BHY_SENSOR_ID_MAG_RAW_WU, "Magnetometer uncalibrated wake up" },
+        { BHY_SENSOR_ID_MAG_BIAS_WU, "Magnetometer offset wake up" },
+    };
 
-    switch (sensor_id)
-    {
-        case BHY_SENSOR_ID_MAG_PASS:
-            ret = "Magnetometer passthrough";
-            break;
-        case BHY_SENSOR_ID_MAG_RAW:
-            ret = "Magnetometer uncalibrated";
-            break;
-        case BHY_SENSOR_ID_MAG:
-            ret = "Magnetometer corrected";
-            break;
-        case BHY_SENSOR_ID_MAG_BIAS:
-            ret = "Magnetometer offset";
-            break;
-        case BHY_SENSOR_ID_MAG_WU:
-            ret = "Magnetometer wake up";
-            break;
-        case BHY_SENSOR_ID_MAG_RAW_WU:
-            ret = "Magnetometer uncalibrated wake up";
-            break;
-        case BHY_SENSOR_ID_MAG_BIAS_WU:
-            ret = "Magnetometer offset wake up";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(mag_sensor_lut, sizeof(mag_sensor_lut) / sizeof(mag_sensor_lut[0]), sensor_id, " ");
 }
 
 /**
@@ -218,154 +181,25 @@ char *get_mag_sensor_name(uint8_t sensor_id)
 * @param[in] sensor_id  : Sensor ID
 * @return String represents corresponding Motion sensor
 */
-char *get_motion_sensor_names(uint8_t sensor_id)
-{
-    char *ret = " ";
-
-    switch (sensor_id)
-    {
-        case BHY_SENSOR_ID_GRA:
-            ret = "Gravity vector";
-            break;
-        case BHY_SENSOR_ID_GRA_WU:
-            ret = "Gravity vector wake up";
-            break;
-        case BHY_SENSOR_ID_LACC:
-            ret = "Linear acceleration";
-            break;
-        case BHY_SENSOR_ID_LACC_WU:
-            ret = "Linear acceleration wake up";
-            break;
-        case BHY_SENSOR_ID_RV:
-            ret = "Rotation vector";
-            break;
-        case BHY_SENSOR_ID_RV_WU:
-            ret = "Rotation vector wake up";
-            break;
-        case BHY_SENSOR_ID_GAMERV:
-            ret = "Game rotation vector";
-            break;
-        case BHY_SENSOR_ID_GAMERV_WU:
-            ret = "Game rotation vector wake up";
-            break;
-        case BHY_SENSOR_ID_GEORV:
-            ret = "Geo-magnetic rotation vector";
-            break;
-        case BHY_SENSOR_ID_GEORV_WU:
-            ret = "Geo-magnetic rotation vector wake up";
-            break;
-        case BHY_SENSOR_ID_ORI:
-            ret = "Orientation";
-            break;
-        case BHY_SENSOR_ID_ORI_WU:
-            ret = "Orientation wake up";
-            break;
-        case BHY_SENSOR_ID_SIG:
-            ret = "Significant motion";
-            break;
-        case BHY_SENSOR_ID_STD:
-            ret = "Step detector";
-            break;
-        case BHY_SENSOR_ID_STD_WU:
-            ret = "Step detector wake up";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
-}
-
-/**
-* @brief Function to get sensor name from all Motion sensor IDs
-* @param[in] sensor_id  : Sensor ID
-* @return String represents corresponding Motion sensor
-*/
 char *get_motion_sensor_name(uint8_t sensor_id)
 {
-    char *ret;
+    static const bhy_str_lookup_entry motion_sensor_lut[] = {
+        { BHY_SENSOR_ID_GRA, "Gravity vector" }, { BHY_SENSOR_ID_GRA_WU, "Gravity vector wake up" },
+        { BHY_SENSOR_ID_LACC, "Linear acceleration" }, { BHY_SENSOR_ID_LACC_WU, "Linear acceleration wake up" },
+        { BHY_SENSOR_ID_RV, "Rotation vector" }, { BHY_SENSOR_ID_RV_WU, "Rotation vector wake up" },
+        { BHY_SENSOR_ID_GAMERV, "Game rotation vector" }, { BHY_SENSOR_ID_GAMERV_WU, "Game rotation vector wake up" },
+        { BHY_SENSOR_ID_GEORV, "Geo-magnetic rotation vector" },
+        { BHY_SENSOR_ID_GEORV_WU, "Geo-magnetic rotation vector wake up" }, { BHY_SENSOR_ID_ORI, "Orientation" },
+        { BHY_SENSOR_ID_ORI_WU, "Orientation wake up" }, { BHY_SENSOR_ID_SIG, "Significant motion" },
+        { BHY_SENSOR_ID_STD, "Step detector" }, { BHY_SENSOR_ID_STD_WU, "Step detector wake up" },
+        { BHY_SENSOR_ID_AIR_QUALITY, "Air Quality" }, { BHY_SENSOR_ID_TEMP, "Temperature" },
+        { BHY_SENSOR_ID_BARO, "Barometer" }, { BHY_SENSOR_ID_HUM, "Humidity" }, { BHY_SENSOR_ID_GAS, "Gas" },
+    };
 
-    ret = get_motion_sensor_names(sensor_id);
-
-    if (strcmp(ret, " ") == 0)
-    {
-        switch (sensor_id)
-        {
-            case BHY_SENSOR_ID_AIR_QUALITY:
-                ret = "Air Quality";
-                break;
-            case BHY_SENSOR_ID_TEMP:
-                ret = "Temperature";
-                break;
-            case BHY_SENSOR_ID_BARO:
-                ret = "Barometer";
-                break;
-            case BHY_SENSOR_ID_HUM:
-                ret = "Humidity";
-                break;
-            case BHY_SENSOR_ID_GAS:
-                ret = "Gas";
-                break;
-            default:
-                break;
-        }
-    }
-
-    return ret;
-}
-
-/**
-* @brief Function to get sensor name from some miscellaneous sensor IDs
-* @param[in] sensor_id  : Sensor ID
-* @return String represents corresponding sensor name
-*/
-char *get_misc_sensor_names(uint8_t sensor_id)
-{
-    char *ret = " ";
-
-    switch (sensor_id)
-    {
-        case BHY_SENSOR_ID_TEMP_WU:
-            ret = "Temperature wake up";
-            break;
-        case BHY_SENSOR_ID_BARO_WU:
-            ret = "Barometer wake up";
-            break;
-        case BHY_SENSOR_ID_PRESSURE_WU:
-            ret = "BMP Pressure wake up";
-            break;
-        case BHY_SENSOR_ID_PRESSURE:
-            ret = "BMP Pressure";
-            break;
-        case BHY_SENSOR_ID_HUM_WU:
-            ret = "Humidity wake up";
-            break;
-        case BHY_SENSOR_ID_GAS_WU:
-            ret = "Gas wake up";
-            break;
-        case BHY_SENSOR_ID_KLIO:
-            ret = "Klio";
-            break;
-        case BHY_SENSOR_ID_KLIO_GENERIC:
-            ret = "Klio Generic";
-            break;
-        case BHY_SENSOR_ID_KLIO_LOG:
-            ret = "Klio log";
-            break;
-        case BHY_SENSOR_ID_STC_LP:
-            ret = "Low Power Step counter";
-            break;
-        case BHY_SENSOR_ID_STC_LP_WU:
-            ret = "Low Power Step counter wake up";
-            break;
-        case BHY_SENSOR_BMP_TEMPERATURE:
-            ret = "BMP Temperature";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(motion_sensor_lut,
+                              sizeof(motion_sensor_lut) / sizeof(motion_sensor_lut[0]),
+                              sensor_id,
+                              " ");
 }
 
 /**
@@ -375,68 +209,34 @@ char *get_misc_sensor_names(uint8_t sensor_id)
 */
 char *get_misc_sensor_name(uint8_t sensor_id)
 {
-    char *ret;
+    static const bhy_str_lookup_entry misc_sensor_lut[] = {
+        { BHY_SENSOR_ID_SIG_LP_WU, "Low Power Significant motion wake up" },
+        { BHY_SENSOR_ID_STD_LP, "Low Power Step detector" },
+        { BHY_SENSOR_ID_STD_LP_WU, "Low Power Step detector wake up" },
+        { BHY_SENSOR_BMP_TEMPERATURE_WU, "BMP Temperature wake up" },
+        { BHY_SENSOR_ID_ANY_MOTION_LP_WU, "Low Power Any motion wake up" },
+        { BHY_SENSOR_ID_NO_MOTION_LP_WU, "Low Power No Motion wake up" },
+        { BHY_SENSOR_ID_AR_WEAR_WU, "Activity recognition wake up" },
+        { BHY_SENSOR_ID_WRIST_WEAR_LP_WU, "Low Power Wrist Wear wake up" },
+        { BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU, "Low Power Wrist Gesture wake up" },
+        { BHY_SENSOR_ID_MULTI_TAP, "Multi Tap Detector" },
+        { BHY_SENSOR_ID_HEAD_ORI_MIS_ALG, "Head Misalignment Calibrator" },
+        { BHY_SENSOR_ID_IMU_HEAD_ORI_Q, "IMU Head Orientation Quaternion" },
+        { BHY_SENSOR_ID_NDOF_HEAD_ORI_Q, "NDOF Head Orientation Quaternion" },
+        { BHY_SENSOR_ID_IMU_HEAD_ORI_E, "IMU Head Orientation Euler" },
+        { BHY_SENSOR_ID_NDOF_HEAD_ORI_E, "NDOF Head Orientation Euler" },
+        { BHY_SENSOR_ID_HEAD_GESTURE, "Head Gesture" }, { BHY_SENSOR_ID_TEMP_WU, "Temperature wake up" },
+        { BHY_SENSOR_ID_BARO_WU, "Barometer wake up" }, { BHY_SENSOR_ID_PRESSURE_WU, "BMP Pressure wake up" },
+        { BHY_SENSOR_ID_PRESSURE, "BMP Pressure" }, { BHY_SENSOR_ID_HUM_WU, "Humidity wake up" },
+        { BHY_SENSOR_ID_GAS_WU, "Gas wake up" }, { BHY_SENSOR_ID_KLIO, "Klio" },
+        { BHY_SENSOR_ID_KLIO_GENERIC, "Klio Generic" }, { BHY_SENSOR_ID_KLIO_LOG, "Klio log" },
+        { BHY_SENSOR_ID_STC_LP, "Low Power Step counter" },
+        { BHY_SENSOR_ID_STC_LP_WU, "Low Power Step counter wake up" },
+        { BHY_SENSOR_BMP_TEMPERATURE, "BMP Temperature" },
+    };
 
-    ret = get_misc_sensor_names(sensor_id);
+    return bhy_str_lut_lookup(misc_sensor_lut, sizeof(misc_sensor_lut) / sizeof(misc_sensor_lut[0]), sensor_id, " ");
 
-    if (strcmp(ret, " ") == 0)
-    {
-        switch (sensor_id)
-        {
-            case BHY_SENSOR_ID_SIG_LP_WU:
-                ret = "Low Power Significant motion wake up";
-                break;
-            case BHY_SENSOR_ID_STD_LP:
-                ret = "Low Power Step detector";
-                break;
-            case BHY_SENSOR_ID_STD_LP_WU:
-                ret = "Low Power Step detector wake up";
-                break;
-            case BHY_SENSOR_BMP_TEMPERATURE_WU:
-                ret = "BMP Temperature wake up";
-                break;
-            case BHY_SENSOR_ID_ANY_MOTION_LP_WU:
-                ret = "Low Power Any motion wake up";
-                break;
-            case BHY_SENSOR_ID_NO_MOTION_LP_WU:
-                ret = "Low Power No Motion wake up";
-                break;
-            case BHY_SENSOR_ID_AR_WEAR_WU:
-                ret = "Activity recognition wake up";
-                break;
-            case BHY_SENSOR_ID_WRIST_WEAR_LP_WU:
-                ret = "Low Power Wrist Wear wake up";
-                break;
-            case BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU:
-                ret = "Low Power Wrist Gesture wake up";
-                break;
-            case BHY_SENSOR_ID_MULTI_TAP:
-                ret = "Multi Tap Detector";
-                break;
-            case BHY_SENSOR_ID_HEAD_ORI_MIS_ALG:
-                ret = "Head Misalignment Calibrator";
-                break;
-            case BHY_SENSOR_ID_IMU_HEAD_ORI_Q:
-                ret = "IMU Head Orientation Quaternion";
-                break;
-            case BHY_SENSOR_ID_NDOF_HEAD_ORI_Q:
-                ret = "NDOF Head Orientation Quaternion";
-                break;
-            case BHY_SENSOR_ID_IMU_HEAD_ORI_E:
-                ret = "IMU Head Orientation Euler";
-                break;
-            case BHY_SENSOR_ID_NDOF_HEAD_ORI_E:
-                ret = "NDOF Head Orientation Euler";
-                break;
-            case BHY_SENSOR_ID_HEAD_GESTURE:
-                ret = "Head Gesture";
-                break;
-            default:
-                break;
-        }
-    }
-
-    return ret;
 }
 
 /**
@@ -495,103 +295,38 @@ bool get_interrupt_status(void)
 }
 
 /**
-* @brief Function to get some COINES errors
-* @param[in] rslt  : result value
-* @return String corresponds to COINES error
-*/
-char *get_coines_error_code(int16_t rslt)
-{
-    char *ret = " ";
-
-    switch (rslt)
-    {
-        case COINES_SUCCESS:
-            break;
-        case COINES_E_FAILURE:
-            ret = "[COINES Error] Generic failure";
-            break;
-        case COINES_E_COMM_IO_ERROR:
-            ret = "[COINES Error] Communication IO failed. Check connections with the sensor";
-            break;
-        case COINES_E_COMM_INIT_FAILED:
-            ret = "[COINES Error] Communication initialization failed";
-            break;
-        case COINES_E_UNABLE_OPEN_DEVICE:
-            ret = "[COINES Error] Unable to open device. Check if the board is in use";
-            break;
-        case COINES_E_DEVICE_NOT_FOUND:
-            ret = "[COINES Error] Device not found. Check if the board is powered on";
-            break;
-        case COINES_E_UNABLE_CLAIM_INTF:
-            ret = "[COINES Error] Unable to claim interface. Check if the board is in use";
-            break;
-        case COINES_E_MEMORY_ALLOCATION:
-            ret = "[COINES Error] Error allocating memory";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
-}
-
-/**
 * @brief Function to get COINES error
 * @param[in] rslt  : result value
 * @return String corresponds to COINES error
 */
 char *get_coines_error(int16_t rslt)
 {
-    char *ret;
+    static const bhy_str_lookup_entry coines_error_lut[] = {
+        { COINES_SUCCESS, "" }, { COINES_E_FAILURE, "[COINES Error] Generic failure" },
+        { COINES_E_COMM_IO_ERROR, "[COINES Error] Communication IO failed. Check connections with the sensor" },
+        { COINES_E_COMM_INIT_FAILED, "[COINES Error] Communication initialization failed" },
+        { COINES_E_UNABLE_OPEN_DEVICE, "[COINES Error] Unable to open device. Check if the board is in use" },
+        { COINES_E_DEVICE_NOT_FOUND, "[COINES Error] Device not found. Check if the board is powered on" },
+        { COINES_E_UNABLE_CLAIM_INTF, "[COINES Error] Unable to claim interface. Check if the board is in use" },
+        { COINES_E_MEMORY_ALLOCATION, "[COINES Error] Error allocating memory" },
+        { COINES_E_NOT_SUPPORTED, "[COINES Error] Feature not supported" },
+        { COINES_E_NULL_PTR, "[COINES Error] Null pointer error" },
+        { COINES_E_COMM_WRONG_RESPONSE, "[COINES Error] Unexpected response" },
+        { COINES_E_SPI16BIT_NOT_CONFIGURED, "[COINES Error] 16-Bit SPI not configured" },
+        { COINES_E_SPI_INVALID_BUS_INTF, "[COINES Error] Invalid SPI bus interface" },
+        { COINES_E_SPI_CONFIG_EXIST, "[COINES Error] SPI already configured" },
+        { COINES_E_SPI_BUS_NOT_ENABLED, "[COINES Error] SPI bus not enabled" },
+        { COINES_E_SPI_CONFIG_FAILED, "[COINES Error] SPI configuration failed" },
+        { COINES_E_I2C_INVALID_BUS_INTF, "[COINES Error] Invalid I2C bus interface" },
+        { COINES_E_I2C_BUS_NOT_ENABLED, "[COINES Error] I2C bus not enabled" },
+        { COINES_E_I2C_CONFIG_FAILED, "[COINES Error] I2C configuration failed" },
+        { COINES_E_I2C_CONFIG_EXIST, "[COINES Error] I2C already configured" },
+    };
 
-    ret = get_coines_error_code(rslt);
-
-    if ((strcmp(ret, " ") == 0) && (rslt != COINES_SUCCESS))
-    {
-        switch (rslt)
-        {
-            case COINES_E_NOT_SUPPORTED:
-                ret = "[COINES Error] Feature not supported";
-                break;
-            case COINES_E_NULL_PTR:
-                ret = "[COINES Error] Null pointer error";
-                break;
-            case COINES_E_COMM_WRONG_RESPONSE:
-                ret = "[COINES Error] Unexpected response";
-                break;
-            case COINES_E_SPI16BIT_NOT_CONFIGURED:
-                ret = "[COINES Error] 16-Bit SPI not configured";
-                break;
-            case COINES_E_SPI_INVALID_BUS_INTF:
-                ret = "[COINES Error] Invalid SPI bus interface";
-                break;
-            case COINES_E_SPI_CONFIG_EXIST:
-                ret = "[COINES Error] SPI already configured";
-                break;
-            case COINES_E_SPI_BUS_NOT_ENABLED:
-                ret = "[COINES Error] SPI bus not enabled";
-                break;
-            case COINES_E_SPI_CONFIG_FAILED:
-                ret = "[COINES Error] SPI configuration failed";
-                break;
-            case COINES_E_I2C_INVALID_BUS_INTF:
-                ret = "[COINES Error] Invalid I2C bus interface";
-                break;
-            case COINES_E_I2C_BUS_NOT_ENABLED:
-                ret = "[COINES Error] I2C bus not enabled";
-                break;
-            case COINES_E_I2C_CONFIG_FAILED:
-                ret = "[COINES Error] I2C configuration failed";
-                break;
-            case COINES_E_I2C_CONFIG_EXIST:
-                ret = "[COINES Error] I2C already configured";
-                break;
-            default:
-                ret = "[COINES Error] Unknown error code";
-        }
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(coines_error_lut,
+                              sizeof(coines_error_lut) / sizeof(coines_error_lut[0]),
+                              rslt,
+                              "[COINES Error] Unknown error code");
 }
 
 /**
@@ -601,44 +336,21 @@ char *get_coines_error(int16_t rslt)
 */
 char *get_api_error(int8_t error_code)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry api_error_lut[] = {
+        { BHY_OK, "[API Error] No error" }, { BHY_E_NULL_PTR, "[API Error] Null pointer" },
+        { BHY_E_INVALID_PARAM, "[API Error] Invalid parameter" }, { BHY_E_IO, "[API Error] IO error" },
+        { BHY_E_MAGIC, "[API Error] Invalid firmware" }, { BHY_E_TIMEOUT, "[API Error] Timed out" },
+        { BHY_E_BUFFER, "[API Error] Invalid buffer" }, { BHY_E_INVALID_FIFO_TYPE, "[API Error] Invalid FIFO type" },
+        { BHY_E_INVALID_EVENT_SIZE, "[API Error] Invalid Event size" },
+        { BHY_E_PARAM_NOT_SET, "[API Error] Parameter not set" },
+        { BHY_E_INSUFFICIENT_MAX_SIMUL_SENSORS, "[API Error] Insufficient max simultaneous sensors" },
+        { BHY_E_FUNCTION_NOT_FOUND, "[API Error] Function not found" },
+    };
 
-    switch (error_code)
-    {
-        case BHY_OK:
-            break;
-        case BHY_E_NULL_PTR:
-            ret = "[API Error] Null pointer";
-            break;
-        case BHY_E_INVALID_PARAM:
-            ret = "[API Error] Invalid parameter";
-            break;
-        case BHY_E_IO:
-            ret = "[API Error] IO error";
-            break;
-        case BHY_E_MAGIC:
-            ret = "[API Error] Invalid firmware";
-            break;
-        case BHY_E_TIMEOUT:
-            ret = "[API Error] Timed out";
-            break;
-        case BHY_E_BUFFER:
-            ret = "[API Error] Invalid buffer";
-            break;
-        case BHY_E_INVALID_FIFO_TYPE:
-            ret = "[API Error] Invalid FIFO type";
-            break;
-        case BHY_E_INVALID_EVENT_SIZE:
-            ret = "[API Error] Invalid Event size";
-            break;
-        case BHY_E_PARAM_NOT_SET:
-            ret = "[API Error] Parameter not set";
-            break;
-        default:
-            ret = "[API Error] Unknown API error code";
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(api_error_lut,
+                              sizeof(api_error_lut) / sizeof(api_error_lut[0]),
+                              error_code,
+                              "[API Error] Unknown API error code");
 }
 
 /**
@@ -893,65 +605,29 @@ void bhydev_delay_us(uint32_t us, void *private_data)
 */
 char *get_sensor_bootloader_error_text(uint8_t sensor_error)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry bootloader_error_lut[] = {
+        { 0x00, "No error" }, { 0x1A, "[Sensor error] ROM Version Mismatch" },
+        { 0x10, "[Sensor error] Bootloader reports: Firmware Expected Version Mismatch" },
+        { 0x11, "[Sensor error] Bootloader reports: Firmware Upload Failed: Bad Header CRC" },
+        { 0x12, "[Sensor error] Bootloader reports: Firmware Upload Failed: SHA Hash Mismatch" },
+        { 0x13, "[Sensor error] Bootloader reports: Firmware Upload Failed: Bad Image CRC" },
+        { 0x14, "[Sensor error] Bootloader reports: Firmware Upload Failed: ECDSA Signature Verification Failed" },
+        { 0x15, "[Sensor error] Bootloader reports: Firmware Upload Failed: Bad Public Key CRC" },
+        { 0x16, "[Sensor error] Bootloader reports: Firmware Upload Failed: Signed Firmware Required" },
+        { 0x17, "[Sensor error] Bootloader reports: Firmware Upload Failed: FW Header Missing" },
+        { 0x19, "[Sensor error] Bootloader reports: Unexpected Watchdog Reset" },
+        { 0x1B, "[Sensor error] Bootloader reports: Fatal Firmware Error" },
+        { 0x1F, "[Sensor error] Bootloader reports: Bootloader Error: OTP CRC Invalid" },
+        { 0x44, "[Sensor error] Bootloader reports: Unhandled Interrupt Error / Exception / Postmortem Available" },
+        { 0xC0, "[Sensor error] Bootloader reports: Command Error" },
+        { 0xC1, "[Sensor error] Bootloader reports: Command Too Long" },
+        { 0xC2, "[Sensor error] Bootloader reports: Command Buffer Overflow" },
+    };
 
-    switch (sensor_error)
-    {
-        case 0x00:
-            break;
-        case 0x1A:
-            ret = "[Sensor error] ROM Version Mismatch";
-            break;
-        case 0x10:
-            ret = "[Sensor error] Bootloader reports: Firmware Expected Version Mismatch";
-            break;
-        case 0x11:
-            ret = "[Sensor error] Bootloader reports: Firmware Upload Failed: Bad Header CRC";
-            break;
-        case 0x12:
-            ret = "[Sensor error] Bootloader reports: Firmware Upload Failed: SHA Hash Mismatch";
-            break;
-        case 0x13:
-            ret = "[Sensor error] Bootloader reports: Firmware Upload Failed: Bad Image CRC";
-            break;
-        case 0x14:
-            ret = "[Sensor error] Bootloader reports: Firmware Upload Failed: ECDSA Signature Verification Failed";
-            break;
-        case 0x15:
-            ret = "[Sensor error] Bootloader reports: Firmware Upload Failed: Bad Public Key CRC";
-            break;
-        case 0x16:
-            ret = "[Sensor error] Bootloader reports: Firmware Upload Failed: Signed Firmware Required";
-            break;
-        case 0x17:
-            ret = "[Sensor error] Bootloader reports: Firmware Upload Failed: FW Header Missing";
-            break;
-        case 0x19:
-            ret = "[Sensor error] Bootloader reports: Unexpected Watchdog Reset";
-            break;
-        case 0x1B:
-            ret = "[Sensor error] Bootloader reports: Fatal Firmware Error";
-            break;
-        case 0x1F:
-            ret = "[Sensor error] Bootloader reports: Bootloader Error: OTP CRC Invalid";
-            break;
-        case 0x44:
-            ret = "[Sensor error] Bootloader reports: Unhandled Interrupt Error / Exception / Postmortem Available";
-            break;
-        case 0xC0:
-            ret = "[Sensor error] Bootloader reports: Command Error";
-            break;
-        case 0xC1:
-            ret = "[Sensor error] Bootloader reports: Command Too Long";
-            break;
-        case 0xC2:
-            ret = "[Sensor error] Bootloader reports: Command Buffer Overflow";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(bootloader_error_lut,
+                              sizeof(bootloader_error_lut) / sizeof(bootloader_error_lut[0]),
+                              sensor_error,
+                              " ");
 }
 
 /**
@@ -961,69 +637,25 @@ char *get_sensor_bootloader_error_text(uint8_t sensor_error)
 */
 char *get_sensor_errors_text(uint8_t sensor_error)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry sensor_error_lut[] = {
+        { 0x77, "[Sensor error] Host Download Channel Empty" }, { 0x78, "[Sensor error] DMA Error" },
+        { 0x79, "[Sensor error] Corrupted Input Block Chain" }, { 0x7A, "[Sensor error] Corrupted Output Block Chain" },
+        { 0x7B, "[Sensor error] Buffer Block Manager Error" },
+        { 0x7C, "[Sensor error] Input Channel Not Word Aligned" }, { 0x7D, "[Sensor error] Too Many Flush Events" },
+        { 0x7E, "[Sensor error] Unknown Host Channel Error" }, { 0x81, "[Sensor error] Decimation Too Large" },
+        { 0x90, "[Sensor error] Master SPI/I2C Queue Overflow" }, { 0x91, "[Sensor error] SPI/I2C Callback Error" },
+        { 0xA0, "[Sensor error] Timer Scheduling Error" }, { 0xB0, "[Sensor error] Invalid GPIO for Host IRQ" },
+        { 0xB1, "[Sensor error] Error Sending Initialized Meta Events" },
+        { 0xD0, "[Sensor error] User Mode Error: Sys Call Invalid" },
+        { 0xD1, "[Sensor error] User Mode Error: Trap Invalid" },
+        { 0xE1, "[Sensor error] Firmware Upload Failed: Firmware header corrupt" },
+        { 0xE2, "[Sensor error] Sensor Data Injection: Invalid input stream" },
+    };
 
-    switch (sensor_error)
-    {
-        case 0x77:
-            ret = "[Sensor error] Host Download Channel Empty";
-            break;
-        case 0x78:
-            ret = "[Sensor error] DMA Error";
-            break;
-        case 0x79:
-            ret = "[Sensor error] Corrupted Input Block Chain";
-            break;
-        case 0x7A:
-            ret = "[Sensor error] Corrupted Output Block Chain";
-            break;
-        case 0x7B:
-            ret = "[Sensor error] Buffer Block Manager Error";
-            break;
-        case 0x7C:
-            ret = "[Sensor error] Input Channel Not Word Aligned";
-            break;
-        case 0x7D:
-            ret = "[Sensor error] Too Many Flush Events";
-            break;
-        case 0x7E:
-            ret = "[Sensor error] Unknown Host Channel Error";
-            break;
-        case 0x81:
-            ret = "[Sensor error] Decimation Too Large";
-            break;
-        case 0x90:
-            ret = "[Sensor error] Master SPI/I2C Queue Overflow";
-            break;
-        case 0x91:
-            ret = "[Sensor error] SPI/I2C Callback Error";
-            break;
-        case 0xA0:
-            ret = "[Sensor error] Timer Scheduling Error";
-            break;
-        case 0xB0:
-            ret = "[Sensor error] Invalid GPIO for Host IRQ";
-            break;
-        case 0xB1:
-            ret = "[Sensor error] Error Sending Initialized Meta Events";
-            break;
-        case 0xD0:
-            ret = "[Sensor error] User Mode Error: Sys Call Invalid";
-            break;
-        case 0xD1:
-            ret = "[Sensor error] User Mode Error: Trap Invalid";
-            break;
-        case 0xE1:
-            ret = "[Sensor error] Firmware Upload Failed: Firmware header corrupt";
-            break;
-        case 0xE2:
-            ret = "[Sensor error] Sensor Data Injection: Invalid input stream";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(sensor_error_lut,
+                              sizeof(sensor_error_lut) / sizeof(sensor_error_lut[0]),
+                              sensor_error,
+                              " ");
 }
 
 /**
@@ -1033,60 +665,22 @@ char *get_sensor_errors_text(uint8_t sensor_error)
 */
 char *get_sensor_algo_error_text(uint8_t sensor_error)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry sensor_algo_error_lut[] = {
+        { 0x2D, "[Sensor error] Firmware Too Large" }, { 0x2F, "[Sensor error] Invalid RAM Banks" },
+        { 0x30, "[Sensor error] Math Error" }, { 0x40, "[Sensor error] Memory Error" },
+        { 0x41, "[Sensor error] SWI3 Error" }, { 0x42, "[Sensor error] SWI4 Error" },
+        { 0x43, "[Sensor error] Illegal Instruction Error" }, { 0x45, "[Sensor error] Invalid Memory Access" },
+        { 0x50, "[Sensor error] Algorithm Error: BSX Init" }, { 0x51, "[Sensor error] Algorithm Error: BSX Do Step" },
+        { 0x52, "[Sensor error] Algorithm Error: Update Sub" }, { 0x53, "[Sensor error] Algorithm Error: Get Sub" },
+        { 0x54, "[Sensor error] Algorithm Error: Get Phys" },
+        { 0x55, "[Sensor error] Algorithm Error: Unsupported Phys Rate" },
+        { 0x56, "[Sensor error] Algorithm Error: Cannot find BSX Driver" },
+    };
 
-    switch (sensor_error)
-    {
-        case 0x2D:
-            ret = "[Sensor error] Firmware Too Large";
-            break;
-        case 0x2F:
-            ret = "[Sensor error] Invalid RAM Banks";
-            break;
-        case 0x30:
-            ret = "[Sensor error] Math Error";
-            break;
-        case 0x40:
-            ret = "[Sensor error] Memory Error";
-            break;
-        case 0x41:
-            ret = "[Sensor error] SWI3 Error";
-            break;
-        case 0x42:
-            ret = "[Sensor error] SWI4 Error";
-            break;
-        case 0x43:
-            ret = "[Sensor error] Illegal Instruction Error";
-            break;
-        case 0x45:
-            ret = "[Sensor error] Invalid Memory Access";
-            break;
-        case 0x50:
-            ret = "[Sensor error] Algorithm Error: BSX Init";
-            break;
-        case 0x51:
-            ret = "[Sensor error] Algorithm Error: BSX Do Step";
-            break;
-        case 0x52:
-            ret = "[Sensor error] Algorithm Error: Update Sub";
-            break;
-        case 0x53:
-            ret = "[Sensor error] Algorithm Error: Get Sub";
-            break;
-        case 0x54:
-            ret = "[Sensor error] Algorithm Error: Get Phys";
-            break;
-        case 0x55:
-            ret = "[Sensor error] Algorithm Error: Unsupported Phys Rate";
-            break;
-        case 0x56:
-            ret = "[Sensor error] Algorithm Error: Cannot find BSX Driver";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(sensor_algo_error_lut,
+                              sizeof(sensor_algo_error_lut) / sizeof(sensor_algo_error_lut[0]),
+                              sensor_error,
+                              " ");
 }
 
 /**
@@ -1096,48 +690,21 @@ char *get_sensor_algo_error_text(uint8_t sensor_error)
 */
 char *get_sensor_self_test_error_text(uint8_t sensor_error)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry sensor_self_test_error_lut[] = {
+        { 0x60, "[Sensor error] Sensor Self-Test Failure" }, { 0x61, "[Sensor error] Sensor Self-Test X Axis Failure" },
+        { 0x62, "[Sensor error] Sensor Self-Test Y Axis Failure" },
+        { 0x64, "[Sensor error] Sensor Self-Test Z Axis Failure" }, { 0x65, "[Sensor error] FOC Failure" },
+        { 0x66, "[Sensor error] Sensor Busy" }, { 0x6F, "[Sensor error] Self-Test or FOC Test Unsupported" },
+        { 0x72, "[Sensor error] No Host Interrupt Set" },
+        { 0x73, "[Sensor error] Event ID Passed to Host Interface Has No Known Size" },
+        { 0x75, "[Sensor error] Host Download Channel Underflow (Host Read Too Fast)" },
+        { 0x76, "[Sensor error] Host Upload Channel Overflow (Host Wrote Too Fast)" },
+    };
 
-    switch (sensor_error)
-    {
-        case 0x60:
-            ret = "[Sensor error] Sensor Self-Test Failure";
-            break;
-        case 0x61:
-            ret = "[Sensor error] Sensor Self-Test X Axis Failure";
-            break;
-        case 0x62:
-            ret = "[Sensor error] Sensor Self-Test Y Axis Failure";
-            break;
-        case 0x64:
-            ret = "[Sensor error] Sensor Self-Test Z Axis Failure";
-            break;
-        case 0x65:
-            ret = "[Sensor error] FOC Failure";
-            break;
-        case 0x66:
-            ret = "[Sensor error] Sensor Busy";
-            break;
-        case 0x6F:
-            ret = "[Sensor error] Self-Test or FOC Test Unsupported";
-            break;
-        case 0x72:
-            ret = "[Sensor error] No Host Interrupt Set";
-            break;
-        case 0x73:
-            ret = "[Sensor error] Event ID Passed to Host Interface Has No Known Size";
-            break;
-        case 0x75:
-            ret = "[Sensor error] Host Download Channel Underflow (Host Read Too Fast)";
-            break;
-        case 0x76:
-            ret = "[Sensor error] Host Upload Channel Overflow (Host Wrote Too Fast)";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(sensor_self_test_error_lut,
+                              sizeof(sensor_self_test_error_lut) / sizeof(sensor_self_test_error_lut[0]),
+                              sensor_error,
+                              " ");
 }
 
 /**
@@ -1147,64 +714,25 @@ char *get_sensor_self_test_error_text(uint8_t sensor_error)
 */
 char *get_sensor_misc_error_text(uint8_t sensor_error)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry sensor_misc_error_lut[] = {
+        { 0x1C, "[Sensor error] Chained Firmware Error: Next Payload Not Found" },
+        { 0x1D, "[Sensor error] Chained Firmware Error: Payload Not Valid" },
+        { 0x1E, "[Sensor error] Chained Firmware Error: Payload Entries Invalid" },
+        { 0x20, "[Sensor error] Firmware Init Failed" },
+        { 0x21, "[Sensor error] Sensor Init Failed: Unexpected Device ID" },
+        { 0x22, "[Sensor error] Sensor Init Failed: No Response from Device" },
+        { 0x23, "[Sensor error] Sensor Init Failed: Unknown" }, { 0x24, "[Sensor error] Sensor Error: No Valid Data" },
+        { 0x25, "[Sensor error] Slow Sample Rate" }, { 0x26, "[Sensor error] Data Overflow (saturated sensor data)" },
+        { 0x27, "[Sensor error] Stack Overflow" }, { 0x28, "[Sensor error] Insufficient Free RAM" },
+        { 0x29, "[Sensor error] Sensor Init Failed: Driver Parsing Error" },
+        { 0x2A, "[Sensor error] Too Many RAM Banks Required" }, { 0x2B, "[Sensor error] Invalid Event Specified" },
+        { 0x2C, "[Sensor error] More than 32 On Change" },
+    };
 
-    switch (sensor_error)
-    {
-        case 0x1C:
-            ret = "[Sensor error] Chained Firmware Error: Next Payload Not Found";
-            break;
-        case 0x1D:
-            ret = "[Sensor error] Chained Firmware Error: Payload Not Valid";
-            break;
-        case 0x1E:
-            ret = "[Sensor error] Chained Firmware Error: Payload Entries Invalid";
-            break;
-        case 0x20:
-            ret = "[Sensor error] Firmware Init Failed";
-            break;
-        case 0x21:
-            ret = "[Sensor error] Sensor Init Failed: Unexpected Device ID";
-            break;
-        case 0x22:
-            ret = "[Sensor error] Sensor Init Failed: No Response from Device";
-            break;
-        case 0x23:
-            ret = "[Sensor error] Sensor Init Failed: Unknown";
-            break;
-        case 0x24:
-            ret = "[Sensor error] Sensor Error: No Valid Data";
-            break;
-        case 0x25:
-            ret = "[Sensor error] Slow Sample Rate";
-            break;
-        case 0x26:
-            ret = "[Sensor error] Data Overflow (saturated sensor data)";
-            break;
-        case 0x27:
-            ret = "[Sensor error] Stack Overflow";
-            break;
-        case 0x28:
-            ret = "[Sensor error] Insufficient Free RAM";
-            break;
-        case 0x29:
-            ret = "[Sensor error] Sensor Init Failed: Driver Parsing Error";
-            break;
-        case 0x2A:
-            ret = "[Sensor error] Too Many RAM Banks Required";
-            break;
-        case 0x2B:
-            ret = "[Sensor error] Invalid Event Specified";
-            break;
-        case 0x2C:
-            ret = "[Sensor error] More than 32 On Change";
-            break;
-        default:
-            ret = "[Sensor error] Unknown error code";
-            break;
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(sensor_misc_error_lut,
+                              sizeof(sensor_misc_error_lut) / sizeof(sensor_misc_error_lut[0]),
+                              sensor_error,
+                              "[Sensor error] Unknown error code");
 }
 
 /**
@@ -1242,120 +770,35 @@ char *get_sensor_error_text(uint8_t sensor_error)
 }
 
 /**
-* @brief Function to get some physical sensor names
-* @param[in] sensor_id  : Sensor ID
-* @return String represents physical sensor name
-*/
-char *get_physical_sensor_names(uint8_t sensor_id)
-{
-    char *ret = " ";
-
-    switch (sensor_id)
-    {
-        case BHY_PHYS_SENSOR_ID_ACCELEROMETER:
-            ret = "Accelerometer";
-            break;
-        case BHY_PHYS_SENSOR_ID_NOT_SUPPORTED:
-            ret = "Not supported now";
-            break;
-        case BHY_PHYS_SENSOR_ID_GYROSCOPE:
-            ret = "Gyroscope";
-            break;
-        case BHY_PHYS_SENSOR_ID_MAGNETOMETER:
-            ret = "Magnetometer";
-            break;
-        case BHY_PHYS_SENSOR_ID_TEMP_GYRO:
-            ret = "Temperature Gyroscope";
-            break;
-        case BHY_PHYS_SENSOR_ID_ANY_MOTION:
-            ret = "Any Motion not available now";
-            break;
-        case BHY_PHYS_SENSOR_ID_PRESSURE:
-            ret = "Pressure";
-            break;
-        case BHY_PHYS_SENSOR_ID_POSITION:
-            ret = "Position";
-            break;
-        case BHY_PHYS_SENSOR_ID_HUMIDITY:
-            ret = "Humidity";
-            break;
-        case BHY_PHYS_SENSOR_ID_TEMPERATURE:
-            ret = "Temperature";
-            break;
-        case BHY_PHYS_SENSOR_ID_GAS_RESISTOR:
-            ret = "Gas Resistor";
-            break;
-        case BHY_PHYS_SENSOR_ID_MAGNETOMETER_DUMMY:
-            ret = "Magnetometer dummy";
-            break;
-        case BHY_PHYS_SENSOR_ID_PHYS_STEP_COUNTER:
-            ret = "Step Counter";
-            break;
-        case BHY_PHYS_SENSOR_ID_PHYS_STEP_DETECTOR:
-            ret = "Step Detector";
-            break;
-        default:
-            break;
-    }
-
-    return ret;
-}
-
-/**
 * @brief Function to get physical sensor name
 * @param[in] sensor_id  : Sensor ID
 * @return String represents physical sensor name
 */
 char *get_physical_sensor_name(uint8_t sensor_id)
 {
-    char *ret;
+    static const bhy_str_lookup_entry physical_sensor_names[] = {
+        { BHY_PHYS_SENSOR_ID_ACCELEROMETER, "Accelerometer" }, { BHY_PHYS_SENSOR_ID_GYROSCOPE, "Gyroscope" },
+        { BHY_PHYS_SENSOR_ID_MAGNETOMETER, "Magnetometer" }, { BHY_PHYS_SENSOR_ID_TEMP_GYRO, "Temperature Gyroscope" },
+        { BHI360_PHYS_SENSOR_ID_BME_TEMP, "BME Temperature" }, { BHY_PHYS_SENSOR_ID_POSITION, "Position" },
+        { BHY_PHYS_SENSOR_ID_HUMIDITY, "Humidity" }, { BHY_PHYS_SENSOR_ID_TEMPERATURE, "Temperature" },
+        { BHY_PHYS_SENSOR_ID_GAS_RESISTOR, "Gas Resistor" },
+        { BHY_PHYS_SENSOR_ID_MAGNETOMETER_DUMMY, "Magnetometer dummy" },
+        { BHY_PHYS_SENSOR_ID_PHYS_STEP_COUNTER, "Step Counter" },
+        { BHY_PHYS_SENSOR_ID_PHYS_STEP_DETECTOR, "Step Detector" },
+        { BHY_PHYS_SENSOR_ID_PHYS_SIGN_MOTION, "Significant Motion" },
+        { BHY_PHYS_SENSOR_ID_PHYS_ANY_MOTION, "Any Motion" }, { BHI360_PHYS_SENSOR_ID_FEATURE_CORE, "Feature Core" },
+        { BHY_PHYS_SENSOR_ID_GPS, "GPS" }, { BHY_PHYS_SENSOR_ID_LIGHT, "Light" },
+        { BHY_PHYS_SENSOR_ID_PROXIMITY, "Proximity" }, { BHY_PHYS_SENSOR_ID_ACT_REC, "Activity Recognition" },
+        { BHY_PHYS_SENSOR_ID_PHYS_NO_MOTION, "No Motion" },
+        { BHY_PHYS_SENSOR_ID_WRIST_GESTURE_DETECT, "Wrist Gesture Detector" },
+        { BHY_PHYS_SENSOR_ID_WRIST_WEAR_WAKEUP, "Wrist Wear Wakeup" },
+        { BHY_PHYS_SENSOR_ID_BMP_TEMPERATURE, "BMP Temperature" }, { BHY_PHYS_SENSOR_ID_BMP_PRESSURE, "BMP Pressure" },
+    };
 
-    ret = get_physical_sensor_names(sensor_id);
-
-    if (strcmp(ret, " ") == 0)
-    {
-        switch (sensor_id)
-        {
-            case BHY_PHYS_SENSOR_ID_PHYS_SIGN_MOTION:
-                ret = "Significant Motion";
-                break;
-            case BHY_PHYS_SENSOR_ID_PHYS_ANY_MOTION:
-                ret = "Any Motion";
-                break;
-            case BHY_PHYS_SENSOR_ID_EX_CAMERA_INPUT:
-                ret = "External Camera Input";
-                break;
-            case BHY_PHYS_SENSOR_ID_GPS:
-                ret = "GPS";
-                break;
-            case BHY_PHYS_SENSOR_ID_LIGHT:
-                ret = "Light";
-                break;
-            case BHY_PHYS_SENSOR_ID_PROXIMITY:
-                ret = "Proximity";
-                break;
-            case BHY_PHYS_SENSOR_ID_ACT_REC:
-                ret = "Activity Recognition";
-                break;
-            case BHY_PHYS_SENSOR_ID_PHYS_NO_MOTION:
-                ret = "No Motion";
-                break;
-            case BHY_PHYS_SENSOR_ID_WRIST_GESTURE_DETECT:
-                ret = "Wrist Gesture Detector";
-                break;
-            case BHY_PHYS_SENSOR_ID_WRIST_WEAR_WAKEUP:
-                ret = "Wrist Wear Wakeup";
-                break;
-            case BHY_PHYS_SENSOR_ID_BMP_PRESSURE:
-                ret = "BMP Pressure";
-                break;
-            default:
-                ret = "Undefined sensor ID ";
-                break;
-        }
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(physical_sensor_names,
+                              sizeof(physical_sensor_names) / sizeof(physical_sensor_names[0]),
+                              sensor_id,
+                              "Undefined physical sensor ID");
 }
 
 /**
@@ -1689,25 +1132,21 @@ char *get_sensor_parse_format(uint8_t sensor_id)
 */
 char *get_sensor_axes_name(uint8_t sensor_id)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry sensor_axes_name_lut[] = {
+        { BHY_SENSOR_ID_TEMP, "t" }, { BHY_SENSOR_ID_TEMP_WU, "t" }, { BHY_SENSOR_BMP_TEMPERATURE, "t" },
+        { BHY_SENSOR_BMP_TEMPERATURE_WU, "t" }, { BHY_SENSOR_ID_TILT_DETECTOR, "e" }, { BHY_SENSOR_ID_STD, "e" },
+        { BHY_SENSOR_ID_SIG, "e" }, { BHY_SENSOR_ID_WAKE_GESTURE, "e" }, { BHY_SENSOR_ID_GLANCE_GESTURE, "e" },
+        { BHY_SENSOR_ID_PICKUP_GESTURE, "e" }, { BHY_SENSOR_ID_STD_WU, "e" }, { BHY_SENSOR_ID_SIG_LP_WU, "e" },
+        { BHY_SENSOR_ID_STD_LP, "e" }, { BHY_SENSOR_ID_STD_LP_WU, "e" }, { BHY_SENSOR_ID_WRIST_TILT_GESTURE, "e" },
+        { BHY_SENSOR_ID_STATIONARY_DET, "e" }, { BHY_SENSOR_ID_ANY_MOTION_LP_WU, "e" },
+        { BHY_SENSOR_ID_NO_MOTION_LP_WU, "e" }, { BHY_SENSOR_ID_MOTION_DET, "e" },
+        { BHY_SENSOR_ID_WRIST_WEAR_LP_WU, "e" },
+    };
 
-    if ((sensor_id == BHY_SENSOR_ID_TEMP) || (sensor_id == BHY_SENSOR_ID_TEMP_WU) ||
-        (sensor_id == BHY_SENSOR_BMP_TEMPERATURE) || (sensor_id == BHY_SENSOR_BMP_TEMPERATURE_WU))
-    {
-        ret = "t";
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_TILT_DETECTOR) || (sensor_id == BHY_SENSOR_ID_STD) ||
-             ((sensor_id >= BHY_SENSOR_ID_SIG) && (sensor_id <= BHY_SENSOR_ID_PICKUP_GESTURE)) ||
-             (sensor_id == BHY_SENSOR_ID_STD_WU) || (sensor_id == BHY_SENSOR_ID_SIG_LP_WU) ||
-             (sensor_id == BHY_SENSOR_ID_STD_LP) || (sensor_id == BHY_SENSOR_ID_STD_LP_WU) ||
-             (sensor_id == BHY_SENSOR_ID_WRIST_TILT_GESTURE) || (sensor_id == BHY_SENSOR_ID_STATIONARY_DET) ||
-             (sensor_id == BHY_SENSOR_ID_ANY_MOTION_LP_WU) || (sensor_id == BHY_SENSOR_ID_NO_MOTION_LP_WU) ||
-             (sensor_id == BHY_SENSOR_ID_MOTION_DET) || (sensor_id == BHY_SENSOR_ID_WRIST_WEAR_LP_WU))
-    {
-        ret = "e";
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(sensor_axes_name_lut,
+                              sizeof(sensor_axes_name_lut) / sizeof(sensor_axes_name_lut[0]),
+                              sensor_id,
+                              " ");
 }
 
 /**
@@ -1717,56 +1156,22 @@ char *get_sensor_axes_name(uint8_t sensor_id)
 */
 char *get_sensor_axis_name_format(uint8_t sensor_id)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry sensor_axis_name_format_lut[] = {
+        { BHY_SENSOR_ID_AR, "a" }, { BHY_SENSOR_ID_AR_WEAR_WU, "a" },
+        { BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU, "wrist_gesture" }, { BHY_SENSOR_ID_MULTI_TAP, "taps" },
+        { BHY_SENSOR_ID_AIR_QUALITY, "t,h,g,i,si,c,v,a" }, { BHY_SENSOR_ID_HEAD_ORI_MIS_ALG, "x,y,z,w" },
+        { BHY_SENSOR_ID_IMU_HEAD_ORI_Q, "x,y,z,w" }, { BHY_SENSOR_ID_NDOF_HEAD_ORI_Q, "x,y,z,w" },
+        { BHY_SENSOR_ID_IMU_HEAD_ORI_E, "h,p,r" }, { BHY_SENSOR_ID_NDOF_HEAD_ORI_E, "h,p,r" },
+        { BHY_SENSOR_ID_BARO, "p" }, { BHY_SENSOR_ID_BARO_WU, "p" }, { BHY_SENSOR_ID_PRESSURE, "p" },
+        { BHY_SENSOR_ID_PRESSURE_WU, "p" }, { BHY_SENSOR_ID_HUM, "h" }, { BHY_SENSOR_ID_HUM_WU, "h" },
+        { BHY_SENSOR_ID_HEAD_GESTURE, "g" }, { BHY_SENSOR_ID_STC, "sc" }, { BHY_SENSOR_ID_STC_WU, "sc" },
+        { BHY_SENSOR_ID_STC_LP, "sc" }, { BHY_SENSOR_ID_STC_LP_WU, "sc" },
+    };
 
-    if ((sensor_id == BHY_SENSOR_ID_AR) || (sensor_id == BHY_SENSOR_ID_AR_WEAR_WU))
-    {
-        ret = "a";
-    }
-    else if (sensor_id == BHY_SENSOR_ID_WRIST_GEST_DETECT_LP_WU)
-    {
-        ret = "wrist_gesture";
-    }
-    else if (sensor_id == BHY_SENSOR_ID_MULTI_TAP)
-    {
-        ret = "taps";
-    }
-    else if (sensor_id == BHY_SENSOR_ID_AIR_QUALITY)
-    {
-        ret = "t,h,g,i,si,c,v,a";
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_HEAD_ORI_MIS_ALG) || (sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_Q) ||
-             (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_Q))
-    {
-        ret = "x,y,z,w";
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_IMU_HEAD_ORI_E) || (sensor_id == BHY_SENSOR_ID_NDOF_HEAD_ORI_E))
-    {
-        ret = "h,p,r";
-    }
-    else if (is_baro_sensor(sensor_id))
-    {
-        ret = "p";
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_HUM) || (sensor_id == BHY_SENSOR_ID_HUM_WU))
-    {
-        ret = "h";
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_HEAD_GESTURE))
-    {
-        ret = "g";
-    }
-    else if ((sensor_id == BHY_SENSOR_ID_STC) || (sensor_id == BHY_SENSOR_ID_STC_WU) ||
-             (sensor_id == BHY_SENSOR_ID_STC_LP) || (sensor_id == BHY_SENSOR_ID_STC_LP_WU))
-    {
-        ret = "sc";
-    }
-    else
-    {
-        ret = "";
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(sensor_axis_name_format_lut,
+                              sizeof(sensor_axis_name_format_lut) / sizeof(sensor_axis_name_format_lut[0]),
+                              sensor_id,
+                              " ");
 }
 
 /**
@@ -1795,41 +1200,19 @@ char *get_sensor_axis_names(uint8_t sensor_id)
 
 char *get_klio_error(bhy_klio_param_driver_error_state_t error)
 {
-    char *ret = " ";
+    static const bhy_str_lookup_entry klio_error_codes[] = {
+        { BHY_KLIO_DRIVER_ERROR_NONE, "No error" }, { BHY_KLIO_DRIVER_ERROR_INVALID_PARAMETER, "Invalid parameter" },
+        { BHY_KLIO_DRIVER_ERROR_PARAMETER_OUT_OF_RANGE, "Parameter out of range" },
+        { BHY_KLIO_DRIVER_ERROR_INVALID_PATTERN_OPERATION, "Invalid pattern operation" },
+        { BHY_KLIO_DRIVER_ERROR_NOT_IMPLEMENTED, "Not implemented" }, { BHY_KLIO_DRIVER_ERROR_BUFSIZE, "Buffer size" },
+        { BHY_KLIO_DRIVER_ERROR_INTERNAL, "Internal" }, { BHY_KLIO_DRIVER_ERROR_UNDEFINED, "Undefined" },
+        { BHY_KLIO_DRIVER_ERROR_OPERATION_PENDING, "Operation pending" },
+    };
 
-    switch (error)
-    {
-        case BHY_KLIO_DRIVER_ERROR_NONE:
-            break;
-        case BHY_KLIO_DRIVER_ERROR_INVALID_PARAMETER:
-            ret = "[Klio error] Invalid parameter";
-            break;
-        case BHY_KLIO_DRIVER_ERROR_PARAMETER_OUT_OF_RANGE:
-            ret = "[Klio error] Parameter out of range";
-            break;
-        case BHY_KLIO_DRIVER_ERROR_INVALID_PATTERN_OPERATION:
-            ret = "[Klio error] Invalid pattern operation";
-            break;
-        case BHY_KLIO_DRIVER_ERROR_NOT_IMPLEMENTED:
-            ret = "[Klio error] Not implemented";
-            break;
-        case BHY_KLIO_DRIVER_ERROR_BUFSIZE:
-            ret = "[Klio error] Buffer size";
-            break;
-        case BHY_KLIO_DRIVER_ERROR_INTERNAL:
-            ret = "[Klio error] Internal";
-            break;
-        case BHY_KLIO_DRIVER_ERROR_UNDEFINED:
-            ret = "[Klio error] Undefined";
-            break;
-        case BHY_KLIO_DRIVER_ERROR_OPERATION_PENDING:
-            ret = "[Klio error] Operation pending";
-            break;
-        default:
-            ret = "[Klio error] Unknown error code";
-    }
-
-    return ret;
+    return bhy_str_lut_lookup(klio_error_codes,
+                              sizeof(klio_error_codes) / sizeof(klio_error_codes[0]),
+                              error,
+                              "Unknown error code");
 }
 
 #ifndef PC
